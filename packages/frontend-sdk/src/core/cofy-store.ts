@@ -36,8 +36,10 @@ export class CofyStore {
     this.allowedResources = new AllowedResourcesStore(api);
 
     this.communities = new CommunityStore(api, ({ action, id: slug }) => {
-      // Whoever creates a community is given a role on it.
+      // What the person logged in may do is reported per community, so a new one is missing from it.
       if (action === "create") this.session.invalidate();
+      // Changing a community's settings leaves its API behind until it reloads.
+      if (action === "replace") this.status.invalidate(slug);
       if (action === "delete") this.forget(slug);
     });
 

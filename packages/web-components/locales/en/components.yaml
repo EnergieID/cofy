@@ -7,11 +7,31 @@ communityList:
   title: Communities
   description: Each community is one Cofy configuration.
   empty: There are no communities you have access to. Ask an administrator to grant you access.
+  add: New community
+  edit: Edit
+  delete: Delete
+  deleting: Deleting…
+  deleteConfirm: "Delete {{name}}? Its modules, resources, secrets, API tokens and access are deleted with it, and its API stops."
   columns:
     community: Community
     slug: Slug
     modules: Modules
     status: Status
+    actions: Actions
+
+communityDialog:
+  title: New community
+  changeTitle: "Change {{name}}"
+  slug: Slug
+  slugHint: The community's name in its API address. Letters, digits, - and _ only; it cannot be changed later.
+  name: Name
+  description: Description
+  debugMode: Debug mode
+  debugModeHint: Records debug traces of what the API computes.
+  create: Create
+  save: Save
+  saving: Saving…
+  cancel: Cancel
 
 apiLink:
   copy: Copy the address

@@ -99,11 +99,11 @@ def test_a_grant_left_in_a_deleted_community_lists_nothing(users: dict[str, User
 ON_ONE_COMMUNITY = {"get", "put", "delete"}
 
 
-def test_a_community_admin_may_see_and_edit_but_not_delete_their_community(users: dict[str, User]):
-    assert ON_ONE_COMMUNITY & community(users["admin_of_a"]) == {"get", "put"}
+def test_a_community_admin_may_see_but_not_change_their_community(users: dict[str, User]):
+    assert ON_ONE_COMMUNITY & community(users["admin_of_a"]) == {"get"}
 
 
-def test_a_system_admin_may_delete_a_community(users: dict[str, User]):
+def test_a_system_admin_may_change_and_delete_a_community(users: dict[str, User]):
     assert ON_ONE_COMMUNITY & community(users["system_admin"]) == ON_ONE_COMMUNITY
 
 
