@@ -6,31 +6,35 @@ from typing import TYPE_CHECKING, Literal
 import narwhals as nw
 from pydantic import Field
 
-from cofy.modules.timeseries import ISODuration, Timeseries, TimeseriesSource, TimeseriesSourceSettings
+from cofy.modules.timeseries import CacheSettings, ISODuration, Timeseries
+
+from ..source import NetVolumeSource, NetVolumeSourceSettings, RatioSource, RatioSourceSettings
 
 if TYPE_CHECKING:
     # Published at runtime by finalize(); the base class is the static stand-in.
-    AnyTimeseriesSourceSettings = TimeseriesSourceSettings
+    AnyNetVolumeSourceSettings = NetVolumeSourceSettings
 
 
-class SimultaneitySourceSettings(TimeseriesSourceSettings):
+class SimultaneitySourceSettings(RatioSourceSettings):
     type: Literal["simultaneity"] = "simultaneity"
     # Unresolved until cofy.api.finalize() publishes the discriminated unions.
-    sources: "list[AnyTimeseriesSourceSettings]" = Field(min_length=1)
+    sources: "list[AnyNetVolumeSourceSettings]" = Field(min_length=1)
 
 
-class SimultaneitySource(TimeseriesSource, settings=SimultaneitySourceSettings):
-    def __init__(self, sources: Sequence[TimeseriesSource]):
+class SimultaneitySource(RatioSource, settings=SimultaneitySourceSettings):
+    def __init__(self, sources: Sequence[NetVolumeSource], cache: CacheSettings | None = None):
         """Total consumption as a percentage of total production per timestamp, over sources of net volumes.
 
         Args:
             sources: Sources of net volumes, positive for consumption and negative for production.
+            cache: Cache what this source fetches, see `TimeseriesSource`.
         """
+        super().__init__(cache=cache)
         if not sources:
             raise ValueError("At least one source must be provided")
         self.sources = sources
 
-    async def fetch_timeseries(
+    async def _fetch_timeseries(
         self,
         start: dt.datetime,
         end: dt.datetime,
