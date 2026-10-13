@@ -313,68 +313,6 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** AccCapacityMemberSettings */
-        "AccCapacityMemberSettings-Input": {
-            /** Source */
-            source: (components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["RefSettings"]) | (components["schemas"]["AccPoolClusterSettings-Input"] | components["schemas"]["AccProducerPriorityClusterSettings-Input"] | components["schemas"]["AccCapacityPriorityClusterSettings-Input"] | components["schemas"]["AccProducerShareClusterSettings-Input"]);
-            /**
-             * Type
-             * @default acc_capacity_member
-             * @constant
-             */
-            type?: "acc_capacity_member";
-            /**
-             * Role
-             * @default prosumer
-             * @enum {string}
-             */
-            role?: "consumer" | "producer" | "prosumer";
-            /** Consumption Capacity Kwh */
-            consumption_capacity_kwh?: number | null;
-            /** Production Capacity Kwh */
-            production_capacity_kwh?: number | null;
-        };
-        /** AccCapacityMemberSettings */
-        "AccCapacityMemberSettings-Output": {
-            /** Source */
-            source: (components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["RefSettings"]) | (components["schemas"]["AccPoolClusterSettings-Output"] | components["schemas"]["AccProducerPriorityClusterSettings-Output"] | components["schemas"]["AccCapacityPriorityClusterSettings-Output"] | components["schemas"]["AccProducerShareClusterSettings-Output"]);
-            /**
-             * Type
-             * @default acc_capacity_member
-             * @constant
-             */
-            type?: "acc_capacity_member";
-            /**
-             * Role
-             * @default prosumer
-             * @enum {string}
-             */
-            role?: "consumer" | "producer" | "prosumer";
-            /** Consumption Capacity Kwh */
-            consumption_capacity_kwh?: number | null;
-            /** Production Capacity Kwh */
-            production_capacity_kwh?: number | null;
-        };
-        /** AccCapacityPriorityClusterSettings */
-        "AccCapacityPriorityClusterSettings-Input": {
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            type: "capacity_priority";
-            /** Members */
-            members: components["schemas"]["AccCapacityMemberSettings-Input"][];
-        };
-        /** AccCapacityPriorityClusterSettings */
-        "AccCapacityPriorityClusterSettings-Output": {
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            type: "capacity_priority";
-            /** Members */
-            members: components["schemas"]["AccCapacityMemberSettings-Output"][];
-        };
         /** AccForecastSettings */
         "AccForecastSettings-Input": {
             /**
@@ -410,190 +348,6 @@ export interface components {
              * @default https://connection-usage-service-prd-730943142752.europe-west1.run.app
              */
             base_url?: string;
-        };
-        /** AccPoolClusterSettings */
-        "AccPoolClusterSettings-Input": {
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            type: "pool";
-            /** Members */
-            members: components["schemas"]["AccPoolMemberSettings-Input"][];
-        };
-        /** AccPoolClusterSettings */
-        "AccPoolClusterSettings-Output": {
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            type: "pool";
-            /** Members */
-            members: components["schemas"]["AccPoolMemberSettings-Output"][];
-        };
-        /** AccPoolMemberSettings */
-        "AccPoolMemberSettings-Input": {
-            /** Source */
-            source: (components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["RefSettings"]) | (components["schemas"]["AccPoolClusterSettings-Input"] | components["schemas"]["AccProducerPriorityClusterSettings-Input"] | components["schemas"]["AccCapacityPriorityClusterSettings-Input"] | components["schemas"]["AccProducerShareClusterSettings-Input"]);
-            /**
-             * Type
-             * @default acc_pool_member
-             * @constant
-             */
-            type?: "acc_pool_member";
-        };
-        /** AccPoolMemberSettings */
-        "AccPoolMemberSettings-Output": {
-            /** Source */
-            source: (components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["RefSettings"]) | (components["schemas"]["AccPoolClusterSettings-Output"] | components["schemas"]["AccProducerPriorityClusterSettings-Output"] | components["schemas"]["AccCapacityPriorityClusterSettings-Output"] | components["schemas"]["AccProducerShareClusterSettings-Output"]);
-            /**
-             * Type
-             * @default acc_pool_member
-             * @constant
-             */
-            type?: "acc_pool_member";
-        };
-        /** AccPriorityMemberSettings */
-        "AccPriorityMemberSettings-Input": {
-            /** Source */
-            source: (components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["RefSettings"]) | (components["schemas"]["AccPoolClusterSettings-Input"] | components["schemas"]["AccProducerPriorityClusterSettings-Input"] | components["schemas"]["AccCapacityPriorityClusterSettings-Input"] | components["schemas"]["AccProducerShareClusterSettings-Input"]);
-            /**
-             * Type
-             * @default acc_priority_member
-             * @constant
-             */
-            type?: "acc_priority_member";
-            /**
-             * Role
-             * @default prosumer
-             * @enum {string}
-             */
-            role?: "consumer" | "producer" | "prosumer";
-        };
-        /** AccPriorityMemberSettings */
-        "AccPriorityMemberSettings-Output": {
-            /** Source */
-            source: (components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["RefSettings"]) | (components["schemas"]["AccPoolClusterSettings-Output"] | components["schemas"]["AccProducerPriorityClusterSettings-Output"] | components["schemas"]["AccCapacityPriorityClusterSettings-Output"] | components["schemas"]["AccProducerShareClusterSettings-Output"]);
-            /**
-             * Type
-             * @default acc_priority_member
-             * @constant
-             */
-            type?: "acc_priority_member";
-            /**
-             * Role
-             * @default prosumer
-             * @enum {string}
-             */
-            role?: "consumer" | "producer" | "prosumer";
-        };
-        /** AccProducerPriorityClusterSettings */
-        "AccProducerPriorityClusterSettings-Input": {
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            type: "producer_priority";
-            /** Members */
-            members: components["schemas"]["AccPriorityMemberSettings-Input"][];
-        };
-        /** AccProducerPriorityClusterSettings */
-        "AccProducerPriorityClusterSettings-Output": {
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            type: "producer_priority";
-            /** Members */
-            members: components["schemas"]["AccPriorityMemberSettings-Output"][];
-        };
-        /** AccProducerShareClusterSettings */
-        "AccProducerShareClusterSettings-Input": {
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            type: "producer_share";
-            /** Members */
-            members: components["schemas"]["AccShareMemberSettings-Input"][];
-        };
-        /** AccProducerShareClusterSettings */
-        "AccProducerShareClusterSettings-Output": {
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            type: "producer_share";
-            /** Members */
-            members: components["schemas"]["AccShareMemberSettings-Output"][];
-        };
-        /** AccShareMemberSettings */
-        "AccShareMemberSettings-Input": {
-            /**
-             * Type
-             * @default acc_share_member
-             * @constant
-             */
-            type?: "acc_share_member";
-            /** Source */
-            source: components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["RefSettings"];
-            /**
-             * Role
-             * @default prosumer
-             * @enum {string}
-             */
-            role?: "consumer" | "producer" | "prosumer";
-            /**
-             * Share Ratio
-             * @default 1
-             */
-            share_ratio?: number;
-        };
-        /** AccShareMemberSettings */
-        "AccShareMemberSettings-Output": {
-            /**
-             * Type
-             * @default acc_share_member
-             * @constant
-             */
-            type?: "acc_share_member";
-            /** Source */
-            source: components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["RefSettings"];
-            /**
-             * Role
-             * @default prosumer
-             * @enum {string}
-             */
-            role?: "consumer" | "producer" | "prosumer";
-            /**
-             * Share Ratio
-             * @default 1
-             */
-            share_ratio?: number;
-        };
-        /** AccSimultaneitySourceSettings */
-        "AccSimultaneitySourceSettings-Input": {
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            type: "acc_simultaneity";
-            /** @description Cache what this source fetches, if set. */
-            cache?: components["schemas"]["CacheSettings-Input"] | null;
-            /** Cluster */
-            cluster: components["schemas"]["AccPoolClusterSettings-Input"] | components["schemas"]["AccProducerPriorityClusterSettings-Input"] | components["schemas"]["AccCapacityPriorityClusterSettings-Input"] | components["schemas"]["AccProducerShareClusterSettings-Input"];
-        };
-        /** AccSimultaneitySourceSettings */
-        "AccSimultaneitySourceSettings-Output": {
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            type: "acc_simultaneity";
-            /** @description Cache what this source fetches, if set. */
-            cache?: components["schemas"]["CacheSettings-Output"] | null;
-            /** Cluster */
-            cluster: components["schemas"]["AccPoolClusterSettings-Output"] | components["schemas"]["AccProducerPriorityClusterSettings-Output"] | components["schemas"]["AccCapacityPriorityClusterSettings-Output"] | components["schemas"]["AccProducerShareClusterSettings-Output"];
         };
         /**
          * Action
@@ -928,7 +682,7 @@ export interface components {
             /** @description Cache what this source fetches, if set. */
             cache?: components["schemas"]["CacheSettings-Input"] | null;
             /** Source */
-            source: (components["schemas"]["AccSimultaneitySourceSettings-Input"] | components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"]) | components["schemas"]["RefSettings"];
+            source: (components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"]) | components["schemas"]["RefSettings"];
             /** Boundaries */
             boundaries: [
                 number,
@@ -952,7 +706,7 @@ export interface components {
             /** @description Cache what this source fetches, if set. */
             cache?: components["schemas"]["CacheSettings-Output"] | null;
             /** Source */
-            source: (components["schemas"]["AccSimultaneitySourceSettings-Output"] | components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"]) | components["schemas"]["RefSettings"];
+            source: (components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"]) | components["schemas"]["RefSettings"];
             /** Boundaries */
             boundaries: [
                 number,
@@ -976,7 +730,7 @@ export interface components {
             /** @description Cache what this source fetches, if set. */
             cache?: components["schemas"]["CacheSettings-Input"] | null;
             /** Signal Source */
-            signal_source: (components["schemas"]["AccSimultaneitySourceSettings-Input"] | components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"]) | components["schemas"]["RefSettings"];
+            signal_source: (components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"]) | components["schemas"]["RefSettings"];
             /** Boundary Source */
             boundary_source: components["schemas"]["BoundarySourceSettings-Input"] | components["schemas"]["RefSettings"];
             /**
@@ -995,7 +749,7 @@ export interface components {
             /** @description Cache what this source fetches, if set. */
             cache?: components["schemas"]["CacheSettings-Output"] | null;
             /** Signal Source */
-            signal_source: (components["schemas"]["AccSimultaneitySourceSettings-Output"] | components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"]) | components["schemas"]["RefSettings"];
+            signal_source: (components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"]) | components["schemas"]["RefSettings"];
             /** Boundary Source */
             boundary_source: components["schemas"]["BoundarySourceSettings-Output"] | components["schemas"]["RefSettings"];
             /**
@@ -1601,7 +1355,7 @@ export interface components {
              */
             description?: string | null;
             /** Source */
-            source: (components["schemas"]["AccSimultaneitySourceSettings-Input"] | components["schemas"]["SimultaneitySourceSettings-Input"]) | components["schemas"]["RefSettings"];
+            source: components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["RefSettings"];
             /** Formats */
             formats?: (components["schemas"]["JSONFormatSettings"] | components["schemas"]["CSVFormatSettings"])[] | null;
         };
@@ -1629,7 +1383,7 @@ export interface components {
              */
             description?: string | null;
             /** Source */
-            source: (components["schemas"]["AccSimultaneitySourceSettings-Output"] | components["schemas"]["SimultaneitySourceSettings-Output"]) | components["schemas"]["RefSettings"];
+            source: components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["RefSettings"];
             /** Formats */
             formats?: (components["schemas"]["JSONFormatSettings"] | components["schemas"]["CSVFormatSettings"])[] | null;
         };
@@ -1675,7 +1429,7 @@ export interface components {
              */
             description?: string | null;
             /** Value */
-            value: (components["schemas"]["DirectiveSourceSettings-Input"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Input"] | components["schemas"]["AccSimultaneitySourceSettings-Input"] | components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"]) | components["schemas"]["RefSettings"];
+            value: (components["schemas"]["DirectiveSourceSettings-Input"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Input"] | components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"]) | components["schemas"]["RefSettings"];
         };
         /** SourceResourceSettings */
         "SourceResourceSettings-Output": {
@@ -1695,7 +1449,7 @@ export interface components {
              */
             description?: string | null;
             /** Value */
-            value: (components["schemas"]["DirectiveSourceSettings-Output"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Output"] | components["schemas"]["AccSimultaneitySourceSettings-Output"] | components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"]) | components["schemas"]["RefSettings"];
+            value: (components["schemas"]["DirectiveSourceSettings-Output"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Output"] | components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"]) | components["schemas"]["RefSettings"];
         };
         /**
          * Subject
@@ -1938,7 +1692,7 @@ export interface components {
              */
             description?: string | null;
             /** Source */
-            source: (components["schemas"]["DirectiveSourceSettings-Input"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Input"] | components["schemas"]["AccSimultaneitySourceSettings-Input"] | components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"]) | components["schemas"]["RefSettings"];
+            source: (components["schemas"]["DirectiveSourceSettings-Input"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Input"] | components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"]) | components["schemas"]["RefSettings"];
             /** Formats */
             formats?: (components["schemas"]["JSONFormatSettings"] | components["schemas"]["CSVFormatSettings"])[] | null;
         };
@@ -1966,7 +1720,7 @@ export interface components {
              */
             description?: string | null;
             /** Source */
-            source: (components["schemas"]["DirectiveSourceSettings-Output"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Output"] | components["schemas"]["AccSimultaneitySourceSettings-Output"] | components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"]) | components["schemas"]["RefSettings"];
+            source: (components["schemas"]["DirectiveSourceSettings-Output"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Output"] | components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"]) | components["schemas"]["RefSettings"];
             /** Formats */
             formats?: (components["schemas"]["JSONFormatSettings"] | components["schemas"]["CSVFormatSettings"])[] | null;
         };
