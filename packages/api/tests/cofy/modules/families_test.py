@@ -49,10 +49,7 @@ def source_branches(module_type: str) -> set[str]:
         module("tariff", cached(ENTSOE), formats=[{"type": "kiwatt"}, {"type": "json"}]),
         module("production", cached(ENERGYID)),
         module("directive", directive(cached(ENTSOE)), formats=[{"type": "directive"}, {"type": "csv"}]),
-        module(
-            "directive",
-            directive(cached({"type": "acc_simultaneity", "cluster": {"type": "pool", "members": [{"source": ACC}]}})),
-        ),
+        module("directive", directive(cached({"type": "simultaneity", "sources": [ACC]}))),
         module("simultaneity", {"type": "simultaneity", "sources": [cached(ACC)]}),
     ],
     ids=[
@@ -60,7 +57,7 @@ def source_branches(module_type: str) -> set[str]:
         "tariff_cached_with_price_formats",
         "production_energyid",
         "directive_of_price",
-        "directive_of_acc_simultaneity",
+        "directive_of_simultaneity",
         "simultaneity_of_net_volumes",
     ],
 )
@@ -77,9 +74,7 @@ def test_valid_combinations_are_accepted(data):
         module("directive", directive(directive(ENTSOE))),
         module("directive", directive(cached(directive(ENTSOE)))),
         module("simultaneity", {"type": "simultaneity", "sources": [ENTSOE]}),
-        module(
-            "simultaneity", {"type": "acc_simultaneity", "cluster": {"type": "pool", "members": [{"source": ENERGYID}]}}
-        ),
+        module("simultaneity", {"type": "simultaneity", "sources": [ENERGYID]}),
         module("tariff", ENTSOE, formats=[{"type": "directive"}]),
         module("production", ENERGYID, formats=[{"type": "kiwatt"}]),
     ],
@@ -90,7 +85,7 @@ def test_valid_combinations_are_accepted(data):
         "directive_of_directive",
         "directive_of_cached_directive",
         "price_as_net_volume",
-        "production_as_acc_member",
+        "production_as_net_volume",
         "directive_format_for_prices",
         "price_format_for_production",
     ],
@@ -103,7 +98,7 @@ def test_invalid_combinations_are_rejected(data):
 def test_a_module_only_offers_the_sources_of_its_family():
     assert source_branches("tariff") == {"entsoe_day_ahead", "energy_cost"}
     assert source_branches("production") == {"energyid_production"}
-    assert source_branches("simultaneity") == {"simultaneity", "acc_simultaneity"}
+    assert source_branches("simultaneity") == {"simultaneity"}
     assert source_branches("directive") == {"directive", "dynamic_boundary_directive"}
 
 
