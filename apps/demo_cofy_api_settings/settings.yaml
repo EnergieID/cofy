@@ -107,17 +107,12 @@ modules:
       boundaries: [60, 80, 120, 140]
       reverse: true
       source:
-        # follows ACC's concurrency matching for a tree of clusters, of type pool, producer_priority,
-        # capacity_priority or producer_share, each with the member settings of its type
-        type: acc_simultaneity
-        cluster:
-          type: pool
-          members:
-            - source:
-                type: acc_forecast
-                ean: '${ACC_EAN_1}'
-                credentials: { type: secret, name: acc_credentials }
-                cache:
-                  max_age: PT15M
+        type: simultaneity
+        sources:
+          - type: acc_forecast
+            ean: '${ACC_EAN_1}'
+            credentials: { type: secret, name: acc_credentials }
+            cache:
+              max_age: PT15M
     formats:
       - type: directive
