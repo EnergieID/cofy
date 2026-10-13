@@ -22,11 +22,9 @@ The API is available at http://127.0.0.1:8000 with docs at `/docs`.
 
 The `deltawind` directive module is the proof of concept for the Deltawind pilot. It fetches
 forecasts per EAN from ACC's Connection Usage Service (`acc_forecast`), turns them into
-consumption as a percentage of production following ACC's cluster matching (`acc_simultaneity`),
-and encodes that as directive steps. It needs `ACC_CREDENTIALS` (the service-account JSON from ACC,
-on a single line) and `ACC_EAN_1`; add more members or nested clusters to `cluster` in
-[settings.yaml](settings.yaml) for more connections. Without ACC's cluster rules, the `simultaneity`
-source does the same over a flat list of sources.
+consumption as a percentage of production (`simultaneity`), and encodes that as directive steps.
+It needs `ACC_CREDENTIALS` (the service-account JSON from ACC, on a single line) and `ACC_EAN_1`;
+add more entries to `sources` in [settings.yaml](settings.yaml) for more connections.
 
 ## Data
 
