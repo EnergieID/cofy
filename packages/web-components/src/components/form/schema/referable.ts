@@ -12,10 +12,18 @@ export function referableOf(node: JsonSchema): Referable | undefined {
     : { kind: referable["kind"] };
 }
 
-/** A referable field's two branches: its value first, the reference to a resource second. */
-export function referableBranches(node: JsonSchema): { value: JsonSchema; ref: JsonSchema } | undefined {
+/**
+ * A referable field's branches: its value first, the reference to a resource second - or only the reference, where
+ * the community may not configure resources of its kind, and so can't give one as a value either.
+ */
+export function referableBranches(node: JsonSchema): { value?: JsonSchema; ref: JsonSchema } | undefined {
   const branches = node["oneOf"];
-  if (!Array.isArray(branches) || branches.length !== 2) return undefined;
+  if (!Array.isArray(branches)) return undefined;
+  if (branches.length === 1) {
+    const [ref] = branches as unknown[];
+    return isRecord(ref) ? { ref } : undefined;
+  }
+  if (branches.length !== 2) return undefined;
   const [value, ref] = branches as unknown[];
   return isRecord(value) && isRecord(ref) ? { value, ref } : undefined;
 }

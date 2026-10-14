@@ -13,11 +13,12 @@ import "@awesome.me/webawesome/dist/components/tab-panel/tab-panel.js";
 import { CofyPage } from "./cofy-page.js";
 
 /** The tabs of a community, each naming the route it is shown on. */
-export const COMMUNITY_TABS = ["modules", "resources", "secrets", "tokens", "grants"] as const;
+export const COMMUNITY_TABS = ["modules", "resources", "secrets", "tokens", "grants", "allowedTypes"] as const;
 export type CommunityTab = (typeof COMMUNITY_TABS)[number];
 
 /**
- * A community: its modules, resources, secrets, API tokens and who has access, each on a tab of its own.
+ * A community: its modules, resources, secrets, API tokens, who has access and - for a system admin - which types it
+ * may configure, each on a tab of its own.
  *
  * The tab shown is part of the route, so it survives a reload, the back button returns to it,
  * and a page under a tab - a resource's editor - can link back to it.
@@ -48,7 +49,7 @@ export class CofyCommunityPage extends CofyPage {
         <cofy-community-status .slug=${this.slug}></cofy-community-status>
       </div>
       <wa-tab-group .active=${this.tab} @wa-tab-show=${(event: CustomEvent<{ name: string }>): void => this.show(event)}>
-        ${COMMUNITY_TABS.map((tab) => html`<wa-tab panel=${tab}>${this.t(`community.tabs.${tab}`)}</wa-tab>`)}
+        ${this.tabs().map((tab) => html`<wa-tab panel=${tab}>${this.t(`community.tabs.${tab}`)}</wa-tab>`)}
 
         <wa-tab-panel name="modules">
           <cofy-module-list
@@ -79,8 +80,16 @@ export class CofyCommunityPage extends CofyPage {
         <wa-tab-panel name="grants">
           <cofy-grant-list .slug=${this.slug}></cofy-grant-list>
         </wa-tab-panel>
+        <wa-tab-panel name="allowedTypes">
+          <cofy-allowed-type-list .slug=${this.slug}></cofy-allowed-type-list>
+        </wa-tab-panel>
       </wa-tab-group>
     `;
+  }
+
+  /** The tabs the person logged in may see, as their routes say. */
+  private tabs(): CommunityTab[] {
+    return COMMUNITY_TABS.filter((tab) => this.routes.allows(tab, { slug: this.slug }));
   }
 
   /** Follow a tab picked in the group to its own route - the route, not the group, decides what is shown. */
@@ -102,6 +111,6 @@ export class CofyCommunityPage extends CofyPage {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "cofy-comunity-page": CofyCommunityPage;
+    "cofy-community-page": CofyCommunityPage;
   }
 }

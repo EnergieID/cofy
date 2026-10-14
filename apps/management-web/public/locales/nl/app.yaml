@@ -10,6 +10,16 @@ community:
     secrets: Geheimen
     tokens: API-tokens
     grants: Toegang
+    allowedTypes: Toegestane types
+
+settings:
+  open: Instellingen
+  logout: Afmelden
+  admin: Beheerconsole
+  allowedTypes: Toegestane types
+
+allowed:
+  crumb: Toegestane types
 
 newModule:
   crumb: Nieuwe module

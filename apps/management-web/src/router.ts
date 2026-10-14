@@ -1,18 +1,24 @@
+import type { SessionStore } from "@cofy/frontend-sdk";
 import type { TemplateResult } from "lit";
 
 /** The values a path's `:name` segments captured. */
 export type RouteParams = Record<string, string>;
 
+/** What a route's rule asks of who is logged in: what they may do. */
+export type Access = Pick<SessionStore, "can">;
+
 /**
  * One route.
  *
  * The shape follows `@lit-labs/router`'s route config: a path pattern, and a render function
- * taking the captured parameters.
+ * taking the captured parameters - and, beside them, who may see it.
  */
 export interface RouteDefinition {
   /** A pattern such as `/communities/:slug/modules/:type/:name`. Segments starting with `:` capture. */
   path: string;
   render: (params: RouteParams) => TemplateResult;
+  /** Whether the person logged in may see the page; anyone logged in may, without a rule. */
+  allows?: (access: Access, params: RouteParams) => boolean;
 }
 
 /** A set of routes, keyed by name. */

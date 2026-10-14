@@ -61,6 +61,38 @@ moduleList:
     type: Type
     actions: Acties
 
+allowedTypeList:
+  title: Toegestane types
+  description: De moduletypes, en types van bronnen, die deze gemeenschap mag gebruiken - als module, als bron, of rechtstreeks in een van beide. Wat ze al heeft van een type dat niet meer mag, blijft werken, maar kan alleen nog verwijderd worden.
+  allow: "{{type}} toestaan"
+  columns:
+    type: Type
+    allowed: Toegestaan
+
+availabilityList:
+  title: Toegestane types
+  description: Welke gemeenschappen elk moduletype, en elk type bron, mogen gebruiken.
+  exceptIn_zero: Overal
+  exceptIn_one: "Overal behalve in {{count}} gemeenschap"
+  exceptIn_other: "Overal behalve in {{count}} gemeenschappen"
+  onlyIn_zero: Nergens
+  onlyIn_one: "Enkel in {{count}} gemeenschap"
+  onlyIn_other: "Enkel in {{count}} gemeenschappen"
+  columns:
+    type: Type
+    availability: Beschikbaar
+
+availabilityDialog:
+  title: "Waar {{type}} beschikbaar is"
+  default: Standaard beschikbaar
+  defaultHint: Voor elke gemeenschap behalve de uitzonderingen hieronder.
+  notIn: Behalve in
+  onlyIn: Enkel in
+  noCommunities: Geen gemeenschappen
+  save: Opslaan
+  saving: Opslaan…
+  cancel: Annuleren
+
 resourceList:
   title: Bronnen
   description: Waarden die één keer worden ingesteld, en bij naam worden gebruikt door modules en andere bronnen.
@@ -88,9 +120,10 @@ secretList:
     description: Beschrijving
     actions: Acties
 
+form:
+  nothingAllowed: "Geen geldige {{kind}} beschikbaar voor deze gemeenschap. Neem contact op met een systeembeheerder."
+
 settings:
-  open: Instellingen
-  logout: Afmelden
   theme:
     legend: Weergave
     names:

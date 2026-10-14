@@ -231,4 +231,33 @@ describe("cofy-referable-form", () => {
     expect(element.shadowRoot!.querySelector("cofy-save-resource-dialog")).toBeNull();
     expect(element.shadowRoot!.querySelector<HTMLElement & { value: string }>("wa-select")!.value).toBe("be_prices");
   });
+
+  it("only picks a resource where the community may not give its kind as a value", async () => {
+    const onlyRef: JsonSchema = { ...source, oneOf: [{ $ref: "#/$defs/RefSettings" }] };
+    const element = await mount(onlyRef, { type: "entsoe_day_ahead" });
+
+    expect(element.shadowRoot!.querySelector("cofy-any-form")).toBeNull();
+    expect(element.shadowRoot!.querySelector("wa-select")).not.toBeNull();
+    expect(element.shadowRoot!.querySelector("cofy-action-menu")).toBeNull();
+    expect(element.shadowRoot!.querySelector<HTMLElement & { disabled: boolean }>("wa-select")!.disabled).toBe(false);
+    expect(element.shadowRoot!.querySelector(".wa-caption-s")).toBeNull();
+  });
+
+  it("points to a system administrator where nothing it could hold is allowed, nor any resource to take", async () => {
+    const onlyRef: JsonSchema = { ...note, "x-referable": { kind: "tariff" }, oneOf: [{ $ref: "#/$defs/RefSettings" }] };
+    const element = await mount(onlyRef, undefined);
+
+    expect(element.shadowRoot!.querySelector<HTMLElement & { disabled: boolean }>("wa-select")!.disabled).toBe(true);
+    expect(element.shadowRoot!.textContent).toContain("No valid tariff available for this community.");
+  });
+
+  it("disables the picker while there is no resource to pick, but leaves specifying a value", async () => {
+    const tariff: JsonSchema = { ...note, "x-referable": { kind: "tariff" } };
+    const element = await mount(tariff, { type: "resource", name: "" });
+
+    expect(element.shadowRoot!.querySelector<HTMLElement & { disabled: boolean }>("wa-select")!.disabled).toBe(true);
+    expect(refMenu(element).map((action) => action.id)).toEqual(["specify-value"]);
+    expect(element.shadowRoot!.querySelector(".wa-caption-s")).toBeNull();
+  });
 });
+

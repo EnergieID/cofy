@@ -12,7 +12,7 @@ function stubApi(puts: unknown[]): ApiClient {
   const fetchStub = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const request = input instanceof Request ? input : new Request(input, init);
     const path = new URL(request.url).pathname;
-    let body: unknown = path.endsWith("/allowed-resources") ? catalog : [stored];
+    let body: unknown = path.endsWith("/catalog/resources") ? catalog : [stored];
     if (request.method === "PUT") {
       body = await request.json();
       puts.push({ path, body });

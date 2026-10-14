@@ -63,6 +63,38 @@ moduleList:
     # Names the delete column for a screen reader; the header itself is visually empty.
     actions: Actions
 
+allowedTypeList:
+  title: Allowed types
+  description: The module types, and types of resource, this community may use - as a module, as a resource, or directly in one. What it already has of a type it may no longer use keeps working, but can only be deleted.
+  allow: "Allow {{type}}"
+  columns:
+    type: Type
+    allowed: Allowed
+
+availabilityList:
+  title: Allowed types
+  description: Which communities may use each module type, and each type of resource.
+  exceptIn_zero: Everywhere
+  exceptIn_one: "Everywhere but {{count}} community"
+  exceptIn_other: "Everywhere but {{count}} communities"
+  onlyIn_zero: Nowhere
+  onlyIn_one: "Only in {{count}} community"
+  onlyIn_other: "Only in {{count}} communities"
+  columns:
+    type: Type
+    availability: Available
+
+availabilityDialog:
+  title: "Where {{type}} is available"
+  default: Available by default
+  defaultHint: For every community but the exceptions below.
+  notIn: Except in
+  onlyIn: Only in
+  noCommunities: No communities
+  save: Save
+  saving: Saving…
+  cancel: Cancel
+
 resourceList:
   title: Resources
   description: Values configured once, and referenced by name from modules and other resources.
@@ -215,7 +247,7 @@ form:
   actions: Actions
   resource: Resource
   chooseResource: Choose a resource…
-  noResources: "No fitting {{kind}} resources are configured yet."
+  nothingAllowed: "No valid {{kind}} available for this community. Contact a system administrator."
   useResource: Use a resource
   saveAsResource: Save as resource
   specifyValue: Specify a value
@@ -229,12 +261,9 @@ form:
   issuesToggle_other: "{{count}} errors block saving"
 
 settings:
-  open: Settings
-  logout: Log out
   theme:
     legend: Appearance
     names:
-      # "System" keeps following the operating system, rather than copying it once.
       system: System
       light: Light
       dark: Dark

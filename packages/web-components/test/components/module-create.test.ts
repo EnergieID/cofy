@@ -41,7 +41,7 @@ function stubApi(): ApiClient {
   const fetchStub = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const request = input instanceof Request ? input : new Request(input, init);
     const path = new URL(request.url).pathname;
-    const body = path.endsWith("/allowed-modules") ? catalog : [];
+    const body = path.endsWith("/catalog/modules") ? catalog : [];
     return Promise.resolve(
       new Response(JSON.stringify(body), { status: 200, headers: { "content-type": "application/json" } }),
     );
@@ -52,7 +52,7 @@ function stubApi(): ApiClient {
 async function mount(preload = true): Promise<CofyModuleCreate> {
   const api = stubApi();
   const cofy = new CofyStore(api);
-  if (preload) await cofy.allowedModules.fetch("test");
+  if (preload) await cofy.moduleCatalog.fetch("test");
 
   const element = new CofyModuleCreate();
   element.i18n = await testI18n();

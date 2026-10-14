@@ -4,7 +4,7 @@ import type { TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import {
   ResourceDraft,
-  type AllowedResource,
+  type CatalogEntry,
   type ProblemError,
   type ResourceSettings,
 } from "@cofy/frontend-sdk";
@@ -61,7 +61,7 @@ export class CofyResourceEditor extends CofyElement {
 
   public override render(): TemplateResult {
     if (this.draft === null) {
-      const error = this.cofy?.resources.error(this.slug) ?? this.cofy?.allowedResources.error(this.slug) ?? null;
+      const error = this.cofy?.resources.error(this.slug) ?? this.cofy?.resourceCatalog.error(this.slug) ?? null;
       return error !== null
         ? html`<cofy-problem-details .problem=${error}></cofy-problem-details>`
         : html`<div class="wa-stack">
@@ -136,7 +136,7 @@ export class CofyResourceEditor extends CofyElement {
     if (slug === "" || name === "" || cofy === undefined) return;
 
     const stored = cofy.resources.get(slug, name);
-    if (stored === undefined || cofy.allowedResources.all(slug) === undefined) return;
+    if (stored === undefined || cofy.resourceCatalog.all(slug) === undefined) return;
 
     const draft = new ResourceDraft(stored);
     this.draft = draft;
@@ -159,8 +159,8 @@ export class CofyResourceEditor extends CofyElement {
     this.saved = false;
   }
 
-  private catalog(): readonly AllowedResource[] {
-    return this.cofy?.allowedResources.all(this.slug) ?? [];
+  private catalog(): readonly CatalogEntry[] {
+    return this.cofy?.resourceCatalog.all(this.slug) ?? [];
   }
 
   private check(draft: ResourceDraft): void {

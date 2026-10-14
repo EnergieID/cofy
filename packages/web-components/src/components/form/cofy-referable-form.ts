@@ -66,6 +66,9 @@ export class CofyReferableForm extends CofyFormField {
     const branches = referableBranches(this.schema);
     if (referable === undefined || branches === undefined) return html``;
 
+    if (branches.value === undefined) {
+      return this.renderRef(isRefValue(this.value) ? this.value : { type: "resource", name: "" }, referable, undefined);
+    }
     return isRefValue(this.value) ? this.renderRef(this.value, referable, branches.value) : this.renderValue(referable, branches.value);
   }
 
@@ -122,13 +125,15 @@ export class CofyReferableForm extends CofyFormField {
     `;
   }
 
-  private renderRef(ref: ResourceRef, referable: Referable, valueSchema: JsonSchema): TemplateResult {
+  /** The resource picker, and - unless only a reference is accepted - the way back to specifying a value. */
+  private renderRef(ref: ResourceRef, referable: Referable, valueSchema: JsonSchema | undefined): TemplateResult {
     const options = this.fitting(referable);
     // No label of its own: it always sits under the field's, which names what it picks.
     const picker = html`<wa-select
       aria-label=${this.label || this.t("form.resource")}
       placeholder=${this.t("form.chooseResource")}
       .value=${ref.name}
+      ?disabled=${options.length === 0}
       lang=${this.i18n?.resolvedLanguage ?? "en"}
       @change=${(event: Event): void => this.onChoose(event)}
     >
@@ -138,12 +143,15 @@ export class CofyReferableForm extends CofyFormField {
         (resource) => html`<wa-option value=${resource.name}>${this.optionLabel(resource)}</wa-option>`,
       )}
     </wa-select>`;
-    const menu = html`<cofy-action-menu
-      slot="actions"
-      .actions=${[
-        { id: "specify-value", label: this.t("form.specifyValue"), run: (): void => this.specifyValue(valueSchema) },
-      ]}
-    ></cofy-action-menu>`;
+    const menu =
+      valueSchema === undefined
+        ? nothing
+        : html`<cofy-action-menu
+            slot="actions"
+            .actions=${[
+              { id: "specify-value", label: this.t("form.specifyValue"), run: (): void => this.specifyValue(valueSchema) },
+            ]}
+          ></cofy-action-menu>`;
 
     return html`
       <cofy-field-shell
@@ -155,8 +163,8 @@ export class CofyReferableForm extends CofyFormField {
         ${this.bare
           ? html`<div class="picker">${picker}${menu}</div>`
           : html`${menu}${picker}`}
-        ${options.length === 0
-          ? html`<span class="wa-caption-s">${this.t("form.noResources", { kind: referable.kind })}</span>`
+        ${valueSchema === undefined && options.length === 0
+          ? html`<span class="wa-caption-s">${this.t("form.nothingAllowed", { kind: referable.kind })}</span>`
           : nothing}
       </cofy-field-shell>
     `;

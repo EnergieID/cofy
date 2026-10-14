@@ -1,9 +1,7 @@
 import { consume } from "@lit/context";
-import { ProblemError } from "@cofy/frontend-sdk";
 import { CofyElement } from "@cofy/web-components";
 import type { Crumb } from "@cofy/web-components";
 import type { TOptions } from "i18next";
-import { html } from "lit";
 import type { TemplateResult } from "lit";
 
 import { crumbStateContext, routeStateContext } from "../context.js";
@@ -12,16 +10,12 @@ import type { CrumbState } from "../states/crumb-state.js";
 import type { RouteState } from "../states/route-state.js";
 import { APP_NAMESPACE } from "../i18n.js";
 
-/** What a page shows in place of itself to someone who may not see its community. */
-const NO_ACCESS = new ProblemError(403, { status: 403, code: "forbidden" });
-
 /**
- * What every page needs on top of {@link CofyElement}: the route to navigate by, the trail
- * to publish, and keeping a community's pages from those who may not see it.
+ * What every page needs on top of {@link CofyElement}: the route to navigate by, and the trail
+ * to publish. Who may see a page is its route's to say, so a page is only ever rendered for
+ * someone who may.
  *
- * A subclass renders through {@link content}. One that belongs to a community has its `slug`, from
- * the route, and is shown the same "no access" a refused request shows instead of its content when
- * the person logged in may not see that community.
+ * A subclass renders through {@link content}.
  *
  * A subclass implements {@link crumbs} and is done. They are worked out during each render, so
  * what they read is subscribed to - and loaded - like anything else rendered, and published
@@ -48,9 +42,6 @@ export abstract class CofyPage extends CofyElement {
   public override render(): TemplateResult {
     // Published once rendered: setting another state while rendering would update its readers mid-render.
     this.trailToPublish = this.crumbs();
-    if (this.slug !== undefined && !this.cofy?.session.can("read", "community", this.slug)) {
-      return html`<cofy-problem-details .problem=${NO_ACCESS}></cofy-problem-details>`;
-    }
     return this.content();
   }
 

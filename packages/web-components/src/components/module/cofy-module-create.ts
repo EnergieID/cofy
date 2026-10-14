@@ -4,7 +4,7 @@ import type { TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import {
   EditableValue,
-  type AllowedModule,
+  type CatalogEntry,
   type ModuleSettings,
   type ProblemError,
 } from "@cofy/frontend-sdk";
@@ -52,7 +52,7 @@ export class CofyModuleCreate extends CofyElement {
   @state() private mode: ModuleFormMode = "form";
 
   public override render(): TemplateResult {
-    const catalog = this.slug === "" ? undefined : this.cofy?.allowedModules.all(this.slug);
+    const catalog = this.slug === "" ? undefined : this.cofy?.moduleCatalog.all(this.slug);
     if (catalog === undefined) {
       return html`<div class="wa-stack">
         ${Array.from({ length: 4 }, () => html`<wa-skeleton></wa-skeleton>`)}
@@ -118,8 +118,8 @@ export class CofyModuleCreate extends CofyElement {
     this.check(draft);
   }
 
-  private catalog(): readonly AllowedModule[] {
-    return this.cofy?.allowedModules.all(this.slug) ?? [];
+  private catalog(): readonly CatalogEntry[] {
+    return this.cofy?.moduleCatalog.all(this.slug) ?? [];
   }
 
   private check(draft: EditableValue<ModuleSettings>): void {

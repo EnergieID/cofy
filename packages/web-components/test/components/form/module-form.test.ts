@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { ContextProvider } from "@lit/context";
 import type { ReactiveControllerHost } from "lit";
-import type { AllowedModule, JsonSchema, ValidationIssue } from "@cofy/frontend-sdk";
+import type { CatalogEntry, JsonSchema, ValidationIssue } from "@cofy/frontend-sdk";
 
 import "../../../src/components/form/cofy-any-form.js";
 import "../../../src/components/module/cofy-module-form.js";
@@ -1490,11 +1490,11 @@ describe("cofy-field-shell", () => {
   });
 });
 
-const catalog: AllowedModule[] = [{ type: "demo", description: "A demo module", schema }];
+const catalog: CatalogEntry[] = [{ type: "demo", description: "A demo module", schema }];
 
 async function mountModuleForm(
   moduleValue: unknown,
-  options: { catalog?: AllowedModule[]; locked?: boolean } = {},
+  options: { catalog?: CatalogEntry[]; locked?: boolean } = {},
 ): Promise<CofyModuleForm> {
   const element = document.createElement("cofy-module-form");
   await provideI18n(element);

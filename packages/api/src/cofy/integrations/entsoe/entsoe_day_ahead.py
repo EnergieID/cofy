@@ -20,6 +20,8 @@ class EntsoeDayAheadTariffSourceSettings(PriceSourceSettings):
 
 
 class EntsoeDayAheadTariffSource(PriceSource, settings=EntsoeDayAheadTariffSourceSettings):
+    """Day-ahead electricity prices of a bidding zone, from ENTSO-E."""
+
     def __init__(self, api_key: str, country_code: str | None = None, cache: CacheSettings | None = None):
         super().__init__(cache=cache)
         if not api_key:

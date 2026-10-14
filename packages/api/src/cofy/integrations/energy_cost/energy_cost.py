@@ -20,6 +20,8 @@ class EnergyCostTariffSourceSettings(PriceSourceSettings):
 
 
 class EnergyCostTariffSource(PriceSource, settings=EnergyCostTariffSourceSettings):
+    """Energy prices, computed from a tariff."""
+
     def __init__(self, tariff: Tariff, cost_group: CostGroup | None = None, cache: CacheSettings | None = None):
         super().__init__(cache=cache)
         self.tariff = tariff

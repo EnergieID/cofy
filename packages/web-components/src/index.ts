@@ -25,6 +25,10 @@ export { tableStyles } from "./theme/table.js";
 export { nativeStyles } from "./theme/native-styles.js";
 export { utilityStyles } from "./theme/utility-styles.js";
 
+export { CofyAllowedTypeList } from "./components/allowed/cofy-allowed-type-list.js";
+export { CofyAvailabilityDialog } from "./components/allowed/cofy-availability-dialog.js";
+export { CofyAvailabilityList } from "./components/allowed/cofy-availability-list.js";
+export { CofyTypeLabel } from "./components/allowed/cofy-type-label.js";
 export { CofyAnyForm } from "./components/form/cofy-any-form.js";
 export { CofyFieldShell } from "./components/form/cofy-field-shell.js";
 export { CofyYamlForm } from "./components/form/cofy-yaml-form.js";
@@ -53,7 +57,6 @@ export { CofyGrantList } from "./components/grant/cofy-grant-list.js";
 export { CofyResourceCreate } from "./components/resource/cofy-resource-create.js";
 export { CofyResourceEditor } from "./components/resource/cofy-resource-editor.js";
 export { CofyResourceList } from "./components/resource/cofy-resource-list.js";
-export { CofySettingsPanel } from "./components/settings/cofy-settings-panel.js";
 export { CofyThemePicker } from "./components/settings/cofy-theme-picker.js";
 export { cofyEditorTheme } from "./components/editor/yaml-highlight.js";
 export {

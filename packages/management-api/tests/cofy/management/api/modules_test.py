@@ -11,15 +11,16 @@ from pathlib import Path
 
 import pytest
 import yaml
-from cofy.api.module import ModuleSettings
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from cofy.management.api.modules import ModulesRouter
+from cofy.management.domain.availability import Availability
 from cofy.management.errors import add_exception_handlers
 from cofy.management.persitance.file.modules import FileModulesPersistence
 
 from ..access_fixture import log_in_as_system_admin
+from ..allowed_fixture import allowed_in, allowed_types_in
 
 # ── fixtures ─────────────────────────────────────────────────────────────
 
@@ -59,7 +60,7 @@ def client(tmp_data: Path) -> TestClient:
     app = FastAPI()
     add_exception_handlers(app)
     log_in_as_system_admin(app)
-    app.include_router(ModulesRouter(FileModulesPersistence(tmp_data)).router)
+    app.include_router(ModulesRouter(FileModulesPersistence(tmp_data), allowed_in(tmp_data)).router)
     return TestClient(app, raise_server_exceptions=False)
 
 
@@ -160,7 +161,7 @@ def test_resource_already_exists_handler_returns_409(tmp_data: Path):
     app = FastAPI()
     add_exception_handlers(app)
     log_in_as_system_admin(app)
-    app.include_router(ModulesRouter(mock_persistence).router)
+    app.include_router(ModulesRouter(mock_persistence, allowed_in(tmp_data)).router)
     c = TestClient(app, raise_server_exceptions=False)
 
     r = c.post("/management/communities/test/modules", json={"type": "billing", "name": "default"})
@@ -175,7 +176,7 @@ def test_community_with_invalid_yaml_returns_error(tmp_data: Path):
     app = FastAPI()
     add_exception_handlers(app)
     log_in_as_system_admin(app)
-    app.include_router(ModulesRouter(FileModulesPersistence(tmp_data)).router)
+    app.include_router(ModulesRouter(FileModulesPersistence(tmp_data), allowed_in(tmp_data)).router)
     bad_client = TestClient(app, raise_server_exceptions=False)
 
     r = bad_client.get("/management/communities/bad/modules")
@@ -374,13 +375,10 @@ def test_put_rejects_an_abstract_module_type(client: TestClient, tmp_data: Path)
     assert len(_read_modules(tmp_data)) == 2  # nothing added or replaced
 
 
-def test_create_rejects_a_type_the_community_is_not_allowed(client: TestClient, tmp_data: Path, monkeypatch):
+def test_create_rejects_a_type_the_community_is_not_allowed(client: TestClient, tmp_data: Path):
     """Writes are checked against the same allow-list the API publishes, so a community that
     may not use a module type cannot have one stored either."""
-    monkeypatch.setattr(
-        "cofy.management.api.modules.allowed_module_types",
-        lambda slug: {"billing": ModuleSettings.registry()["billing"]},
-    )
+    allowed_types_in(tmp_data).put("module", "tariff", Availability(default=False))
 
     r = client.post(
         "/management/communities/test/modules",
@@ -396,11 +394,8 @@ def test_create_rejects_a_type_the_community_is_not_allowed(client: TestClient, 
     assert not any(m["name"] == "new" for m in _read_modules(tmp_data))
 
 
-def test_put_rejects_a_type_the_community_is_not_allowed(client: TestClient, monkeypatch):
-    monkeypatch.setattr(
-        "cofy.management.api.modules.allowed_module_types",
-        lambda slug: {"billing": ModuleSettings.registry()["billing"]},
-    )
+def test_put_rejects_a_type_the_community_is_not_allowed(client: TestClient, tmp_data: Path):
+    allowed_types_in(tmp_data).put("module", "tariff", Availability(default=True, exceptions=["test"]))
 
     r = client.put(
         "/management/communities/test/modules/tariff/spot",
@@ -420,7 +415,12 @@ def test_module_body_schema_keeps_its_discriminator(client: TestClient):
     cannot say which variant a `type` selects - and making every branch report its own
     errors."""
     app = FastAPI()
-    app.include_router(ModulesRouter(FileModulesPersistence(Path("/nonexistent"))).router)
+    app.include_router(
+        ModulesRouter(
+            FileModulesPersistence(Path("/nonexistent")),
+            allowed_in(Path("/nonexistent")),
+        ).router
+    )
 
     body = app.openapi()["paths"]["/management/communities/{slug}/modules"]["post"]["requestBody"]
     schema = body["content"]["application/json"]["schema"]

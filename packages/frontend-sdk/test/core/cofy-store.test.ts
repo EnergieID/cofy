@@ -7,11 +7,16 @@ import type { Call, StubResponse } from "../support/stub-fetch.js";
 const billing = { type: "billing", name: "default" };
 const live = { state: "live", revision: 1, running_revision: 1 };
 const me = { email: "ann@example.com", name: "Ann", system_admin: false, permissions: [] };
+const availability = { group: "module", type: "billing", description: "Billing", default: true, exceptions: [] };
 const community = { slug: "test", title: "Test", module_count: 0, revision: 1, api_url: "http://localhost/test/" };
 
 /** Answers every request the way the API would, for a community "test". */
 function answer(call: Call): StubResponse {
   if (call.method === "DELETE") return { status: 204 };
+  if (call.path.endsWith("/allowed-types/source/entsoe_day_ahead") && call.path.startsWith("/management/communities/")) {
+    return { body: { group: "source", type: "entsoe_day_ahead", description: "", allowed: false } };
+  }
+  if (/^\/management\/allowed-/.test(call.path)) return { body: call.method === "GET" ? [availability] : availability };
   if (call.path === "/auth/me") return { body: me };
   if (call.path.endsWith("/status")) return { body: live };
   if (call.path === "/management/communities") return { body: call.method === "GET" ? [community] : community };
@@ -140,5 +145,63 @@ describe("CofyStore", () => {
     expect(store.modules.all("test")).toBeUndefined();
     expect(store.status.get("test")).toBeUndefined();
     expect(store.modules.all("other")).toEqual([billing]);
+  });
+
+  it("makes what every community may configure out of date when a type's availability changes", async () => {
+    const { store, calls } = cofy();
+    await Promise.all([
+      store.moduleCatalog.fetch("test"),
+      store.moduleCatalog.fetch("other"),
+      store.resourceCatalog.fetch("test"),
+    ]);
+
+    await store.typeAvailability.replace({ group: "source", type: "entsoe_day_ahead" }, { default: false });
+    const from = calls.length;
+    store.moduleCatalog.all("test");
+    store.moduleCatalog.all("other");
+    store.resourceCatalog.all("test");
+    await flush();
+
+    expect(requestsSince(calls, from)).toEqual([
+      "GET /management/communities/test/catalog/modules",
+      "GET /management/communities/other/catalog/modules",
+      "GET /management/communities/test/catalog/resources",
+    ]);
+  });
+
+  it("makes the availability of every type out of date when a community is deleted", async () => {
+    const { store, calls } = cofy();
+    await store.typeAvailability.fetch();
+
+    await store.communities.delete("test");
+    const from = calls.length;
+    store.typeAvailability.all();
+    await flush();
+
+    expect(requestsSince(calls, from)).toEqual(["GET /management/allowed-types"]);
+  });
+
+  it("makes what one community may configure, and every type's availability, out of date when a type is allowed to it", async () => {
+    const { store, calls } = cofy();
+    await Promise.all([
+      store.moduleCatalog.fetch("test"),
+      store.moduleCatalog.fetch("other"),
+      store.resourceCatalog.fetch("test"),
+      store.typeAvailability.fetch(),
+    ]);
+
+    await store.communityTypeAvailability.setAllowed("test", { group: "source", type: "entsoe_day_ahead" }, false);
+    const from = calls.length;
+    store.moduleCatalog.all("test");
+    store.moduleCatalog.all("other");
+    store.resourceCatalog.all("test");
+    store.typeAvailability.all();
+    await flush();
+
+    expect(requestsSince(calls, from)).toEqual([
+      "GET /management/communities/test/catalog/modules",
+      "GET /management/communities/test/catalog/resources",
+      "GET /management/allowed-types",
+    ]);
   });
 });

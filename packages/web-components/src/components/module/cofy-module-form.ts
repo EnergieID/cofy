@@ -2,7 +2,7 @@ import { css, html, nothing } from "lit";
 import type { TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { repeat } from "lit/directives/repeat.js";
-import type { AllowedModule, JsonSchema, ValidationIssue } from "@cofy/frontend-sdk";
+import type { CatalogEntry, JsonSchema, ValidationIssue } from "@cofy/frontend-sdk";
 
 import "@awesome.me/webawesome/dist/components/option/option.js";
 import "@awesome.me/webawesome/dist/components/select/select.js";
@@ -54,7 +54,7 @@ export class CofyModuleForm extends CofyElement {
     `,
   ];
 
-  @property({ attribute: false }) public catalog: readonly AllowedModule[] = [];
+  @property({ attribute: false }) public catalog: readonly CatalogEntry[] = [];
   @property({ attribute: false }) public value: unknown;
   @property({ attribute: false }) public issues: readonly ValidationIssue[] = [];
   @property({ type: Boolean }) public locked = false;

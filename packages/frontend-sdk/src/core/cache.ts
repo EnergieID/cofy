@@ -80,6 +80,12 @@ export abstract class Cache<Scope extends unknown[], Value> {
     if (entry !== undefined) this.entries.set(key, { ...entry, stale: true });
   }
 
+  /** Mark what is cached in every scope as out of date, like {@link invalidate}. */
+  public invalidateAll(): void {
+    this.pending.clear();
+    for (const [key, entry] of this.entries) this.entries.set(key, { ...entry, stale: true });
+  }
+
   /** Drop what is cached, for a scope that no longer exists. */
   public forget(...scope: Scope): void {
     const key = Cache.key(scope);

@@ -26,8 +26,7 @@ class Subject(StrEnum):
     secrets = "secrets"
     tokens = "tokens"
     grants = "grants"
-    allowed_modules = "allowed_modules"
-    allowed_resources = "allowed_resources"
+    allowed_types = "allowed_types"
 
 
 class Permission(BaseModel):
@@ -55,8 +54,7 @@ ROLE_PERMISSIONS: Mapping[Role, frozenset[Permission]] = {
     Role.community_admin: frozenset(Permission.all())
     - {
         Permission(action=Action.write, subject=Subject.community),
-        Permission(action=Action.write, subject=Subject.allowed_modules),
-        Permission(action=Action.write, subject=Subject.allowed_resources),
+        Permission(action=Action.write, subject=Subject.allowed_types),
     },
 }
 """The permissions each role carries, the only place a role turns into what it allows."""

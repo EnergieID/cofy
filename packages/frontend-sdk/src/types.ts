@@ -34,15 +34,15 @@ export type GrantInfo = components["schemas"]["GrantInfo"];
 /** A grant as written. */
 export type GrantBody = components["schemas"]["GrantBody"];
 
-/** One module type a community may configure, with the JSON Schema for its settings. */
-export type AllowedModule = components["schemas"]["AllowedModule"];
+/** A module type or resource kind a community may configure, with the JSON Schema for its settings. */
+export type CatalogEntry = components["schemas"]["CatalogEntry"];
 
 /**
  * A module's settings as stored.
  *
  * Deliberately opaque beyond its identity: which fields a module has depends on its type,
  * and the types come from a registry the frontend does not know at build time. The schema
- * from {@link AllowedModule} is what describes the rest.
+ * from its {@link CatalogEntry} is what describes the rest.
  */
 export interface ModuleSettings {
   type: string;
@@ -63,8 +63,20 @@ export function moduleKey(id: ModuleId): string {
   return `${id.type}:${id.name}`;
 }
 
-/** One resource kind a community may configure, with the JSON Schema for its settings. */
-export type AllowedResource = components["schemas"]["AllowedResource"];
+/** Which communities may configure a type: by default, but for the exceptions, for which the opposite holds. */
+export type Availability = components["schemas"]["Availability"];
+
+/** Which communities may use a type: a module type, or a type of what a resource holds. */
+export type TypeAvailability = components["schemas"]["TypeAvailability"];
+
+/** A type, and whether one community may use it. */
+export type CommunityTypeAvailability = components["schemas"]["CommunityTypeAvailability"];
+
+/** Identity of a type a system admin restricts: what it is a type of - `module`, `resource`, or the kind of resource holding it - and its name. */
+export interface TypeId {
+  group: string;
+  type: string;
+}
 
 /** A secret as reported: everything but its value, which is never sent back. */
 export type SecretInfo = components["schemas"]["SecretInfo"];
@@ -85,7 +97,7 @@ export type TokenBody = components["schemas"]["TokenBody"];
  * A resource's settings as stored: a named value that modules and other resources reference.
  *
  * Opaque beyond its identity and kind, for the same reason as {@link ModuleSettings}: what a
- * resource holds depends on its kind, which {@link AllowedResource} describes.
+ * resource holds depends on its kind, which its {@link CatalogEntry} describes.
  */
 export interface ResourceSettings {
   type: string;
