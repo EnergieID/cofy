@@ -2,6 +2,7 @@ import { property } from "lit/decorators.js";
 import type { JsonSchema, ValidationIssue } from "@cofy/frontend-sdk";
 
 import { CofyElement } from "../../cofy-element.js";
+import type { MenuAction } from "./cofy-action-menu.js";
 
 /**
  * The prop contract shared by every element in the recursive form family.
@@ -53,10 +54,13 @@ export abstract class CofyFormField extends CofyElement {
    */
   @property({ type: Boolean }) public bare = false;
 
+  /** More actions on this field, from whatever mounted it, shown in the menu beside its label. */
+  @property({ attribute: false }) public menuActions: readonly MenuAction[] = [];
+
   /**
    * This field's own issues - exactly at its own pointer, and none at all while `bare`, since an
    * ancestor's own boundary (a union's details, an accordion item) already shows them instead.
-   * `bare` is always `false` on a leaf, so this is just the plain filter there.
+   * Shown by whichever field shell is drawn for it.
    */
   protected get ownIssues(): readonly ValidationIssue[] {
     return this.bare ? [] : this.issues.filter((issue) => issue.pointer === this.pointer);

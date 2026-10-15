@@ -9,8 +9,6 @@ import "@awesome.me/webawesome/dist/components/details/details.js";
 import "@awesome.me/webawesome/dist/components/option/option.js";
 import "@awesome.me/webawesome/dist/components/select/select.js";
 import "./cofy-any-form.js";
-import "./cofy-field-shell.js";
-import "../layout/cofy-link-button.js";
 
 import { fieldRegistryContext } from "../../context.js";
 import { nativeStyles } from "../../theme/native-styles.js";
@@ -31,19 +29,15 @@ import {
 import { titleCase } from "./schema/summary.js";
 
 /**
- * A `oneOf`/multi-branch `anyOf` field: its own label and details, a branch picker inside it,
+ * A `oneOf`/multi-branch `anyOf` field: its own details, a branch picker inside it,
  * then the chosen branch's own fields, also inside - a union is always grouped in one collapsible
  * details, whatever it resolves to. When that branch is itself an object (the common case), it
  * renders without a details of its own (`bare`): this one already is its visual boundary.
  *
- * `bare` also suppresses this union's *own* label/details, the same way `cofy-object-form` treats
+ * `bare` also suppresses this union's *own* details, the same way `cofy-object-form` treats
  * it - needed when a list/union mounts this as one of ITS OWN elements (a list of a union type,
  * say): the accordion item/outer details is already that element's boundary, so a second one here
  * would double up.
- *
- * A chosen, non-required branch can be cleared back to unchosen through a link in the details'
- * own header - not offered when `required`, since clearing a required field would leave the
- * document invalid with no schema-driven way back except choosing a branch again.
  *
  * The discriminator case (pydantic's `Field(discriminator=...)`) drives the picker from the
  * value's own tag property. The no-discriminator case - `energy_cost.Formula`, tagged by a
@@ -60,9 +54,6 @@ export class CofyUnionForm extends CofyFormField {
     css`
       :host {
         display: block;
-      }
-      [slot="summary"] {
-        flex: 1;
       }
     `,
   ];
@@ -96,30 +87,15 @@ export class CofyUnionForm extends CofyFormField {
       </div>
     `;
 
-    return html`
-      <cofy-field-shell
-        data-pointer=${this.pointer}
-        label=${this.bare ? "" : this.label}
-        description=${this.bare ? "" : this.description}
-        .issues=${this.ownIssues}
-      >
-        <slot name="actions" slot="actions"></slot>
-        ${this.bare ? body : this.renderDetails(body, branch !== undefined)}
-      </cofy-field-shell>
-    `;
+    return this.bare ? body : this.renderDetails(body);
   }
 
-  private renderDetails(body: TemplateResult, chosen: boolean): TemplateResult {
+  private renderDetails(body: TemplateResult): TemplateResult {
     const summary = this.fieldRegistry.getSummary(this.schema, this.root, this.value);
 
     return html`
       <wa-details appearance="outlined" open>
-        <div slot="summary" class="wa-split">
-          <span>${summary ?? ""}</span>
-          ${chosen && !this.required
-            ? html`<cofy-link-button @click=${(): void => this.emit(null)}>${this.t("form.remove")}</cofy-link-button>`
-            : nothing}
-        </div>
+        <span slot="summary">${summary ?? ""}</span>
         ${body}
       </wa-details>
     `;

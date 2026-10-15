@@ -8,7 +8,7 @@ import { testI18n } from "../../support/i18n.js";
 /** An object field, which offers viewing it as YAML. */
 const schema: JsonSchema = { type: "object", title: "Source", properties: { type: { type: "string" } } };
 
-async function mount(menuActions: readonly MenuAction[]): Promise<CofyAnyForm> {
+async function mount(menuActions: readonly MenuAction[], bare = false): Promise<CofyAnyForm> {
   const element = new CofyAnyForm();
   element.i18n = await testI18n();
   element.schema = schema;
@@ -16,6 +16,7 @@ async function mount(menuActions: readonly MenuAction[]): Promise<CofyAnyForm> {
   element.pointer = "/source";
   element.value = { type: "x" };
   element.menuActions = menuActions;
+  element.bare = bare;
   document.body.append(element);
   await element.updateComplete;
   return element;
@@ -26,11 +27,11 @@ describe("cofy-any-form actions", () => {
     document.body.replaceChildren();
   });
 
-  it("offers viewing a field as YAML through a link when that is all it offers", async () => {
+  it("offers viewing a field as YAML in its action menu, even when that is all it offers", async () => {
     const element = await mount([]);
 
-    expect(element.shadowRoot!.querySelector("cofy-link-button")?.textContent?.trim()).toBe("View as YAML");
-    expect(element.shadowRoot!.querySelector("cofy-action-menu")).toBeNull();
+    expect(element.shadowRoot!.querySelector("cofy-link-button")).toBeNull();
+    expect(element.shadowRoot!.querySelector("cofy-action-menu")!.actions.map((action) => action.label)).toEqual(["View as YAML"]);
   });
 
   it("puts the YAML toggle in one menu with the actions it was given", async () => {
@@ -43,5 +44,12 @@ describe("cofy-any-form actions", () => {
 
     menu.actions[1]!.run();
     expect(ran).toEqual(["use"]);
+  });
+
+  it("offers no YAML view of a bare field - the ancestor drawing its boundary offers one as part of its own", async () => {
+    const element = await mount([], true);
+
+    expect(element.shadowRoot!.querySelector("cofy-link-button")).toBeNull();
+    expect(element.shadowRoot!.querySelector("cofy-action-menu")).toBeNull();
   });
 });

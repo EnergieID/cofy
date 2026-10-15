@@ -4,54 +4,31 @@ import type { JsonSchema } from "@cofy/frontend-sdk";
 import {
   discriminatorOf,
   matchBranch,
-  resolveNode,
+  optionalInner,
   schemaTypeName,
   unionBranches,
 } from "../../../../src/components/form/schema/resolve.js";
 
-describe("resolveNode", () => {
-  it("passes a plain leaf schema through unchanged", () => {
-    const schema = { type: "string" };
-    expect(resolveNode(schema, {})).toBe(schema);
+describe("optionalInner", () => {
+  it("is undefined for anything without a null branch", () => {
+    expect(optionalInner({ type: "string" }, {})).toBeUndefined();
+    expect(optionalInner({ anyOf: [{ type: "string" }, { type: "integer" }] }, {})).toBeUndefined();
+    expect(optionalInner({ oneOf: [{ type: "string" }, { type: "null" }] }, {})).toBeUndefined();
   });
 
-  it("resolves a local $ref", () => {
-    const costGroup = { enum: ["low", "high"] };
-    const root: JsonSchema = { $defs: { CostGroup: costGroup } };
-    expect(resolveNode({ $ref: "#/$defs/CostGroup" }, root)).toBe(costGroup);
+  it("is the one other branch of Optional[X], left unresolved", () => {
+    const costGroup = { $ref: "#/$defs/CostGroup" };
+    expect(optionalInner({ anyOf: [costGroup, { type: "null" }], default: null }, {})).toBe(costGroup);
   });
 
-  it("unwraps Optional[string] (anyOf with one non-null branch) straight through to string", () => {
-    const schema = { anyOf: [{ type: "string" }, { type: "null" }], default: null };
-    expect(resolveNode(schema, {})).toEqual({ type: "string" });
+  it("is a union of the others for Optional[A | B], which pydantic flattens into one anyOf", () => {
+    const schema = { anyOf: [{ type: "string" }, { type: "integer" }, { type: "null" }] };
+    expect(optionalInner(schema, {})).toEqual({ anyOf: [{ type: "string" }, { type: "integer" }] });
   });
 
-  it("unwraps Optional[$ref] through to the ref's own target", () => {
-    const costGroup = { enum: ["low", "high"] };
-    const root: JsonSchema = { $defs: { CostGroup: costGroup } };
-    const schema = { anyOf: [{ $ref: "#/$defs/CostGroup" }, { type: "null" }], default: null };
-    expect(resolveNode(schema, root)).toBe(costGroup);
-  });
-
-  it("leaves a discriminated oneOf union alone - it is already terminal", () => {
-    const schema: JsonSchema = { oneOf: [{ $ref: "#/$defs/DirectiveSourceSettings" }] };
-    expect(resolveNode(schema, {})).toBe(schema);
-  });
-
-  it("leaves a multi-branch anyOf with no null option alone, as a union", () => {
-    const schema = { anyOf: [{ type: "string" }, { type: "integer" }] };
-    expect(resolveNode(schema, {})).toBe(schema);
-  });
-
-  it("treats Optional[array-of-union] as the array, not a union - the null sits beside the array", () => {
-    const schema = {
-      anyOf: [
-        { type: "array", items: { oneOf: [{ $ref: "#/$defs/JSONFormatSettings" }, { $ref: "#/$defs/CSVFormatSettings" }] } },
-        { type: "null" },
-      ],
-      default: null,
-    };
-    expect(resolveNode(schema, {})).toEqual(schema.anyOf[0]);
+  it("recognizes a null branch behind a $ref", () => {
+    const root: JsonSchema = { $defs: { Nothing: { type: "null" } } };
+    expect(optionalInner({ anyOf: [{ type: "string" }, { $ref: "#/$defs/Nothing" }] }, root)).toEqual({ type: "string" });
   });
 });
 
@@ -70,7 +47,7 @@ describe("unionBranches", () => {
     expect(unionBranches(node, {})).toEqual(node.anyOf);
   });
 
-  it("does not treat a single-branch anyOf (Optional[X], already unwrapped by resolveNode) as a union", () => {
+  it("does not treat a single-branch anyOf (Optional[X], left to cofy-optional-form) as a union", () => {
     const node = { anyOf: [{ type: "string" }, { type: "null" }] };
     expect(unionBranches(node, {})).toBeUndefined();
   });

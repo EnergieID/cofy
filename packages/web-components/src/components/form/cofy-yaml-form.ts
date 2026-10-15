@@ -39,16 +39,9 @@ export class CofyYamlForm extends CofyFormField {
   }
 
   public override render(): TemplateResult {
-    const issues = [...this.ownIssues, ...this.syntaxErrors.map((message) => ({ message }))];
-
+    // Its schema issues are shown by the field's own shell; what is wrong with the text itself is this editor's own.
     return html`
-      <cofy-field-shell
-        data-pointer=${this.pointer}
-        label=${this.label}
-        description=${this.description}
-        .issues=${issues}
-      >
-        <slot name="actions" slot="actions"></slot>
+      <cofy-field-shell .issues=${this.syntaxErrors.map((message) => ({ message }))}>
         <cofy-yaml-editor
           .text=${this.text}
           .issues=${this.subtreeIssues()}

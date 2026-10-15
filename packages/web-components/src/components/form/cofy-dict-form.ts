@@ -8,7 +8,6 @@ import "@awesome.me/webawesome/dist/components/accordion-item/accordion-item.js"
 import "@awesome.me/webawesome/dist/components/icon/icon.js";
 import "@awesome.me/webawesome/dist/components/input/input.js";
 import "./cofy-any-form.js";
-import "./cofy-field-shell.js";
 import "../../icons.js";
 import "../layout/cofy-link-button.js";
 
@@ -64,25 +63,20 @@ export class CofyDictForm extends CofyFormField {
     const entries = isRecord(this.value) ? this.value : {};
     const count = Object.keys(entries).length;
     const limits = sizeLimits(this.schema, "properties");
-    const label = this.bare ? "" : this.label;
-    const description = this.bare ? "" : this.description;
 
     return html`
-      <cofy-field-shell data-pointer=${this.pointer} label=${label} description=${description} .issues=${this.ownIssues}>
-        <slot name="actions" slot="actions"></slot>
-        <wa-accordion
-          appearance="outlined"
-          @wa-expand=${(event: CustomEvent<{ item: Element }>): void => this.onExpand(event, valueSchema)}
-          @wa-collapse=${(event: CustomEvent<{ item: Element }>): void => this.onCollapse(event)}
-        >
-          ${Object.entries(entries).map(([key, value]) => this.renderEntry(key, value, valueSchema, count > limits.min))}
-          ${count < limits.max
-            ? html`<wa-accordion-item class="cofy-dict-add" label=${this.t("form.add")}>
-                <wa-icon slot="icon" name="plus" library="cofy"></wa-icon>
-              </wa-accordion-item>`
-            : ""}
-        </wa-accordion>
-      </cofy-field-shell>
+      <wa-accordion
+        appearance="outlined"
+        @wa-expand=${(event: CustomEvent<{ item: Element }>): void => this.onExpand(event, valueSchema)}
+        @wa-collapse=${(event: CustomEvent<{ item: Element }>): void => this.onCollapse(event)}
+      >
+        ${Object.entries(entries).map(([key, value]) => this.renderEntry(key, value, valueSchema, count > limits.min))}
+        ${count < limits.max
+          ? html`<wa-accordion-item class="cofy-dict-add" label=${this.t("form.add")}>
+              <wa-icon slot="icon" name="plus" library="cofy"></wa-icon>
+            </wa-accordion-item>`
+          : ""}
+      </wa-accordion>
     `;
   }
 

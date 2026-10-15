@@ -14,9 +14,9 @@ import { CofyElement } from "../../cofy-element.js";
 import { toYaml } from "../../yaml.js";
 import type { YamlEditorChange } from "../editor/cofy-yaml-editor.js";
 import { seedFromSchema } from "../form/schema/defaults.js";
+import { deref } from "../form/schema/ref.js";
 import { setAtPointer } from "../form/schema/pointer.js";
 import { isRecord } from "../form/schema/ref.js";
-import { resolveNode } from "../form/schema/resolve.js";
 import { nativeStyles } from "../../theme/native-styles.js";
 import { utilityStyles } from "../../theme/utility-styles.js";
 
@@ -89,16 +89,19 @@ export class CofyModuleForm extends CofyElement {
         ${type === ""
           ? nothing
           : mode === "form" && schema !== undefined
-            ? html`<cofy-object-form
-                .schema=${resolveNode(schema, schema)}
-                .root=${schema}
-                .pointer=${""}
-                .value=${this.value}
-                .issues=${this.issues}
-                .hide=${["type"]}
-                @field-change=${(event: CustomEvent<{ pointer: string; value: unknown }>): void =>
-                  this.onFieldChange(event)}
-              ></cofy-object-form>`
+            ? html`<cofy-field-shell .issues=${this.issues.filter((issue) => issue.pointer === "")}>
+                <cofy-object-form
+                  .schema=${deref(schema, schema)}
+                  .root=${schema}
+                  .pointer=${""}
+                  .value=${this.value}
+                  .issues=${this.issues}
+                  .hide=${["type"]}
+                  bare
+                  @field-change=${(event: CustomEvent<{ pointer: string; value: unknown }>): void =>
+                    this.onFieldChange(event)}
+                ></cofy-object-form>
+              </cofy-field-shell>`
             : html`
                 <cofy-field-shell .issues=${this.syntaxErrors.map((message) => ({ message }))}>
                   <cofy-yaml-editor

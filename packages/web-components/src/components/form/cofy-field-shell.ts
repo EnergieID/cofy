@@ -12,20 +12,13 @@ export interface FieldShellIssue {
 }
 
 /**
- * Wraps a field's own control (slotted in) with its label above and its errors below - a
- * caller mounts this the same way as any other element, `data-pointer` and all, rather than
- * calling a function that hands back markup to splice in.
+ * Wraps a field's own control (slotted in) with its label and actions above, and its description
+ * and errors below - drawn by `cofy-any-form` around every field, so a control never carries a
+ * visible label of its own. Styled with `wa-form-control-label`, the same utility class (and
+ * tokens) Web Awesome's own controls use for their label.
  *
- * `label` is left empty by a control that already carries its own (every Web Awesome form
- * control takes one as an attribute) - only a control with no such attribute of its own (a
- * `wa-accordion`, a `wa-card`, a bare `wa-select`-less picker) passes one here instead. Styled
- * with `wa-form-control-label`, the same utility class (and tokens) Web Awesome's own controls
- * use for their label, rather than a second copy of those three declarations.
- *
- * `description` sits after the slotted control and before the issues list - a container (an
- * object's card, a list's accordion, a union's card) has no single control of its own to carry a
- * `hint` attribute the way a leaf's `wa-input`/`wa-select` does, so this is the one place it can
- * show its own schema's `description` at all.
+ * Its actions show beside the label, or - where there is none (a `bare` field) - beside the control
+ * itself, at the top: for a picker beside the picker, and for a union beside its type picker.
  *
  * `issues` only needs a `message` to print, not a full `ValidationIssue` - a YAML editor's own
  * syntax errors (plain strings) map onto the same shape (`{ message }`) as a caller's schema
@@ -40,6 +33,26 @@ export class CofyFieldShell extends CofyElement {
       :host {
         display: block;
       }
+      /*
+       * Exactly one label line high, whether or not there are actions: the action button is taller than the label, and
+       * would otherwise push the control down as it appears - it overflows the row instead, centred on the label.
+       */
+      .header {
+        line-height: var(--wa-form-control-label-line-height);
+        block-size: 1lh;
+        align-items: center;
+        /* wa-split wraps, which sizes its line to the tallest item rather than to the row, shifting the label instead. */
+        flex-wrap: nowrap;
+      }
+      .body {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--wa-space-xs);
+      }
+      .body ::slotted(:not([slot])) {
+        flex: 1;
+        min-inline-size: 0;
+      }
       .cofy-field-issues {
         padding-inline-start: var(--wa-space-m);
         color: var(--wa-color-danger-fill-loud);
@@ -49,6 +62,7 @@ export class CofyFieldShell extends CofyElement {
   ];
 
   @property({ type: String }) public label = "";
+  @property({ type: Boolean }) public required = false;
   @property({ type: String }) public description = "";
   @property({ attribute: false }) public issues: readonly FieldShellIssue[] = [];
 
@@ -57,12 +71,14 @@ export class CofyFieldShell extends CofyElement {
       <div class="wa-stack wa-gap-xs">
         ${this.label === ""
           ? nothing
-          : html`
-          <div class="wa-split">
-            <label>${this.label}</label>
-            <slot name="actions"></slot>
-          </div>`}
-        <slot></slot>
+          : html`<div class="header wa-split">
+              <label>${this.label}${this.required ? "*" : ""}</label>
+              <slot name="actions"></slot>
+            </div>`}
+        <div class="body">
+          <slot></slot>
+          ${this.label === "" ? html`<slot name="actions"></slot>` : nothing}
+        </div>
         ${this.description === ""
           ? nothing
           : html`<div class="wa-color-text-quiet wa-caption-s">${this.description}</div>`}

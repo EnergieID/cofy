@@ -21,7 +21,7 @@ const catalog = [
       type: "object",
       properties: {
         type: { const: "tariff", default: "tariff" },
-        name: { type: "string" },
+        name: { type: "string", minLength: 1 },
         // recursive: a formula may contain further formulas
         formula: { $ref: "#/$defs/Formula" },
       },
@@ -29,8 +29,11 @@ const catalog = [
       $defs: {
         Formula: {
           type: "object",
-          properties: { kind: { const: "index", default: "index" }, inner: { $ref: "#/$defs/Formula" } },
-          required: ["kind", "inner"],
+          properties: {
+            kind: { const: "index", default: "index" },
+            inner: { anyOf: [{ $ref: "#/$defs/Formula" }, { type: "null" }], default: null },
+          },
+          required: ["kind"],
         },
       },
     },
@@ -182,7 +185,7 @@ describe("cofy-module-create", () => {
 
   it("shows validation issues as a plain badge, not a clickable list", async () => {
     const element = await mount();
-    // the recursive Formula bottoms out its own required `inner` as null - a real issue.
+    // the seeded name is empty, which its minLength does not allow - a real issue.
     await selectType(element, "tariff");
 
     const badge = element.shadowRoot!.querySelector("wa-badge");

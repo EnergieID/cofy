@@ -7,7 +7,6 @@ import "@awesome.me/webawesome/dist/components/accordion/accordion.js";
 import "@awesome.me/webawesome/dist/components/accordion-item/accordion-item.js";
 import "@awesome.me/webawesome/dist/components/icon/icon.js";
 import "./cofy-any-form.js";
-import "./cofy-field-shell.js";
 import "../../icons.js";
 import "../layout/cofy-link-button.js";
 
@@ -60,25 +59,20 @@ export class CofyListForm extends CofyFormField {
 
   public override render(): TemplateResult {
     const items = Array.isArray(this.value) ? this.value : [];
-    const label = this.bare ? "" : this.label;
-    const description = this.bare ? "" : this.description;
 
     return html`
-      <cofy-field-shell data-pointer=${this.pointer} label=${label} description=${description} .issues=${this.ownIssues}>
-        <slot name="actions" slot="actions"></slot>
-        <wa-accordion
-          appearance="outlined"
-          @wa-expand=${(event: CustomEvent<{ item: Element }>): void => this.onExpand(event)}
-          @wa-collapse=${(event: CustomEvent<{ item: Element }>): void => this.onCollapse(event)}
-        >
-          ${items.map((item, index) => this.renderItem(item, index, this.removable(index, items.length)))}
-          ${items.length < sizeLimits(this.schema, "items").max
-            ? html`<wa-accordion-item class="cofy-list-add" label=${this.t("form.add")}>
-                <wa-icon slot="icon" name="plus" library="cofy"></wa-icon>
-              </wa-accordion-item>`
-            : ""}
-        </wa-accordion>
-      </cofy-field-shell>
+      <wa-accordion
+        appearance="outlined"
+        @wa-expand=${(event: CustomEvent<{ item: Element }>): void => this.onExpand(event)}
+        @wa-collapse=${(event: CustomEvent<{ item: Element }>): void => this.onCollapse(event)}
+      >
+        ${items.map((item, index) => this.renderItem(item, index, this.removable(index, items.length)))}
+        ${items.length < sizeLimits(this.schema, "items").max
+          ? html`<wa-accordion-item class="cofy-list-add" label=${this.t("form.add")}>
+              <wa-icon slot="icon" name="plus" library="cofy"></wa-icon>
+            </wa-accordion-item>`
+          : ""}
+      </wa-accordion>
     `;
   }
 

@@ -10,40 +10,36 @@ export interface Discriminator {
 }
 
 /**
- * *anyOf*'s own non-`null` branches - the candidates for `Optional[X]`-unwrapping (exactly one)
- * or a bare union (more than one) - or `undefined` if *anyOf* isn't an array at all. Shared by
- * `resolveNode` and `unionBranches`, which both need exactly this filter.
+ * *anyOf*'s own non-`null` branches - the candidates for a bare union (more than one) - or
+ * `undefined` if *anyOf* isn't an array at all.
  */
 function nonNullBranches(anyOf: unknown, root: JsonSchema): JsonSchema[] | undefined {
   if (!Array.isArray(anyOf)) return undefined;
-  return (anyOf as JsonSchema[]).filter((branch) => deref(branch, root)["type"] !== "null");
+  return (anyOf as JsonSchema[]).filter((branch) => !isNull(branch, root));
+}
+
+function isNull(schema: JsonSchema, root: JsonSchema): boolean {
+  return deref(schema, root)["type"] === "null";
 }
 
 /**
- * *schema* resolved past its own `$ref` and, if it is `Optional[X]` (an `anyOf` with exactly one
- * non-`null` branch), past that wrapper too - recursively, so however deep the `Optional`/`$ref`
- * nesting goes, the result still bottoms out. What is left is either a concrete leaf/object/array
- * node, or a genuine union (`oneOf`, or an `anyOf` with more than one non-`null` branch) - the
- * shape every field mapper and container field actually needs to inspect.
+ * What an `Optional` - an `anyOf` with a `null` branch - holds when it is not `null`: its one other
+ * branch, or a union of the others (pydantic flattens `Optional[A | B]` into one `anyOf`), or
+ * `undefined` if *node* is not one. Expects *node* already resolved past its own `$ref`.
  */
-export function resolveNode(schema: JsonSchema, root: JsonSchema): JsonSchema {
-  const node = deref(schema, root);
+export function optionalInner(node: JsonSchema, root: JsonSchema): JsonSchema | undefined {
+  const anyOf = node["anyOf"];
+  if (!Array.isArray(anyOf) || !(anyOf as JsonSchema[]).some((branch) => isNull(branch, root))) return undefined;
 
-  if (Array.isArray(node["oneOf"]) && (node["oneOf"] as unknown[]).length > 0) return node;
-
-  const nonNull = nonNullBranches(node["anyOf"], root);
-  if (nonNull !== undefined) {
-    if (nonNull.length === 1) return resolveNode(nonNull[0]!, root);
-    if (nonNull.length > 1) return node;
-  }
-
-  return node;
+  const others = nonNullBranches(anyOf, root)!;
+  if (others.length === 0) return undefined;
+  return others.length === 1 ? others[0] : { anyOf: others };
 }
 
 /**
  * *node*'s own union branches - `oneOf`, or an `anyOf` with more than one non-`null` branch - or
  * `undefined` if it isn't one. A branch nothing is valid against is not one to offer, so it is left
- * out - which can leave a union with none. Expects *node* already resolved by {@link resolveNode}.
+ * out - which can leave a union with none. Expects *node* already resolved past its own `$ref`.
  */
 export function unionBranches(node: JsonSchema, root: JsonSchema): readonly JsonSchema[] | undefined {
   const oneOf = node["oneOf"];
@@ -73,7 +69,7 @@ export function discriminatorOf(node: JsonSchema): Discriminator | undefined {
 /**
  * The name a custom field mapper would key this schema under - its own `$ref`'s `$defs` entry,
  * or its own `title` for an inline schema with no `$ref`. Checked against *schema* as handed
- * down, before {@link resolveNode} resolves it - the identity a `$ref` carries (`TimeseriesSource`,
+ * down, before `deref` resolves it - the identity a `$ref` carries (`TimeseriesSource`,
  * `Formula`, ...) is exactly what resolving it throws away.
  */
 export function schemaTypeName(schema: JsonSchema): string | undefined {

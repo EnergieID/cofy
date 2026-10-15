@@ -6,6 +6,8 @@ import type { CatalogEntry, JsonSchema, ValidationIssue } from "@cofy/frontend-s
 import "../../../src/components/form/cofy-any-form.js";
 import "../../../src/components/module/cofy-module-form.js";
 import { i18nContext } from "../../../src/context.js";
+import type { MenuAction } from "../../../src/components/form/cofy-action-menu.js";
+import type { CofyAnyForm } from "../../../src/components/form/cofy-any-form.js";
 import type { CofyObjectForm } from "../../../src/components/form/cofy-object-form.js";
 import type { CofyModuleForm } from "../../../src/components/module/cofy-module-form.js";
 import { testI18n } from "../../support/i18n.js";
@@ -23,7 +25,7 @@ async function provideI18n(element: ReactiveControllerHost & HTMLElement): Promi
 /**
  * A schema exercising every dispatch case: const, string, optional string (anyOf), number,
  * boolean, enum (via $ref), secret, a discriminated union whose second branch cycles into
- * itself directly (an object-level cycle, gated by a fake Add accordion item), a bare oneOf with no
+ * itself through an optional (gated by the optional's fake Create details item), a bare oneOf with no
  * discriminator (the `energy_cost.Formula` shape - a union-level cycle, self-gating because a
  * fresh branch's value is null until chosen), and both a scalar and a union-typed array.
  */
@@ -66,9 +68,9 @@ const schema: JsonSchema = {
       type: "object",
       properties: {
         type: { const: "b", default: "b", type: "string" },
-        nested: { $ref: "#/$defs/SourceB" },
+        nested: { anyOf: [{ $ref: "#/$defs/SourceB" }, { type: "null" }], default: null, title: "Nested" },
       },
-      required: ["type", "nested"],
+      required: ["type"],
     },
     Formula: { title: "Formula", oneOf: [{ $ref: "#/$defs/IndexFormula" }, { $ref: "#/$defs/MinimumFormula" }] },
     IndexFormula: {
@@ -107,6 +109,8 @@ async function mountObjectForm(
   element.pointer = "";
   element.value = overrides.value ?? value;
   element.issues = overrides.issues ?? [];
+  // As `cofy-module-form` mounts the document's root: the document itself is its boundary.
+  element.bare = true;
   document.body.append(element);
   await element.updateComplete;
   // The tree mounts several levels of custom element recursively; a child created during a
@@ -157,8 +161,39 @@ function fieldAt(element: HTMLElement, pointer: string): HTMLElement | null {
   return deepQuery(element.shadowRoot!, `[data-pointer="${pointer}"]`);
 }
 
+/**
+ * What a field shell found by {@link fieldAt} holds: the shadow root of the field it was drawn around, where that field's own
+ * controls are - or the shell itself, for one a field drew around its own controls.
+ */
+function fieldBody(shell: HTMLElement): ParentNode & Pick<HTMLElement, "textContent"> {
+  const field = Array.from(shell.children).find((child) => child.tagName.startsWith("COFY-") && child.slot !== "actions");
+  return (field?.shadowRoot as (ShadowRoot & Pick<HTMLElement, "textContent">) | undefined) ?? shell;
+}
+
+/** *schema* mounted as one field, through `cofy-any-form` as every form mounts its fields, with the shell it draws around it. */
+async function mountField(
+  schema: JsonSchema,
+  fieldValue: unknown,
+  options: Partial<{ pointer: string; issues: ValidationIssue[]; bare: boolean }> = {},
+): Promise<{ element: CofyAnyForm; shell: HTMLElement; body: ParentNode }> {
+  const element = document.createElement("cofy-any-form");
+  await provideI18n(element);
+  element.schema = schema;
+  element.root = schema;
+  element.pointer = options.pointer ?? "/thing";
+  element.value = fieldValue;
+  element.issues = options.issues ?? [];
+  element.bare = options.bare ?? false;
+  document.body.append(element);
+  await element.updateComplete;
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  // Through any wrapper (an optional, a referable) to the shell of the field it wraps.
+  const shell = deepQuery(element.shadowRoot!, "cofy-field-shell")!;
+  return { element, shell, body: fieldBody(shell) };
+}
+
 function select(element: HTMLElement, pointer: string): HTMLElement & { value: string } {
-  return fieldAt(element, pointer)!.querySelector("wa-select") as HTMLElement & { value: string };
+  return fieldBody(fieldAt(element, pointer)!).querySelector("wa-select") as HTMLElement & { value: string };
 }
 
 describe("the generic form family, mounted end to end", () => {
@@ -170,14 +205,14 @@ describe("the generic form family, mounted end to end", () => {
     const element = await mountObjectForm();
 
     const field = fieldAt(element, "/type")!;
-    expect(field.querySelector("wa-input, wa-select, wa-checkbox")).toBeNull();
-    expect(field.textContent).toContain("demo");
+    expect(fieldBody(field).querySelector("wa-input, wa-select, wa-checkbox")).toBeNull();
+    expect(fieldBody(field).textContent).toContain("demo");
   });
 
   it("renders a plain string field bound to its value", async () => {
     const element = await mountObjectForm();
 
-    const input = fieldAt(element, "/name")!.querySelector<HTMLElement & { value: string }>("wa-input")!;
+    const input = fieldBody(fieldAt(element, "/name")!).querySelector<HTMLElement & { value: string }>("wa-input")!;
     expect(input.value).toBe("spot");
   });
 
@@ -185,14 +220,14 @@ describe("the generic form family, mounted end to end", () => {
     const element = await mountObjectForm();
 
     const field = fieldAt(element, "/display_name")!;
-    expect(field.querySelector("wa-select")).toBeNull();
-    expect(field.querySelector("wa-input")).not.toBeNull();
+    expect(fieldBody(field).querySelector("wa-select")).toBeNull();
+    expect(fieldBody(field).querySelector("wa-input")).not.toBeNull();
   });
 
   it("renders a number field as a numeric wa-input", async () => {
     const element = await mountObjectForm({ value: { ...value, count: 3 } });
 
-    const input = fieldAt(element, "/count")!.querySelector<HTMLElement & { value: string; type: string }>("wa-input")!;
+    const input = fieldBody(fieldAt(element, "/count")!).querySelector<HTMLElement & { value: string; type: string }>("wa-input")!;
     expect(input.type).toBe("number");
     expect(input.value).toBe("3");
   });
@@ -200,14 +235,14 @@ describe("the generic form family, mounted end to end", () => {
   it("renders a boolean field as a checkbox", async () => {
     const element = await mountObjectForm({ value: { ...value, active: true } });
 
-    const checkbox = fieldAt(element, "/active")!.querySelector<HTMLElement & { checked: boolean }>("wa-checkbox")!;
+    const checkbox = fieldBody(fieldAt(element, "/active")!).querySelector<HTMLElement & { checked: boolean }>("wa-checkbox")!;
     expect(checkbox.checked).toBe(true);
   });
 
   it("renders an enum (reached through a $ref) as a select of its values", async () => {
     const element = await mountObjectForm({ value: { ...value, level: "high" } });
 
-    const options = fieldAt(element, "/level")!.querySelectorAll("wa-option");
+    const options = fieldBody(fieldAt(element, "/level")!).querySelectorAll("wa-option");
     expect(Array.from(options).map((o) => o.getAttribute("value"))).toEqual(["low", "high"]);
   });
 
@@ -215,19 +250,19 @@ describe("the generic form family, mounted end to end", () => {
     const element = await mountObjectForm();
 
     const field = fieldAt(element, "/source/api_key")!;
-    const secretForm = (field.getRootNode() as ShadowRoot).host as HTMLElement & { value: unknown };
+    const secretForm = (fieldBody(field) as ShadowRoot).host as HTMLElement & { value: unknown };
     expect(secretForm.tagName.toLowerCase()).toBe("cofy-secret-form");
     expect(secretForm.value).toEqual({ type: "secret", name: "entsoe_key" });
-    expect(field.querySelector("wa-select")).not.toBeNull();
-    expect(field.querySelector("wa-input")).toBeNull();
+    expect(fieldBody(field).querySelector("wa-select")).not.toBeNull();
+    expect(fieldBody(field).querySelector("wa-input")).toBeNull();
   });
 
   it("renders a scalar array as one accordion item per element, plus a trailing Add item", async () => {
     const element = await mountObjectForm();
 
     const field = fieldAt(element, "/tags")!;
-    expect(field.querySelectorAll("cofy-any-form")).toHaveLength(2);
-    expect(field.querySelectorAll("wa-accordion-item")).toHaveLength(3);
+    expect(fieldBody(field).querySelectorAll("cofy-any-form")).toHaveLength(2);
+    expect(fieldBody(field).querySelectorAll("wa-accordion-item")).toHaveLength(3);
   });
 
   it("adding an array element seeds a new default and dispatches the whole new array", async () => {
@@ -236,7 +271,7 @@ describe("the generic form family, mounted end to end", () => {
     element.addEventListener("field-change", (event) => events.push((event as CustomEvent).detail));
 
     // The "Add" item cancels its own wa-expand and appends instead - see onExpand().
-    const accordion = fieldAt(element, "/tags")!.querySelector("wa-accordion")!;
+    const accordion = fieldBody(fieldAt(element, "/tags")!).querySelector("wa-accordion")!;
     const addItem = accordion.querySelector(".cofy-list-add")!;
     accordion.dispatchEvent(new CustomEvent("wa-expand", { detail: { item: addItem }, cancelable: true }));
 
@@ -295,13 +330,13 @@ describe("the generic form family, mounted end to end", () => {
     expect(fieldAt(element, "/type")).not.toBeNull();
   });
 
-  it("an object-level cycle (SourceB.nested pointing at SourceB) renders as a label plus a fake Create details item, like an empty list's Add", async () => {
+  it("a cycle through an optional (SourceB.nested pointing at SourceB) renders as a label plus a fake Create details item, like an empty list's Add", async () => {
     const element = await mountObjectForm({ value: { ...value, source: { type: "b", nested: null } } });
 
     const nestedField = fieldAt(element, "/source/nested")!;
-    expect(nestedField.querySelector("wa-button")).toBeNull();
-    expect(nestedField.shadowRoot!.querySelector("label")?.textContent).toBe("SourceB");
-    const createItem = nestedField.querySelector("wa-details")!;
+    expect(fieldBody(nestedField).querySelector("wa-button")).toBeNull();
+    expect(nestedField.shadowRoot!.querySelector("label")?.textContent).toBe("Nested");
+    const createItem = fieldBody(nestedField).querySelector("wa-details")!;
     expect(createItem.getAttribute("summary")).toBe("Create");
     expect(createItem.querySelector('[slot="expand-icon"]')?.getAttribute("name")).toBe("plus");
     // one level only - no grand-nested object rendered until that item's create is triggered
@@ -314,7 +349,7 @@ describe("the generic form family, mounted end to end", () => {
     element.addEventListener("field-change", (event) => events.push((event as CustomEvent).detail));
 
     const nestedField = fieldAt(element, "/source/nested")!;
-    const details = nestedField.querySelector("wa-details")!;
+    const details = fieldBody(nestedField).querySelector("wa-details")!;
     details.dispatchEvent(new CustomEvent("wa-show", { cancelable: true }));
 
     expect(events).toEqual([{ pointer: "/source/nested", value: { type: "b", nested: null } }]);
@@ -323,7 +358,7 @@ describe("the generic form family, mounted end to end", () => {
   it("a bare oneOf with no discriminator renders an unlabeled branch picker built from each branch's type name", async () => {
     const element = await mountObjectForm();
 
-    const options = fieldAt(element, "/formula")!.querySelectorAll("wa-option");
+    const options = fieldBody(fieldAt(element, "/formula")!).querySelectorAll("wa-option");
     expect(Array.from(options).map((o) => o.getAttribute("value"))).toEqual(["IndexFormula", "MinimumFormula"]);
   });
 
@@ -339,7 +374,7 @@ describe("the generic form family, mounted end to end", () => {
   it("a recursive array-of-union field (Formula.minimum: Formula[]) does not crash and starts empty", async () => {
     const element = await mountObjectForm({ value: { ...value, formula: { kind: "minimum", minimum: [] } } });
 
-    expect(fieldAt(element, "/formula/minimum")!.querySelectorAll("cofy-any-form")).toHaveLength(0);
+    expect(fieldBody(fieldAt(element, "/formula/minimum")!).querySelectorAll("cofy-any-form")).toHaveLength(0);
   });
 
   it("shows an issue against the exact field it belongs to", async () => {
@@ -376,179 +411,74 @@ describe("the generic form family, mounted end to end", () => {
     expect(element.shadowRoot!.querySelector("wa-details")).toBeNull();
   });
 
-  it("shows the document root's own issue after its fields, matching where a leaf field shows its own", async () => {
+  it("leaves the document root's own issue to whatever mounts it - the module form shows it after the fields", async () => {
     const issues: ValidationIssue[] = [{ pointer: "", message: "root problem", keyword: "custom" }];
     const element = await mountObjectForm({ issues });
 
-    // the root wraps in cofy-field-shell too (just without a details, since it is not `wrapped`)
-    const shell = element.shadowRoot!.querySelector("cofy-field-shell")!;
-    const issuesList = shell.shadowRoot!.querySelector(".cofy-field-issues")!;
-    expect(issuesList.textContent).toContain("root problem");
+    expect(element.shadowRoot!.textContent).not.toContain("root problem");
   });
 
   it("wraps a nested object in an open, collapsible details, with its label above", async () => {
     const nestedSchema: JsonSchema = { title: "Nested Thing", type: "object", properties: { a: { type: "string" } } };
-    const element = document.createElement("cofy-object-form");
-    await provideI18n(element);
-    element.schema = nestedSchema;
-    element.root = nestedSchema;
-    element.pointer = "/thing";
-    element.value = { a: "x" };
-    // `cofy-object-form` no longer derives its own label from its schema - `cofy-any-form`
-    // computes it once and hands it down as a prop, so a direct mount (bypassing any-form, as
-    // this unit test does) has to supply it itself, the same way any-form would.
-    element.label = "Nested Thing";
-    document.body.append(element);
-    await element.updateComplete;
+    const { shell, body } = await mountField(nestedSchema, { a: "x" });
 
-    const shell = element.shadowRoot!.querySelector("cofy-field-shell")!;
-    const label = shell.shadowRoot!.querySelector("label");
-    // the details is the caller's own markup, slotted into cofy-field-shell - a light-DOM child
-    // of it, not inside its shadow root (unlike the label, which cofy-field-shell renders itself).
-    const details = shell.querySelector("wa-details");
-    expect(label?.textContent).toBe("Nested Thing");
+    expect(shell.shadowRoot!.querySelector("label")?.textContent).toBe("Nested Thing");
+    const details = body.querySelector("wa-details");
     expect(details).not.toBeNull();
     expect(details!.hasAttribute("open")).toBe(true);
   });
 
-  it("shows a delete link in the details header for a non-required nested object, clearing it back to absent", async () => {
-    // Mounted as a nested property of a root object-form, not directly: `cofy-object-form`'s own
-    // `this.t()` needs i18n consumed from an ancestor's provider - a `ContextProvider` set up on
-    // the very element under test is skipped by that same element's own `@consume` (see
-    // `provideI18n`'s own docstring above), so this cannot be checked on a bare, directly-mounted
-    // instance the way the structural (non-translated) assertions elsewhere in this file are.
-    const parentSchema: JsonSchema = {
-      type: "object",
-      properties: { thing: { title: "Nested Thing", type: "object", properties: { a: { type: "string" } } } },
-    };
-    const element = document.createElement("cofy-object-form");
-    await provideI18n(element);
-    element.schema = parentSchema;
-    element.root = parentSchema;
-    element.pointer = "";
-    element.value = { thing: { a: "x" } };
-    document.body.append(element);
-    await element.updateComplete;
-    await new Promise((resolve) => setTimeout(resolve, 0));
+  it("offers no way to delete a nested object of its own - that is left to an optional around it", async () => {
+    const nestedSchema: JsonSchema = { title: "Nested Thing", type: "object", properties: { a: { type: "string" } } };
+    const { shell, body } = await mountField(nestedSchema, { a: "x" });
 
-    const events: unknown[] = [];
-    element.addEventListener("field-change", (event) => events.push((event as CustomEvent).detail));
-
-    const shell = fieldAt(element, "/thing")!;
-    const details = shell.querySelector("wa-details")!;
-    const deleteLink = details.querySelector('[slot="summary"] cofy-link-button')!;
-    expect(deleteLink.textContent?.trim()).toBe("Remove");
-    deepQuery(deleteLink.shadowRoot!, "button")!.dispatchEvent(new MouseEvent("click", { bubbles: true, composed: true }));
-
-    expect(events).toEqual([{ pointer: "/thing", value: null }]);
+    expect(body.querySelector("wa-details cofy-link-button")).toBeNull();
+    const menu = shell.querySelector("cofy-action-menu")!;
+    expect(menu.actions.map((action) => action.id)).toEqual(["toggle-yaml"]);
   });
 
   it("shows an object's own type/kind tag in its collapsed header", async () => {
-    const parentSchema: JsonSchema = {
+    const thing: JsonSchema = {
+      title: "Nested Thing",
       type: "object",
-      properties: {
-        thing: {
-          title: "Nested Thing",
-          type: "object",
-          properties: { kind: { const: "widget", default: "widget", type: "string" } },
-        },
-      },
+      properties: { kind: { const: "widget", default: "widget", type: "string" } },
     };
-    const element = document.createElement("cofy-object-form");
-    await provideI18n(element);
-    element.schema = parentSchema;
-    element.root = parentSchema;
-    element.pointer = "";
-    element.value = { thing: { kind: "widget" } };
-    document.body.append(element);
-    await element.updateComplete;
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    const { body } = await mountField(thing, { kind: "widget" });
 
-    const shell = fieldAt(element, "/thing")!;
-    const summary = shell.querySelector('wa-details [slot="summary"] span')!;
-    expect(summary.textContent).toBe("Widget");
+    expect(body.querySelector('wa-details [slot="summary"]')?.textContent).toBe("Widget");
   });
 
-  it("hides the delete link for a required nested object", async () => {
-    const parentSchema: JsonSchema = {
-      type: "object",
-      properties: { thing: { title: "Nested Thing", type: "object", properties: { a: { type: "string" } } } },
-      required: ["thing"],
-    };
-    const element = document.createElement("cofy-object-form");
-    await provideI18n(element);
-    element.schema = parentSchema;
-    element.root = parentSchema;
-    element.pointer = "";
-    element.value = { thing: { a: "x" } };
-    document.body.append(element);
-    await element.updateComplete;
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    const shell = fieldAt(element, "/thing")!;
-    const details = shell.querySelector("wa-details")!;
-    expect(details.querySelector('[slot="summary"] cofy-link-button')).toBeNull();
-  });
 
   it("shows a nested object's own issue after its fields, not before, matching a leaf field's own", async () => {
     const nestedSchema: JsonSchema = { title: "Nested Thing", type: "object", properties: { a: { type: "string" } } };
-    const element = document.createElement("cofy-object-form");
-    await provideI18n(element);
-    element.schema = nestedSchema;
-    element.root = nestedSchema;
-    element.pointer = "/thing";
-    element.value = { a: "x" };
-    element.issues = [{ pointer: "/thing", message: "bad thing", keyword: "custom" }];
-    document.body.append(element);
-    await element.updateComplete;
+    const issues: ValidationIssue[] = [{ pointer: "/thing", message: "bad thing", keyword: "custom" }];
+    const { shell } = await mountField(nestedSchema, { a: "x" }, { issues });
 
-    const shell = element.shadowRoot!.querySelector("cofy-field-shell")!;
-    const issuesList = shell.shadowRoot!.querySelector(".cofy-field-issues")!;
-    expect(issuesList.textContent).toContain("bad thing");
+    expect(shell.shadowRoot!.querySelector(".cofy-field-issues")!.textContent).toContain("bad thing");
     // cofy-field-shell's own test already verifies it puts issues after the slot generically
   });
 
   it("renders a bare object with no details and no label of its own", async () => {
     const nestedSchema: JsonSchema = { title: "Nested Thing", type: "object", properties: { a: { type: "string" } } };
-    const element = document.createElement("cofy-object-form");
-    await provideI18n(element);
-    element.schema = nestedSchema;
-    element.root = nestedSchema;
-    element.pointer = "/thing";
-    element.value = { a: "x" };
-    element.bare = true;
-    document.body.append(element);
-    await element.updateComplete;
+    const { shell, body } = await mountField(nestedSchema, { a: "x" }, { bare: true });
 
-    const shell = element.shadowRoot!.querySelector("cofy-field-shell")!;
-    expect(shell.querySelector("wa-details")).toBeNull();
+    expect(body.querySelector("wa-details")).toBeNull();
     expect(shell.shadowRoot!.querySelector("label")).toBeNull();
   });
 
   it("wraps a list in an accordion, with its label above (not a card - the accordion is its own boundary)", async () => {
     const listSchema: JsonSchema = { title: "Tags", type: "array", items: { type: "string" } };
-    const element = document.createElement("cofy-list-form");
-    await provideI18n(element);
-    element.schema = listSchema;
-    element.root = listSchema;
-    element.pointer = "/tags";
-    element.value = ["a"];
-    // `cofy-list-form` no longer derives its own label from its schema - see the equivalent note
-    // on the nested-object test above.
-    element.label = "Tags";
-    document.body.append(element);
-    await element.updateComplete;
+    const { shell, body } = await mountField(listSchema, ["a"], { pointer: "/tags" });
 
-    const shell = element.shadowRoot!.querySelector("cofy-field-shell")!;
     expect(shell.shadowRoot!.querySelector("label")?.textContent).toBe("Tags");
-    expect(shell.querySelector("wa-accordion")).not.toBeNull();
-    expect(shell.querySelector("wa-details")).toBeNull();
+    expect(body.querySelector("wa-accordion")).not.toBeNull();
+    expect(body.querySelector("wa-details")).toBeNull();
   });
 
   it("appends a trailing 'Add' accordion item with a plus icon in place of the expand chevron", async () => {
     const element = await mountObjectForm();
 
-    const addItem = fieldAt(element, "/tags")!.querySelector(".cofy-list-add")!;
+    const addItem = fieldBody(fieldAt(element, "/tags")!).querySelector(".cofy-list-add")!;
     expect(addItem).not.toBeNull();
     expect(addItem.getAttribute("label")).toBe("Add");
     expect(addItem.querySelector('[slot="icon"]')?.getAttribute("name")).toBe("plus");
@@ -557,7 +487,7 @@ describe("the generic form family, mounted end to end", () => {
   it("collapses each list item by default, showing its position, own value, and a delete action", async () => {
     const element = await mountObjectForm();
 
-    const items = fieldAt(element, "/tags")!.querySelectorAll<HTMLElement & { expanded: boolean }>(
+    const items = fieldBody(fieldAt(element, "/tags")!).querySelectorAll<HTMLElement & { expanded: boolean }>(
       "wa-accordion-item:not(.cofy-list-add)",
     );
     expect(items).toHaveLength(2);
@@ -625,7 +555,7 @@ describe("the generic form family, mounted end to end", () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     const forms = Array.from(element.shadowRoot!.querySelectorAll("cofy-any-form"));
-    expect(forms.map((form) => form.shadowRoot!.firstElementChild?.tagName.toLowerCase())).toEqual([
+    expect(forms.map((form) => form.shadowRoot!.querySelector("cofy-field-shell > :not([slot])")?.tagName.toLowerCase())).toEqual([
       "cofy-number-form",
       "cofy-number-form",
     ]);
@@ -732,18 +662,15 @@ describe("the generic form family, mounted end to end", () => {
     const element = await mountObjectForm({ issues });
 
     const field = fieldAt(element, "/tags")!;
-    expect(field.querySelector("wa-accordion")).not.toBeNull();
+    expect(fieldBody(field).querySelector("wa-accordion")).not.toBeNull();
     const issuesList = field.shadowRoot!.querySelector(".cofy-field-issues")!;
     expect(issuesList.textContent).toContain("too many");
   });
 
-  it("groups a union in its own collapsible details, with an empty header (source is required, so no delete link) and the type select inside it", async () => {
+  it("groups a union in its own collapsible details, with no delete link, and the type select inside it", async () => {
     const element = await mountObjectForm();
 
-    const shell = fieldAt(element, "/source")!;
-    // the details is the union's own markup, slotted into cofy-field-shell - a light-DOM child
-    // of it, not inside its shadow root.
-    const details = shell.querySelector("wa-details")!;
+    const details = fieldBody(fieldAt(element, "/source")!).querySelector("wa-details")!;
     expect(details).not.toBeNull();
     expect(details.hasAttribute("open")).toBe(true);
     expect(details.querySelector('[slot="summary"] cofy-link-button')).toBeNull();
@@ -765,38 +692,22 @@ describe("the generic form family, mounted end to end", () => {
     expect(picker.getAttribute("label")).toBe("Type");
   });
 
-  it("shows a delete link for a non-required, chosen union, clearing it back to unchosen", async () => {
-    const parentSchema: JsonSchema = {
-      type: "object",
-      properties: {
-        pick: {
-          title: "Pick",
-          discriminator: { propertyName: "type", mapping: { a: "#/$defs/A" } },
-          oneOf: [{ $ref: "#/$defs/A" }],
-        },
-      },
+  it("clears an optional union back to null through its action menu", async () => {
+    const optionalPick: JsonSchema = {
+      title: "Pick",
+      anyOf: [{ discriminator: { propertyName: "type", mapping: { a: "#/$defs/A" } }, oneOf: [{ $ref: "#/$defs/A" }] }, { type: "null" }],
+      default: null,
       $defs: {
         A: { title: "A", type: "object", properties: { type: { const: "a", default: "a", type: "string" } }, required: ["type"] },
       },
     };
-    const element = document.createElement("cofy-object-form");
-    await provideI18n(element);
-    element.schema = parentSchema;
-    element.root = parentSchema;
-    element.pointer = "";
-    element.value = { pick: { type: "a" } };
-    document.body.append(element);
-    await element.updateComplete;
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
+    const { element } = await mountField(optionalPick, { type: "a" }, { pointer: "/pick" });
     const events: unknown[] = [];
     element.addEventListener("field-change", (event) => events.push((event as CustomEvent).detail));
 
-    const shell = fieldAt(element, "/pick")!;
-    const details = shell.querySelector("wa-details")!;
-    const deleteLink = details.querySelector('[slot="summary"] cofy-link-button')!;
-    expect(deleteLink.textContent?.trim()).toBe("Remove");
-    deepQuery(deleteLink.shadowRoot!, "button")!.dispatchEvent(new MouseEvent("click", { bubbles: true, composed: true }));
+    const menu = deepQuery(element.shadowRoot!, "cofy-action-menu") as HTMLElement & { actions: MenuAction[] };
+    expect(menu.actions.map((action) => action.id)).toEqual(["toggle-yaml", "clear"]);
+    menu.actions.find((action) => action.id === "clear")!.run();
 
     expect(events).toEqual([{ pointer: "/pick", value: null }]);
   });
@@ -821,43 +732,15 @@ describe("the generic form family, mounted end to end", () => {
     element.root = parentSchema;
     element.pointer = "";
     element.value = { pick: { type: "a" } };
+    element.bare = true;
     document.body.append(element);
     await element.updateComplete;
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    const shell = fieldAt(element, "/pick")!;
-    const summary = shell.querySelector('wa-details [slot="summary"] span')!;
+    const summary = fieldBody(fieldAt(element, "/pick")!).querySelector('wa-details [slot="summary"]')!;
     expect(summary.textContent).toBe("A");
   });
 
-  it("does not show a delete link for a union with nothing chosen yet - there is nothing to clear", async () => {
-    const parentSchema: JsonSchema = {
-      type: "object",
-      properties: {
-        pick: {
-          title: "Pick",
-          discriminator: { propertyName: "type", mapping: { a: "#/$defs/A" } },
-          oneOf: [{ $ref: "#/$defs/A" }],
-        },
-      },
-      $defs: {
-        A: { title: "A", type: "object", properties: { type: { const: "a", default: "a", type: "string" } }, required: ["type"] },
-      },
-    };
-    const element = document.createElement("cofy-object-form");
-    await provideI18n(element);
-    element.schema = parentSchema;
-    element.root = parentSchema;
-    element.pointer = "";
-    element.value = { pick: null };
-    document.body.append(element);
-    await element.updateComplete;
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    const shell = fieldAt(element, "/pick")!;
-    const details = shell.querySelector("wa-details")!;
-    expect(details.querySelector('[slot="summary"] cofy-link-button')).toBeNull();
-  });
 
   it("shows a union's own issue after its picker/branch, not before, matching a leaf field's own", async () => {
     const issues: ValidationIssue[] = [{ pointer: "/source", message: "does not match a branch", keyword: "oneOf" }];
@@ -874,7 +757,7 @@ describe("the generic form family, mounted end to end", () => {
 
   it("renders an Optional[array-of-union] item through the real union picker, not as raw unknown JSON", async () => {
     // The shape of a tariff module's `formats: list[Format] | None` - the array only shows up
-    // once the surrounding anyOf/null wrapper is unwrapped, and each item is itself a
+    // inside the surrounding anyOf/null wrapper, and each item is itself a
     // discriminated union. A child mounted with the wrong (still-wrapped) schema would see no
     // `items` at all and fall back to cofy-yaml-form for every element.
     const parentSchema: JsonSchema = {
@@ -920,7 +803,7 @@ describe("the generic form family, mounted end to end", () => {
     await element.updateComplete;
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    const item = fieldAt(element, "/formats/0")!;
+    const item = fieldBody(fieldAt(element, "/formats/0")!);
     expect(item.querySelector("cofy-yaml-editor")).toBeNull();
     expect(item.querySelector("wa-select")).not.toBeNull();
   });
@@ -994,8 +877,8 @@ describe("the generic form family, mounted end to end", () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     const field = fieldAt(element, "/injection")!;
-    expect(field.querySelector("cofy-yaml-editor")).toBeNull();
-    expect(field.querySelector("wa-accordion")).not.toBeNull();
+    expect(fieldBody(field).querySelector("cofy-yaml-editor")).toBeNull();
+    expect(fieldBody(field).querySelector("wa-accordion")).not.toBeNull();
     expect(field.shadowRoot!.querySelector("label")?.textContent).toBe("Injection");
   });
 });
@@ -1003,20 +886,10 @@ describe("the generic form family, mounted end to end", () => {
 describe("cofy-dict-form", () => {
   it("wraps a dict in an accordion, with its label above (not a card - the accordion is its own boundary)", async () => {
     const dictSchema: JsonSchema = { title: "Tariffs", type: "object", additionalProperties: { type: "string" } };
-    const element = document.createElement("cofy-dict-form");
-    await provideI18n(element);
-    element.schema = dictSchema;
-    element.root = dictSchema;
-    element.pointer = "/tariffs";
-    element.value = { peak: "flat" };
-    element.label = "Tariffs";
-    document.body.append(element);
-    await element.updateComplete;
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    const { shell, body } = await mountField(dictSchema, { peak: "flat" }, { pointer: "/tariffs" });
 
-    const shell = element.shadowRoot!.querySelector("cofy-field-shell")!;
     expect(shell.shadowRoot!.querySelector("label")?.textContent).toBe("Tariffs");
-    expect(shell.querySelector("wa-accordion")).not.toBeNull();
+    expect(body.querySelector("wa-accordion")).not.toBeNull();
   });
 
   it("appends a trailing 'Add' accordion item with a plus icon in place of the expand chevron", async () => {
@@ -1264,9 +1137,11 @@ describe("cofy-any-form: label and description", () => {
     await element.updateComplete;
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    const select = deepQuery(element.shadowRoot!, "wa-select");
-    expect(select?.getAttribute("label")).toBe("Display Cost Group");
-    expect(select?.getAttribute("hint")).toBe("Shown next to the tariff.");
+    const shell = deepQuery(element.shadowRoot!, "cofy-field-shell")!;
+    expect(shell.shadowRoot!.querySelector("label")?.textContent).toBe("Display Cost Group");
+    expect(shell.shadowRoot!.querySelector(".wa-caption-s")?.textContent).toBe("Shown next to the tariff.");
+    // Its control is still named after the field, for assistive technology.
+    expect(deepQuery(element.shadowRoot!, "wa-select")?.getAttribute("label")).toBe("Display Cost Group");
   });
 
   it("shows a container's own description via its field shell, not just a leaf's own hint", async () => {
@@ -1292,20 +1167,17 @@ describe("cofy-any-form: label and description", () => {
     expect(description?.textContent).toBe("Explains what this group configures.");
   });
 
-  it("the cyclic Add tile shows the property's own description too, not just its label", async () => {
+  it("the optional's Create tile shows the property's own description too, not just its label", async () => {
+    const optionalCyclic = {
+      title: "Nested",
+      description: "Wraps another one of the same.",
+      anyOf: [{ $ref: "#/$defs/Cyclic" }, { type: "null" }],
+      default: null,
+    };
     const cyclicSchema: JsonSchema = {
       type: "object",
-      properties: {
-        nested: { $ref: "#/$defs/Cyclic" },
-      },
-      $defs: {
-        Cyclic: {
-          title: "Nested",
-          description: "Wraps another one of the same.",
-          type: "object",
-          properties: { nested: { $ref: "#/$defs/Cyclic" } },
-        },
-      },
+      properties: { nested: optionalCyclic },
+      $defs: { Cyclic: { type: "object", properties: { nested: optionalCyclic } } },
     };
     const element = document.createElement("cofy-object-form");
     await provideI18n(element);
@@ -1327,21 +1199,10 @@ describe("cofy-yaml-form", () => {
   const unknownSchema: JsonSchema = { title: "Extra Config" };
 
   it("shows the value as a YAML editor, labelled with the field's own title", async () => {
-    const element = document.createElement("cofy-yaml-form");
-    await provideI18n(element);
-    element.schema = unknownSchema;
-    element.root = unknownSchema;
-    element.pointer = "/extra";
-    element.value = { a: 1, b: "two" };
-    // `cofy-yaml-form` no longer derives its own label from its schema - see the equivalent
-    // note on the nested-object test above.
-    element.label = "Extra Config";
-    document.body.append(element);
-    await element.updateComplete;
+    const { shell, body } = await mountField({ ...unknownSchema, title: "Extra Config" }, { a: 1, b: "two" }, { pointer: "/extra" });
 
-    const shell = element.shadowRoot!.querySelector("cofy-field-shell")!;
     expect(shell.shadowRoot!.querySelector("label")?.textContent).toBe("Extra Config");
-    const editor = element.shadowRoot!.querySelector("cofy-yaml-editor") as HTMLElement & { text: string };
+    const editor = body.querySelector("cofy-yaml-editor") as HTMLElement & { text: string };
     expect(editor).not.toBeNull();
     expect(editor.text).toContain("a: 1");
     expect(editor.text).toContain("b: two");
@@ -1538,6 +1399,15 @@ describe("cofy-module-form", () => {
     document.body.replaceChildren();
   });
 
+  it("shows the document root's own issue after its fields, matching where a field shows its own", async () => {
+    const element = await mountModuleForm(value);
+    element.issues = [{ pointer: "", message: "root problem", keyword: "custom" }];
+    await element.updateComplete;
+
+    const shell = element.shadowRoot!.querySelector("cofy-object-form")!.parentElement!;
+    expect(shell.shadowRoot!.querySelector(".cofy-field-issues")!.textContent).toContain("root problem");
+  });
+
   it("renders the generated form by default when the type's schema is known", async () => {
     const element = await mountModuleForm(value);
 
@@ -1652,7 +1522,7 @@ describe("cofy-module-form", () => {
       emitted = (event as CustomEvent<{ value: unknown }>).detail.value;
     });
 
-    const input = fieldAt(element.shadowRoot!.querySelector("cofy-object-form")!, "/name")!.querySelector<
+    const input = fieldBody(fieldAt(element.shadowRoot!.querySelector("cofy-object-form")!, "/name")!).querySelector<
       HTMLElement & { value: string }
     >("wa-input")!;
     input.value = "renamed";
@@ -1692,7 +1562,7 @@ describe("cofy-module-form", () => {
     // switching back to form mounts a brand new cofy-object-form, which needs its own tick.
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    const input = fieldAt(element.shadowRoot!.querySelector("cofy-object-form")!, "/name")!.querySelector<
+    const input = fieldBody(fieldAt(element.shadowRoot!.querySelector("cofy-object-form")!, "/name")!).querySelector<
       HTMLElement & { value: string }
     >("wa-input")!;
     expect(input.value).toBe("renamed");
@@ -1710,7 +1580,7 @@ describe("cofy-module-form", () => {
     const events: unknown[] = [];
     element.addEventListener("module-form-change", (event) => events.push((event as CustomEvent).detail));
 
-    const input = fieldAt(element.shadowRoot!.querySelector("cofy-object-form")!, "/name")!.querySelector<
+    const input = fieldBody(fieldAt(element.shadowRoot!.querySelector("cofy-object-form")!, "/name")!).querySelector<
       HTMLElement & { value: string }
     >("wa-input")!;
     input.value = "renamed";

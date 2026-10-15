@@ -68,7 +68,12 @@ async function settle(element: HTMLElement & { updateComplete: Promise<unknown> 
 }
 
 /** Mounted inside providers of the store and community, as an editor provides them - the dialog it opens reads them too. */
-async function mount(schema: JsonSchema, value: unknown, posted: Posted[] = []): Promise<CofyReferableForm> {
+async function mount(
+  schema: JsonSchema,
+  value: unknown,
+  posted: Posted[] = [],
+  menuActions: readonly MenuAction[] = [],
+): Promise<CofyReferableForm> {
   const host = document.createElement("div");
   new ContextProvider(host, { context: cofyStoreContext, initialValue: new CofyStore(stubApi(posted)) });
   new ContextProvider(host, { context: communitySlugContext, initialValue: "test" });
@@ -81,6 +86,7 @@ async function mount(schema: JsonSchema, value: unknown, posted: Posted[] = []):
   element.pointer = "/api_key";
   element.label = "Api Key";
   element.value = value;
+  element.menuActions = menuActions;
   host.append(element);
   await settle(element);
   return element;
@@ -123,14 +129,14 @@ describe("cofy-referable-form", () => {
     expect(defaultFieldRegistry.getFirstMatch(note, note)?.tag).toBe("cofy-referable-form");
   });
 
-  it("edits a single input as itself, under its label with the actions beside it", async () => {
+  it("hands a single input its actions, to show beside the label its field shell draws", async () => {
     const element = await mount(note, "real");
     const form = valueForm(element);
 
     expect(form.schema).toEqual((note["oneOf"] as JsonSchema[])[0]);
-    expect(form.bare).toBe(true);
-    expect(element.shadowRoot!.querySelector("cofy-field-shell")!.label).toBe("Api Key");
-    expect(valueActions(element).map((action) => action.id)).toEqual(["use-resource", "save-as-resource"]);
+    expect(form.bare).toBe(false);
+    expect(form.label).toBe("Api Key");
+    expect(form.menuActions.map((action) => action.id)).toEqual(["use-resource", "save-as-resource"]);
   });
 
   it("hands the actions to a container, which shows them beside its own label", async () => {
@@ -158,11 +164,23 @@ describe("cofy-referable-form", () => {
     expect(valueForm(element).bare).toBe(false);
   });
 
-  it("picks the resource under the field's own label, not one of its own", async () => {
+  it("picks the resource under the field's own label, the picker named after it only for assistive technology", async () => {
     const element = await mount(source, { type: "resource", name: "day_ahead" });
 
     expect(element.shadowRoot!.querySelector("cofy-field-shell")!.label).toBe("Api Key");
-    expect(element.shadowRoot!.querySelector("wa-select")!.hasAttribute("label")).toBe(false);
+    const picker = element.shadowRoot!.querySelector("wa-select")!;
+    expect(picker.getAttribute("label")).toBe("Api Key");
+    expect(picker.classList.contains("wa-visually-hidden-label")).toBe(true);
+  });
+
+  it("keeps the actions it was handed, beside its own, whichever of the two it shows", async () => {
+    const received: MenuAction = { id: "clear", label: "Remove", run: (): void => {} };
+
+    const value = await mount(source, { type: "entsoe_day_ahead" }, [], [received]);
+    expect(valueForm(value).menuActions.map((action) => action.id)).toEqual(["clear", "use-resource", "save-as-resource"]);
+
+    const ref = await mount(source, { type: "resource", name: "day_ahead" }, [], [received]);
+    expect(refMenu(ref).map((action) => action.id)).toEqual(["clear", "specify-value"]);
   });
 
   it("switches to a reference, and back to the value it replaced", async () => {
@@ -247,6 +265,13 @@ describe("cofy-referable-form", () => {
     const element = await mount(deadValue, undefined);
 
     expect(deepText(element)).toContain("No valid options available for this community.");
+    expect(valueActions(element).map((action) => action.id)).toEqual(["use-resource"]);
+  });
+
+  it("offers no saving as a resource for a value nothing is valid against, whatever it holds", async () => {
+    const deadValue: JsonSchema = { ...source, oneOf: [{ not: {} }, { $ref: "#/$defs/RefSettings" }] };
+    const element = await mount(deadValue, {});
+
     expect(valueActions(element).map((action) => action.id)).toEqual(["use-resource"]);
   });
 

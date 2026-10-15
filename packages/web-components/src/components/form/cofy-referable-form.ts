@@ -12,22 +12,21 @@ import "./cofy-any-form.js";
 import "./cofy-field-shell.js";
 import "../resource/cofy-save-resource-dialog.js";
 
-import { communitySlugContext, fieldRegistryContext } from "../../context.js";
+import { communitySlugContext } from "../../context.js";
 import { utilityStyles } from "../../theme/utility-styles.js";
 import type { MenuAction } from "./cofy-action-menu.js";
-import type { FieldRegistry } from "./field-registry.js";
-import { defaultFieldRegistry } from "./field-registry.js";
 import { CofyFormField } from "./form-field.js";
 import { seedFromSchema } from "./schema/defaults.js";
+import { isNever } from "./schema/never.js";
 import { isRefValue, referableBranches, referableOf } from "./schema/referable.js";
-import { resolveNode } from "./schema/resolve.js";
 
 /**
  * A field whose value can also be a reference to a resource (an `x-referable` schema): edited as
  * its value, with using a resource instead - or saving the value as one - among its actions.
  *
  * Which of the two it shows follows from the value itself: a reference shows the resource
- * picker, anything else the value's own form. Switching to a resource keeps the value it
+ * picker, under a field shell of its own; anything else the value's own form, which it hands its
+ * actions - and those it was handed - to (a `wrapper`, as far as `cofy-any-form` is concerned). Switching to a resource keeps the value it
  * replaces, so switching back restores it.
  */
 @customElement("cofy-referable-form")
@@ -38,23 +37,12 @@ export class CofyReferableForm extends CofyFormField {
       :host {
         display: block;
       }
-      .picker {
-        display: flex;
-        align-items: center;
-        gap: var(--wa-space-s);
-      }
-      .picker wa-select {
-        flex: 1;
-      }
     `,
   ];
 
   @consume({ context: communitySlugContext, subscribe: true })
   @state()
   public slug = "";
-
-  @consume({ context: fieldRegistryContext, subscribe: true })
-  public fieldRegistry: FieldRegistry = defaultFieldRegistry;
 
   @state() private saving = false;
 
@@ -75,7 +63,7 @@ export class CofyReferableForm extends CofyFormField {
     if (this.fitting(referable).length > 0) {
       actions.push({ id: "use-resource", label: this.t("form.useResource"), run: (): void => this.useResource() });
     }
-    if (this.canSave()) {
+    if (this.canSave(schema)) {
       actions.push({
         id: "save-as-resource",
         label: this.t("form.saveAsResource"),
@@ -85,31 +73,20 @@ export class CofyReferableForm extends CofyFormField {
       });
     }
 
-    // A container shows the actions beside its own label; a single input - a field offering no
-    // YAML view - has no place for them, so its label and the actions beside it are drawn here.
-    const leaf =
-      actions.length > 0 && this.fieldRegistry.getFirstMatch(resolveNode(schema, this.root), this.root)?.asYaml === undefined;
-    const form = html`<cofy-any-form
-      .schema=${schema}
-      .root=${this.root}
-      .pointer=${this.pointer}
-      .value=${this.value}
-      ?required=${this.required && !leaf}
-      .issues=${this.issues}
-      .hide=${this.hide}
-      ?bare=${this.bare || leaf}
-      .label=${this.label}
-      .description=${this.description}
-      .menuActions=${leaf ? [] : actions}
-    ></cofy-any-form>`;
-
     return html`
-      ${leaf && !this.bare
-        ? html`<cofy-field-shell label=${this.requiredLabel()}>
-            <cofy-action-menu slot="actions" .actions=${actions}></cofy-action-menu>
-            ${form}
-          </cofy-field-shell>`
-        : form}
+      <cofy-any-form
+        .schema=${schema}
+        .root=${this.root}
+        .pointer=${this.pointer}
+        .value=${this.value}
+        ?required=${this.required}
+        .issues=${this.issues}
+        .hide=${this.hide}
+        ?bare=${this.bare}
+        .label=${this.label}
+        .description=${this.description}
+        .menuActions=${[...this.menuActions, ...actions]}
+      ></cofy-any-form>
       <cofy-save-resource-dialog
         .open=${this.saving}
         .kind=${referable.kind}
@@ -124,9 +101,10 @@ export class CofyReferableForm extends CofyFormField {
 
   private renderRef(ref: ResourceRef, referable: Referable, valueSchema: JsonSchema): TemplateResult {
     const options = this.fitting(referable);
-    // No label of its own: it always sits under the field's, which names what it picks.
+    // Labelled only for assistive technology: it sits under the field's own label, which names what it picks.
     const picker = html`<wa-select
-      aria-label=${this.label || this.t("form.resource")}
+      class="wa-visually-hidden-label"
+      label=${this.label || this.t("form.resource")}
       placeholder=${this.t("form.chooseResource")}
       .value=${ref.name}
       ?disabled=${options.length === 0}
@@ -139,30 +117,23 @@ export class CofyReferableForm extends CofyFormField {
         (resource) => html`<wa-option value=${resource.name}>${this.optionLabel(resource)}</wa-option>`,
       )}
     </wa-select>`;
-    const menu = html`<cofy-action-menu
-      slot="actions"
-      .actions=${[
-        { id: "specify-value", label: this.t("form.specifyValue"), run: (): void => this.specifyValue(valueSchema) },
-      ]}
-    ></cofy-action-menu>`;
+    const actions: MenuAction[] = [
+      ...this.menuActions,
+      { id: "specify-value", label: this.t("form.specifyValue"), run: (): void => this.specifyValue(valueSchema) },
+    ];
 
     return html`
       <cofy-field-shell
         data-pointer=${this.pointer}
-        label=${this.bare ? "" : this.requiredLabel()}
+        label=${this.bare ? "" : this.label}
+        ?required=${this.required}
         description=${this.bare ? "" : this.description}
         .issues=${this.refIssues()}
       >
-        ${this.bare
-          ? html`<div class="picker">${picker}${menu}</div>`
-          : html`${menu}${picker}`}
+        <cofy-action-menu slot="actions" .actions=${actions}></cofy-action-menu>
+        ${picker}
       </cofy-field-shell>
     `;
-  }
-
-  /** The field's label, marked the way a required control marks its own, for the control drawn under it without one. */
-  private requiredLabel(): string {
-    return this.required ? `${this.label}*` : this.label;
   }
 
   /** The community's resources this field can reference. */
@@ -170,9 +141,9 @@ export class CofyReferableForm extends CofyFormField {
     return this.slug === "" ? [] : (this.cofy?.resources.fitting(this.slug, referable) ?? []);
   }
 
-  /** Whether there is a value to save as a resource. */
-  private canSave(): boolean {
-    return this.cofy !== undefined && this.value !== undefined && this.value !== null;
+  /** Whether there is a value to save as a resource - none where nothing is valid against it. */
+  private canSave(schema: JsonSchema): boolean {
+    return this.cofy !== undefined && this.value !== undefined && this.value !== null && !isNever(schema, this.root);
   }
 
   /** The reference's own issues, and those of its name - it has no form of its own to show them in. */

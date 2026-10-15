@@ -62,7 +62,7 @@ describe("cofy-module-form with a self-referential top-level schema", () => {
     expect(objectForm).not.toBeNull();
 
     const field = deepQuery(objectForm!.shadowRoot!, '[data-pointer="/name"]');
-    const input = field?.querySelector<HTMLElement & { value: string }>("wa-input") ?? null;
+    const input = field === null ? null : deepQuery(field, "wa-input") as (HTMLElement & { value: string }) | null;
 
     expect(input).not.toBeNull();
     expect(input!.value).toBe("spot");

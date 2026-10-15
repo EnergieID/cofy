@@ -1,28 +1,30 @@
 import { html } from "lit";
 import type { TemplateResult } from "lit";
 import { customElement } from "lit/decorators.js";
-import { ifDefined } from "lit/directives/if-defined.js";
 
 import "@awesome.me/webawesome/dist/components/checkbox/checkbox.js";
-import "./cofy-field-shell.js";
 
+import { utilityStyles } from "../../theme/utility-styles.js";
 import { CofyFormField } from "./form-field.js";
 
-/** A boolean field, rendered as a `wa-checkbox` (its label lives in the default slot, not an attribute). */
+/**
+ * A boolean field, rendered as a `wa-checkbox` under its field's own label - its own label, in the default slot, is there
+ * only for assistive technology.
+ */
 @customElement("cofy-boolean-form")
 export class CofyBooleanForm extends CofyFormField {
+  public static override styles = [utilityStyles];
+
   public override render(): TemplateResult {
     return html`
-      <cofy-field-shell data-pointer=${this.pointer} .issues=${this.ownIssues}>
-        <wa-checkbox
-          hint=${ifDefined(this.description || undefined)}
-          ?checked=${Boolean(this.value)}
-          ?required=${this.required}
-          @change=${(event: Event): void => this.onChange(event)}
-        >
-          ${this.label}
-        </wa-checkbox>
-      </cofy-field-shell>
+      <wa-checkbox
+        class="wa-visually-hidden-label"
+        ?checked=${Boolean(this.value)}
+        ?required=${this.required}
+        @change=${(event: Event): void => this.onChange(event)}
+      >
+        ${this.label}
+      </wa-checkbox>
     `;
   }
 

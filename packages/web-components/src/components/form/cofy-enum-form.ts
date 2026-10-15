@@ -1,39 +1,38 @@
 import { html } from "lit";
 import type { TemplateResult } from "lit";
 import { customElement } from "lit/decorators.js";
-import { ifDefined } from "lit/directives/if-defined.js";
 import { repeat } from "lit/directives/repeat.js";
 
 import "@awesome.me/webawesome/dist/components/option/option.js";
 import "@awesome.me/webawesome/dist/components/select/select.js";
-import "./cofy-field-shell.js";
 
+import { utilityStyles } from "../../theme/utility-styles.js";
 import { CofyFormField } from "./form-field.js";
 import { primitiveText } from "./schema/summary.js";
 
-/** An `enum` field, rendered as a `wa-select`. */
+/** An `enum` field, rendered as a `wa-select` - labelled only for assistive technology, under its field's own label. */
 @customElement("cofy-enum-form")
 export class CofyEnumForm extends CofyFormField {
+  public static override styles = [utilityStyles];
+
   public override render(): TemplateResult {
     const values = Array.isArray(this.schema["enum"]) ? (this.schema["enum"] as unknown[]) : [];
 
     return html`
-      <cofy-field-shell data-pointer=${this.pointer} .issues=${this.ownIssues}>
-        <wa-select
-          label=${this.bare ? "" : this.label}
-          hint=${ifDefined(this.description || undefined)}
-          .value=${primitiveText(this.value)}
-          lang=${this.i18n?.resolvedLanguage ?? "en"}
-          ?required=${this.required}
-          @change=${(event: Event): void => this.onChange(event, values)}
-        >
-          ${repeat(
-            values,
-            (value) => primitiveText(value),
-            (value) => html`<wa-option value=${primitiveText(value)}>${primitiveText(value)}</wa-option>`,
-          )}
-        </wa-select>
-      </cofy-field-shell>
+      <wa-select
+        class="wa-visually-hidden-label"
+        label=${this.label}
+        .value=${primitiveText(this.value)}
+        lang=${this.i18n?.resolvedLanguage ?? "en"}
+        ?required=${this.required}
+        @change=${(event: Event): void => this.onChange(event, values)}
+      >
+        ${repeat(
+          values,
+          (value) => primitiveText(value),
+          (value) => html`<wa-option value=${primitiveText(value)}>${primitiveText(value)}</wa-option>`,
+        )}
+      </wa-select>
     `;
   }
 

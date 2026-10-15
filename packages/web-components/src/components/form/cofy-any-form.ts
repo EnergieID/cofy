@@ -1,12 +1,12 @@
 import { consume } from "@lit/context";
 import { css, nothing } from "lit";
 import type { TemplateResult } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+import { customElement, state } from "lit/decorators.js";
 import { html, unsafeStatic } from "lit/static-html.js";
 
 import "./cofy-action-menu.js";
+import "./cofy-field-shell.js";
 import "./cofy-yaml-form.js";
-import "../layout/cofy-link-button.js";
 
 import { fieldRegistryContext } from "../../context.js";
 import type { MenuAction } from "./cofy-action-menu.js";
@@ -14,7 +14,6 @@ import type { AS_YAML_OPTION, FieldRegistry } from "./field-registry.js";
 import { defaultFieldRegistry } from "./field-registry.js";
 import { CofyFormField } from "./form-field.js";
 import { deref } from "./schema/ref.js";
-import { resolveNode } from "./schema/resolve.js";
 import { fieldDescription, fieldLabel } from "./schema/summary.js";
 import { nativeStyles } from "../../theme/native-styles.js";
 import { utilityStyles } from "../../theme/utility-styles.js";
@@ -26,12 +25,13 @@ const YAML_TAG = "cofy-yaml-form";
  * whose `matches` accepts this field's own schema, falling back to `cofy-yaml-form` if none do -
  * imported here directly, since this is the one place that fallback tag is named.
  *
- * The one place a field's label/description are read off its schema - resolved past its own
- * `$ref` but no further (`deref`, cheap - a field's `title`/`description` sit on the schema
- * exactly as the property declares it, not on whatever an `Optional[X]`'s inner branch resolves
- * to) - and handed down as props, so a leaf/container never has to derive either itself. Every
- * mounted tag also gets the same, fully resolved `.schema` (`resolveNode`, computed separately),
- * regardless of which one it is.
+ * Draws the field's shell - its label, actions, description and issues - around whatever it
+ * mounts, so no field draws a label of its own; only a `wrapper` (see {@link FieldKind}) is left
+ * to draw its own, or to hand it to the field it wraps. While `bare`, an ancestor already drew the
+ * label and shows the issues, so the shell keeps only the actions.
+ *
+ * The one place a field's label/description are read off its schema, resolved past its own
+ * `$ref` - the same node every mounted tag gets as its own `.schema`.
  */
 @customElement("cofy-any-form")
 export class CofyAnyForm extends CofyFormField {
@@ -48,12 +48,6 @@ export class CofyAnyForm extends CofyFormField {
   @consume({ context: fieldRegistryContext, subscribe: true })
   public fieldRegistry: FieldRegistry = defaultFieldRegistry;
 
-  /**
-   * More actions on this field, from whatever mounted it - with any, its actions (the YAML toggle
-   * included) sit in one menu instead of a link.
-   */
-  @property({ attribute: false }) public menuActions: readonly MenuAction[] = [];
-
   @state() private yamlToggle = false;
 
   private shouldShowYaml(asYaml: AS_YAML_OPTION): boolean {
@@ -65,28 +59,25 @@ export class CofyAnyForm extends CofyFormField {
   }
 
   public override render(): TemplateResult {
-    const node = resolveNode(this.schema, this.root);
-    const shallow = deref(this.schema, this.root);
+    const node = deref(this.schema, this.root);
+    const label = this.label || fieldLabel(node, this.pointer);
+    const description = this.description || fieldDescription(node);
 
     const match = this.fieldRegistry.getFirstMatch(node, this.root);
     const asYaml = match?.asYaml ?? "never";
-    const tag = this.shouldShowYaml(asYaml) ? YAML_TAG : match?.tag ?? YAML_TAG
-    const tagName = unsafeStatic(tag);
+    const yaml = this.shouldShowYaml(asYaml);
+    // While bare, the ancestor that drew this field's boundary offers viewing it as YAML, as part of its own.
+    const togglable = asYaml !== "never" && !this.bare;
+    const tagName = unsafeStatic(yaml ? YAML_TAG : (match?.tag ?? YAML_TAG));
 
-    const toggleLabel = this.shouldShowYaml(asYaml) ? this.t("form.viewAsForm") : this.t("form.viewAsYaml");
+    const toggleLabel = yaml ? this.t("form.viewAsForm") : this.t("form.viewAsYaml");
     const toggle = (): void => {
       this.yamlToggle = !this.yamlToggle;
     };
-    const yamlActions: MenuAction[] = asYaml === "never" ? [] : [{ id: "toggle-yaml", label: toggleLabel, run: toggle }];
+    const yamlActions: MenuAction[] = togglable ? [{ id: "toggle-yaml", label: toggleLabel, run: toggle }] : [];
 
-    const actions =
-      this.menuActions.length > 0
-        ? html`<cofy-action-menu slot="actions" .actions=${[...yamlActions, ...this.menuActions]}></cofy-action-menu>`
-        : asYaml !== "never"
-          ? html`<cofy-link-button slot="actions" @click=${toggle}>${toggleLabel}</cofy-link-button>`
-          : nothing;
-
-    return html`<${tagName}
+    const wrapper = !yaml && match?.kind === "wrapper";
+    const field = html`<${tagName}
       .schema=${node}
       .root=${this.root}
       .pointer=${this.pointer}
@@ -95,11 +86,27 @@ export class CofyAnyForm extends CofyFormField {
       .issues=${this.issues}
       .hide=${this.hide}
       ?bare=${this.bare}
-      .label=${this.label || fieldLabel(shallow, this.pointer)}
-      .description=${this.description || fieldDescription(shallow)}
-    >
-      ${actions}
-    </${tagName}>`;
+      .label=${label}
+      .description=${description}
+      .menuActions=${wrapper ? this.menuActions : []}
+    ></${tagName}>`;
+
+    if (wrapper) return field;
+
+    const actions = [...yamlActions, ...this.menuActions];
+
+    return html`
+      <cofy-field-shell
+        data-pointer=${this.pointer}
+        label=${this.bare ? "" : label}
+        ?required=${this.required}
+        description=${this.bare ? "" : description}
+        .issues=${this.ownIssues}
+      >
+        ${actions.length > 0 ? html`<cofy-action-menu slot="actions" .actions=${actions}></cofy-action-menu>` : nothing}
+        ${field}
+      </cofy-field-shell>
+    `;
   }
 }
 

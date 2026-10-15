@@ -15,26 +15,36 @@ import { CofyListForm } from "./cofy-list-form.js";
 import { CofyNeverForm } from "./cofy-never-form.js";
 import { CofyNumberForm } from "./cofy-number-form.js";
 import { CofyObjectForm } from "./cofy-object-form.js";
+import { CofyOptionalForm } from "./cofy-optional-form.js";
 import { CofyReferableForm } from "./cofy-referable-form.js";
 import { CofySecretForm } from "./cofy-secret-form.js";
 import { CofyStringForm } from "./cofy-string-form.js";
 import { CofyUnionForm } from "./cofy-union-form.js";
 
 import { isNever } from "./schema/never.js";
-import { isRecord } from "./schema/ref.js";
 import { isRefValue, referableOf } from "./schema/referable.js";
-import { resolveNode, unionBranches } from "./schema/resolve.js";
+import { deref, isRecord } from "./schema/ref.js";
+import { optionalInner, unionBranches } from "./schema/resolve.js";
 import { arraySummary, dictSummary, primitiveText, tagSummary } from "./schema/summary.js";
 
 export type AS_YAML_OPTION = "never" | "optional" | "default";
 
 /**
+ * How `cofy-any-form` lays a field out:
+ * - `input`: a single control, under the field shell `cofy-any-form` draws around it.
+ * - `container`: a group of fields or a control of its own making, under that same shell, which it
+ *   hands its actions to through an `actions` slot of its own.
+ * - `wrapper`: draws its own field shell, or leaves it to the field it wraps - `cofy-any-form` draws
+ *   none and hands it the field's actions as `menuActions` instead.
+ */
+export type FieldKind = "input" | "container" | "wrapper";
+
+/**
  * One entry in a {@link FieldRegistry}.
  *
- * `matches` is checked against *node* - the field's own schema, resolved past its own `$ref`/
- * `Optional`-wrapping (see `resolveNode` in `schema/resolve.js`). It is also what the mounted
- * tag receives as its own `.schema` - label/description travel separately, as their own props,
- * so a mapper only ever has to decide yes/no.
+ * `matches` is checked against *node* - the field's own schema, resolved past its own `$ref`. It
+ * is also what the mounted tag receives as its own `.schema` - label/description travel
+ * separately, as their own props, so a mapper only ever has to decide yes/no.
  *
  * `summarize`, if given, is a one-line stand-in for the full control - what a list item or a
  * collapsed details shows without mounting the real field. Optional: a mapper with nothing
@@ -54,11 +64,30 @@ export interface FieldMapper {
    */
   component: CustomElementConstructor;
 
-  summarize?(value: unknown, node: JsonSchema, root: JsonSchema): string | undefined;
+  /** How the field is laid out - see {@link FieldKind}. */
+  kind: FieldKind;
+
+  summarize?(value: unknown, node: JsonSchema, root: JsonSchema, registry: FieldRegistry): string | undefined;
 
   /** Marks if an as yaml toggle should be shown in the form, or even if the yaml entry should be the default */
   asYaml?: AS_YAML_OPTION
 }
+
+/**
+ * Mappers for the shapes that hold another field rather than being one, tried ahead of everything - overrides
+ * included: an `Optional` carries the field's own `title`, so a mapper matching on that would otherwise take the
+ * wrapper for the field it wraps.
+ */
+const structuralFieldMappers: readonly FieldMapper[] = [
+  {
+    tag: "cofy-optional-form",
+    component: CofyOptionalForm,
+    kind: "wrapper",
+    matches: (node: JsonSchema, root: JsonSchema): boolean => optionalInner(node, root) !== undefined,
+    summarize: (value: unknown, node: JsonSchema, root: JsonSchema, registry: FieldRegistry): string | undefined =>
+      value === null || value === undefined ? undefined : registry.getSummary(optionalInner(node, root)!, root, value),
+  },
+];
 
 /**
  * One mapper per built-in field, in the order every form dispatches through by default. Order
@@ -72,6 +101,7 @@ export const defaultFieldMappers: readonly FieldMapper[] = [
     // has nothing to fill in, whatever else it looks like.
     tag: "cofy-never-form",
     component: CofyNeverForm,
+    kind: "wrapper",
     matches: (node: JsonSchema, root: JsonSchema): boolean =>
       isNever(node, root) || unionBranches(node, root)?.length === 0,
   },
@@ -80,6 +110,7 @@ export const defaultFieldMappers: readonly FieldMapper[] = [
     // is edited as its value, with a reference as an alternative to it.
     tag: "cofy-referable-form",
     component: CofyReferableForm,
+    kind: "wrapper",
     matches: (node: JsonSchema): boolean => referableOf(node) !== undefined,
     summarize: (value: unknown, node: JsonSchema): string | undefined =>
       isRefValue(value) ? primitiveText(value.name) : tagSummary(value, node),
@@ -87,6 +118,7 @@ export const defaultFieldMappers: readonly FieldMapper[] = [
   {
     tag: "cofy-list-form",
     component: CofyListForm,
+    kind: "container",
     matches: (node: JsonSchema): boolean => node["type"] === "array" && node["title"] === "Tariff",
     summarize: arraySummary,
     asYaml: "default",
@@ -95,6 +127,7 @@ export const defaultFieldMappers: readonly FieldMapper[] = [
   {
     tag: "cofy-union-form",
     component: CofyUnionForm,
+    kind: "container",
     matches: (node: JsonSchema, root: JsonSchema): boolean => unionBranches(node, root) !== undefined,
     summarize: tagSummary,
     asYaml: "optional",
@@ -102,18 +135,21 @@ export const defaultFieldMappers: readonly FieldMapper[] = [
   {
     tag: "cofy-enum-form",
     component: CofyEnumForm,
+    kind: "input",
     matches: (node: JsonSchema): boolean => Array.isArray(node["enum"]),
     summarize: primitiveText,
   },
   {
     tag: "cofy-const-form",
     component: CofyConstForm,
+    kind: "input",
     matches: (node: JsonSchema): boolean => "const" in node,
     summarize: primitiveText,
   },
   {
     tag: "cofy-secret-form",
     component: CofySecretForm,
+    kind: "input",
     // Ahead of the object mapper: a reference to a secret is an object too, but only its name is chosen.
     matches: (node: JsonSchema): boolean => node["x-secret"] === true,
     summarize: (value: unknown): string | undefined => (isRecord(value) ? primitiveText(value["name"]) : undefined),
@@ -121,24 +157,28 @@ export const defaultFieldMappers: readonly FieldMapper[] = [
   {
     tag: "cofy-string-form",
     component: CofyStringForm,
+    kind: "input",
     matches: (node: JsonSchema): boolean => node["type"] === "string",
     summarize: primitiveText,
   },
   {
     tag: "cofy-number-form",
     component: CofyNumberForm,
+    kind: "input",
     matches: (node: JsonSchema): boolean => node["type"] === "integer" || node["type"] === "number",
     summarize: primitiveText,
   },
   {
     tag: "cofy-boolean-form",
     component: CofyBooleanForm,
+    kind: "input",
     matches: (node: JsonSchema): boolean => node["type"] === "boolean",
     summarize: primitiveText,
   },
   {
     tag: "cofy-object-form",
     component: CofyObjectForm,
+    kind: "container",
     // Requires a fixed `properties` key to draw fields for - a `dict[str, X]` schema
     // (`additionalProperties`, no `properties`) is handled by `cofy-dict-form` below instead.
     matches: (node: JsonSchema): boolean => node["type"] === "object" && isRecord(node["properties"]),
@@ -148,6 +188,7 @@ export const defaultFieldMappers: readonly FieldMapper[] = [
   {
     tag: "cofy-dict-form",
     component: CofyDictForm,
+    kind: "container",
     // The opposite shape: no fixed `properties`, but a schema for every value via
     // `additionalProperties` - e.g. pydantic's `dict[str, Formula]`.
     matches: (node: JsonSchema): boolean =>
@@ -158,6 +199,7 @@ export const defaultFieldMappers: readonly FieldMapper[] = [
   {
     tag: "cofy-list-form",
     component: CofyListForm,
+    kind: "container",
     matches: (node: JsonSchema): boolean => node["type"] === "array",
     summarize: arraySummary,
     asYaml: "optional",
@@ -177,23 +219,24 @@ export class FieldRegistry {
   private readonly mappers: readonly FieldMapper[];
 
   /**
-   * *overrides* are tried first - each can render/summarize a schema differently, or route it
-   * to a hand-written element, before the built-ins get a chance to - and fall through to the
-   * built-ins for anything they don't themselves match, so registering one custom field never
-   * means also having to re-declare every ordinary one.
+   * *overrides* are tried first, after only the structural `Optional` wrapper - each can
+   * render/summarize a schema differently, or route it to a hand-written element, before the
+   * built-ins get a chance to - and fall through to the built-ins for anything they don't
+   * themselves match, so registering one custom field never means also having to re-declare
+   * every ordinary one.
    */
   public constructor(overrides: readonly FieldMapper[] = []) {
-    this.mappers = [...overrides, ...defaultFieldMappers];
+    this.mappers = [...structuralFieldMappers, ...overrides, ...defaultFieldMappers];
   }
 
   /** A one-line stand-in for whatever *schema* would dispatch to, given *value* - see {@link FieldMapper.summarize}. */
   public getSummary(schema: JsonSchema, root: JsonSchema, value: unknown): string | undefined {
-    const node = resolveNode(schema, root);
+    const node = deref(schema, root);
     const match = this.getFirstMatch(node, root);
-    return match?.summarize?.(value, node, root);
+    return match?.summarize?.(value, node, root, this);
   }
 
-  /** The first mapper accepting *node* - already resolved past its own `$ref`/`Optional`-wrapping (`resolveNode`), unlike `schema` in {@link getSummary}. */
+  /** The first mapper accepting *node* - already resolved past its own `$ref`, unlike `schema` in {@link getSummary}. */
   public getFirstMatch(node: JsonSchema, root: JsonSchema): FieldMapper | undefined {
     return this.mappers.find((candidate) => candidate.matches(node, root));
   }
