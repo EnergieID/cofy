@@ -227,6 +227,21 @@ def test_put_replaces_module(client: TestClient, tmp_data: Path):
     assert spot["source"]["country_code"] == "DE"
 
 
+def test_put_persists_an_enum_setting(client: TestClient, tmp_data: Path):
+    """A setting holding an enum, like an energy cost source's cost group, is written as its plain value."""
+    payload = {
+        "type": "tariff",
+        "name": "spot",
+        "source": {"type": "energy_cost", "tariff": [], "cost_group": "injection"},
+    }
+    r = client.put("/management/communities/test/modules/tariff/spot", json=payload)
+    assert r.status_code == 200, r.text
+    assert r.json()["source"]["cost_group"] == "injection"
+
+    spot = next(m for m in _read_modules(tmp_data) if m["name"] == "spot")
+    assert spot["source"]["cost_group"] == "injection"
+
+
 def test_put_unknown_module_returns_404(client: TestClient):
     payload = {"type": "billing", "name": "ghost"}
     r = client.put("/management/communities/test/modules/billing/ghost", json=payload)
