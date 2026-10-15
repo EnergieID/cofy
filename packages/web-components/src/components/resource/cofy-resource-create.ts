@@ -93,7 +93,7 @@ export class CofyResourceCreate extends CofyElement {
                 </div>
                 ${draft.issues.length === 0
                   ? nothing
-                  : html`<wa-badge variant="danger">${this.t("form.issuesToggle", { count: draft.issues.length })}</wa-badge>`}
+                  : html`<wa-badge variant="danger">${this.t("form.savingBlocked")}</wa-badge>`}
               </footer>
             `}
       </div>

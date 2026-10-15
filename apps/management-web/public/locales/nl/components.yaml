@@ -121,7 +121,8 @@ secretList:
     actions: Acties
 
 form:
-  nothingAllowed: "Geen geldige {{kind}} beschikbaar voor deze gemeenschap. Neem contact op met een systeembeheerder."
+  notAvailable: "Geen geldige opties beschikbaar voor deze gemeenschap. Neem contact op met een systeembeheerder."
+  savingBlocked: Opslaan geblokkeerd door fouten
 
 settings:
   theme:

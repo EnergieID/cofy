@@ -9,6 +9,8 @@ from typing import Annotated, Any, ClassVar, Self
 from pydantic import BaseModel, Field, SecretStr
 from pydantic.fields import FieldInfo
 
+from .json_schema import Nothing
+
 logger = logging.getLogger(__name__)
 
 
@@ -57,15 +59,16 @@ class BaseSettingsModel(BaseModel):
         finalize()
         members: list[Any] = list(getattr(cls._model, "_registry", {}).values())
         if not members:
-            # A union with no members can't be expressed, and would break every model with a field of
-            # this type, so the abstract base stands in. It can't be built, so this must not pass silently.
+            # A union with no members can't be expressed, so a field of this type holds nothing - which its schema
+            # says too. Nothing can be configured for the family, so this must not pass silently.
             logger.warning(
-                "Nothing is registered under the abstract %s, so %s stands in for it. Nothing can be configured "
-                "for this family: either give it a settings-constructible implementation, or drop its settings.",
+                "Nothing is registered under the abstract %s, so nothing can be configured for %s: either give it "
+                "a settings-constructible implementation, or drop its settings.",
                 cls._model.__name__,
                 cls.__name__,
             )
-            members = [cls]
+            annotations = cls.union_annotations()
+            return Annotated[Nothing, *annotations] if annotations else Nothing
         union = reduce(or_, members)
         return Annotated[union, Field(discriminator="type"), *cls.union_annotations()]
 

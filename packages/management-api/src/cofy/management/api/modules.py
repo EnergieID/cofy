@@ -53,7 +53,7 @@ class ModulesRouter:
         slug: str,
         payload: AnyModuleSettings,
     ) -> AnyModuleSettings:
-        self.allowed.check(slug, payload)
+        self.allowed.restrictions(slug).check(payload)
         return self.persistence.create(slug, payload)
 
     def put(
@@ -64,7 +64,7 @@ class ModulesRouter:
         payload: AnyModuleSettings,
     ) -> AnyModuleSettings:
         self._check_identity_matches_path(payload, module_type, name)
-        self.allowed.check(slug, payload)
+        self.allowed.restrictions(slug).check(payload)
         return self.persistence.replace(slug, module_type, name, payload)
 
     @staticmethod

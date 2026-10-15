@@ -619,12 +619,11 @@ def test_registry_returns_a_copy_callers_cannot_corrupt():
     assert SizeSettings.registry() == {"reg_size": SizeSettings}
 
 
-def test_an_abstract_base_with_no_implementations_stands_in_for_its_union_with_a_warning(
+def test_an_abstract_base_with_no_implementations_accepts_nothing_with_a_warning(
     caplog: pytest.LogCaptureFixture,
 ):
-    """A union with no members at all cannot be expressed and would break every model with a field
-    of that type. Letting the base stand in is a workaround for a family that has nothing
-    configurable in it, so it must not pass silently."""
+    """A union with no members at all cannot be expressed, so a field of that type holds nothing - and its schema
+    says so. Nothing can be configured for the family, so it must not pass silently."""
 
     class LonelySettings(BaseSettingsModel):
         type: Literal["pr_lonely"] = "pr_lonely"
@@ -636,7 +635,10 @@ def test_an_abstract_base_with_no_implementations_stands_in_for_its_union_with_a
         finalize(force=True)
 
     assert Lonely._registry == {}
-    assert TypeAdapter(LonelySettings.union_type()).validate_python({"type": "pr_lonely"}) == LonelySettings()
+    adapter = TypeAdapter(LonelySettings.union_type())
+    with pytest.raises(ValidationError, match="Nothing can be configured here"):
+        adapter.validate_python({"type": "pr_lonely"})
+    assert adapter.json_schema() == {"not": {}}
     warnings = [r.getMessage() for r in caplog.records]
     assert any("Lonely" in w and "LonelySettings" in w for w in warnings), warnings
 

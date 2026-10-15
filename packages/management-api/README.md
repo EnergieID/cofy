@@ -122,9 +122,9 @@ source:
   `PUT` of `.../allowed-types/{group}/{type}` with `{"allowed": ...}` allows one to it or not, keeping its default:
   the community becomes an exception to it, or no longer is one.
 - `/management/communities/{slug}/catalog/modules` and `.../catalog/resources` list the module types and resource
-  kinds a community may configure, to whoever may see its modules or resources. Their JSON Schemas leave out the types
-  it may not use - generated that way, by a schema generator that drops them from the unions offering them. A resource
-  kind is listed while one of the types it holds may be used.
+  kinds a community may configure, to whoever may see its modules or resources. In their JSON Schemas, a type it may
+  not use is one nothing is valid against (`{"not": {}}`), wherever it is nested; the console offers no such branch of
+  a union, and explains a field nothing fits. A resource kind is listed while one of the types it holds may be used.
 - A type a community may not use can't be given anywhere: not as a module, not in a resource, and not inline in a
   module or resource either. What it already has keeps running, but can only be deleted - or, for a resource, still
   be referenced.

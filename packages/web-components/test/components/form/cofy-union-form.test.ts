@@ -106,3 +106,29 @@ describe("cofy-union-form with a single option", () => {
     expect(picker(element).hasAttribute("disabled")).toBe(false);
   });
 });
+
+/** A source union where the community may not use ENTSO-E: its branch is one nothing is valid against. */
+const partlyGone: JsonSchema = {
+  oneOf: [{ $ref: "#/$defs/EnergyID" }, { $ref: "#/$defs/Entsoe" }],
+  discriminator: {
+    propertyName: "type",
+    mapping: { energyid_production: "#/$defs/EnergyID", entsoe_day_ahead: "#/$defs/Entsoe" },
+  },
+  $defs: {
+    EnergyID: { type: "object", properties: { type: { const: "energyid_production" } } },
+    Entsoe: { not: {} },
+  },
+};
+
+describe("cofy-union-form with a type the community may not use", () => {
+  beforeEach(() => {
+    document.body.replaceChildren();
+  });
+
+  it("doesn't offer it", async () => {
+    const element = await mountSingle(partlyGone, undefined);
+
+    const options = Array.from(element.shadowRoot!.querySelectorAll("wa-option"), (option) => option.getAttribute("value"));
+    expect(options).toEqual(["energyid_production"]);
+  });
+});

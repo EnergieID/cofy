@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 import yaml
+from cofy.api.json_schema import NEVER
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -282,29 +283,18 @@ def test_the_source_kind_is_configurable_while_one_of_its_types_is(client: TestC
     assert types(client, f"{COMMUNITY}/catalog/resources") == ["tariff"]
 
 
-def test_the_schema_leaves_out_the_source_types_a_community_may_not_use(client: TestClient):
+def test_the_schema_accepts_none_of_the_source_types_a_community_may_not_use(client: TestClient):
     disallow(client, "source", "entsoe_day_ahead")
 
-    source = schema_of(client, "tariff")["properties"]["source"]
-    value, reference = source["oneOf"]
+    here, elsewhere = schema_of(client, "tariff")["$defs"], schema_of(client, "tariff", "other")["$defs"]
 
-    assert set(value["discriminator"]["mapping"]) == {"energy_cost"}
-    assert "#/$defs/EntsoeDayAheadTariffSourceSettings" not in {branch["$ref"] for branch in value["oneOf"]}
-    assert reference == {"$ref": "#/$defs/RefSettings"}
-
-
-def test_a_field_with_no_type_left_to_give_only_takes_a_reference(client: TestClient):
-    disallow(client, "source", "entsoe_day_ahead")
-    disallow(client, "source", "energy_cost")
-
-    assert schema_of(client, "tariff")["properties"]["source"]["oneOf"] == [{"$ref": "#/$defs/RefSettings"}]
+    assert here["EntsoeDayAheadTariffSourceSettings"] == NEVER
+    assert here["EnergyCostTariffSourceSettings"] != NEVER
+    assert elsewhere["EntsoeDayAheadTariffSourceSettings"] != NEVER
 
 
-def test_the_schema_of_a_field_whose_kind_is_disallowed_only_takes_a_reference(client: TestClient):
+def test_the_schema_accepts_no_value_of_a_kind_a_community_may_not_use(client: TestClient):
     disallow(client, "resource", "tariff")
 
-    here = schema_of(client, "tariff")["$defs"]["EnergyCostTariffSourceSettings"]["properties"]["tariff"]
-    elsewhere = schema_of(client, "tariff", "other")["$defs"]["EnergyCostTariffSourceSettings"]["properties"]["tariff"]
-
-    assert len(here["oneOf"]) == 1
-    assert len(elsewhere["oneOf"]) == 2
+    assert schema_of(client, "tariff")["$defs"]["Tariff"] == NEVER
+    assert schema_of(client, "tariff", "other")["$defs"]["Tariff"] != NEVER

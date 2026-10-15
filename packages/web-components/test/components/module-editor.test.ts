@@ -148,7 +148,7 @@ describe("cofy-module-editor", () => {
     const badge = element.shadowRoot!.querySelector("wa-badge");
     expect(badge).not.toBeNull();
     expect(badge!.getAttribute("variant")).toBe("danger");
-    expect(badge!.textContent).toMatch(/blocks? saving/);
+    expect(badge!.textContent).toContain("Saving blocked by errors");
     expect(element.shadowRoot!.querySelector("ul.issues")).toBeNull();
   });
 });

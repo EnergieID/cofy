@@ -2,6 +2,7 @@ from energy_cost.tariff import Tariff
 from pydantic import BaseModel
 
 from cofy.api import finalize, schema_without
+from cofy.api.json_schema import NEVER
 from cofy.api.module import ModuleSettings
 from cofy.modules.discovery import discover_installed_types
 from cofy.modules.timeseries.source import TimeseriesSourceSettings
@@ -14,28 +15,32 @@ def tariff_schema(*left_out: type[BaseModel]) -> dict:
     return ModuleSettings.registry()["tariff"].model_json_schema(schema_generator=schema_without(left_out))
 
 
-def test_leaves_a_type_out_of_every_union_offering_it():
+def test_a_type_left_out_is_one_nothing_is_valid_against():
     entsoe = TimeseriesSourceSettings.registry()["entsoe_day_ahead"]
 
-    value, ref = tariff_schema(entsoe)["properties"]["source"]["oneOf"]
+    schema = tariff_schema(entsoe)
 
-    assert set(value["discriminator"]["mapping"]) == {"energy_cost"}
-    assert {"$ref": "#/$defs/EntsoeDayAheadTariffSourceSettings"} not in value["oneOf"]
-    assert ref == {"$ref": "#/$defs/RefSettings"}
-
-
-def test_a_referable_field_with_no_type_left_only_takes_a_reference():
-    sources = TimeseriesSourceSettings.registry()
-
-    schema = tariff_schema(sources["entsoe_day_ahead"], sources["energy_cost"])
-
-    assert schema["properties"]["source"]["oneOf"] == [{"$ref": "#/$defs/RefSettings"}]
+    assert schema["$defs"]["EntsoeDayAheadTariffSourceSettings"] == NEVER
+    assert schema["$defs"]["EnergyCostTariffSourceSettings"] != NEVER
 
 
-def test_a_referable_field_of_a_type_left_out_only_takes_a_reference():
-    tariff = tariff_schema(Tariff)["$defs"]["EnergyCostTariffSourceSettings"]["properties"]["tariff"]
+def test_a_union_still_lists_the_type_left_out():
+    """Which branches to offer is for whatever reads the schema; this only says what is accepted."""
+    entsoe = TimeseriesSourceSettings.registry()["entsoe_day_ahead"]
 
-    assert tariff["oneOf"] == [{"$ref": "#/$defs/RefSettings"}]
+    value, _ref = tariff_schema(entsoe)["properties"]["source"]["oneOf"]
+
+    assert "entsoe_day_ahead" in value["discriminator"]["mapping"]
+
+
+class MayHold(BaseModel):
+    tariffs: list[Tariff | None] = []
+
+
+def test_a_type_left_out_is_one_nothing_is_valid_against_however_it_is_nested():
+    schema = MayHold.model_json_schema(schema_generator=schema_without([Tariff]))
+
+    assert schema["$defs"]["Tariff"] == NEVER
 
 
 def test_leaves_everything_in_without_types_to_leave_out():

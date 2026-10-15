@@ -45,7 +45,8 @@ class CatalogRouter:
 
     def all(self, slug: Annotated[str, Path(description="Community slug")]) -> list[CatalogEntry]:
         """List what this community may configure."""
+        restrictions = self.allowed.restrictions(slug)
         return [
-            CatalogEntry(type=name, description=describe(settings), schema=self.allowed.schema(slug, settings))
-            for name, settings in self.allowed.catalog(slug, self.family).items()
+            CatalogEntry(type=name, description=describe(settings), schema=restrictions.schema(settings))
+            for name, settings in restrictions.catalog(self.family).items()
         ]

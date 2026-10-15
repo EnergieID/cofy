@@ -16,6 +16,15 @@ function dispatch(
 }
 
 describe("defaultFieldRegistry", () => {
+  it("dispatches a field nothing is valid against, or a union with none of its types left, ahead of anything else", () => {
+    const root = { $defs: { Gone: { not: {} } } };
+
+    expect(dispatch({ not: {} })?.tag).toBe("cofy-never-form");
+    expect(dispatch({ not: {}, title: "Source" })?.tag).toBe("cofy-never-form");
+    expect(dispatch({ $ref: "#/$defs/Gone" }, root)?.tag).toBe("cofy-never-form");
+    expect(dispatch({ oneOf: [{ $ref: "#/$defs/Gone" }] }, root)?.tag).toBe("cofy-never-form");
+  });
+
   it("dispatches a plain string", () => {
     expect(dispatch({ type: "string" })).toEqual({ tag: "cofy-string-form", schema: { type: "string" } });
   });

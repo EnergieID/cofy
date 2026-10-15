@@ -38,8 +38,9 @@ function seed(schema: JsonSchema, root: JsonSchema, expanding: RefGuard): unknow
   // `default` of `None`, already returned above.
   const branches = unionBranches(node, root);
   if (branches !== undefined) {
-    // Pick the first branch; the author changes the discriminator to choose another.
-    return seed(branches[0]!, root, path);
+    // Pick the first branch; the author changes the discriminator to choose another. A union with no
+    // branch left to offer has nothing to start from.
+    return branches.length > 0 ? seed(branches[0]!, root, path) : null;
   }
 
   const constant = node["const"];

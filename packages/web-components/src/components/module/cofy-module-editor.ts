@@ -129,7 +129,7 @@ export class CofyModuleEditor extends CofyElement {
             </span>
           ${draft.issues.length === 0
               ? nothing
-              : html`<wa-badge variant="danger">${this.t("form.issuesToggle", { count: draft.issues.length })}</wa-badge>`}
+              : html`<wa-badge variant="danger">${this.t("form.savingBlocked")}</wa-badge>`}
           </div>
         </footer>
       </div>

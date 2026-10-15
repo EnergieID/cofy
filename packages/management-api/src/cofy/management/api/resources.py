@@ -45,13 +45,13 @@ class ResourcesRouter:
         return self.persistence.get(slug, name)
 
     def create(self, slug: str, payload: AnyResourceSettings) -> AnyResourceSettings:
-        self.allowed.check(slug, payload)
+        self.allowed.restrictions(slug).check(payload)
         return self.persistence.create(slug, payload)
 
     def put(self, slug: str, name: str, payload: AnyResourceSettings) -> AnyResourceSettings:
         if payload.name != name:
             raise ValueError(f"Resource name in body ({payload.name!r}) must match the URL path ({name!r})")
-        self.allowed.check(slug, payload)
+        self.allowed.restrictions(slug).check(payload)
         return self.persistence.replace(slug, name, payload)
 
     def delete(self, slug: str, name: str) -> None:

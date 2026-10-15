@@ -9,12 +9,14 @@ anywhere: not as a module, not in a resource, and not inline in a module or anot
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import cached_property
 from typing import Any
 
 from cofy.api import BaseSettingsModel, ModuleSettings, ResourceSettings, schema_without
 from cofy.api.references import iter_models
 from cofy.modules.discovery import discover_all_types
 from pydantic import BaseModel
+from pydantic.json_schema import GenerateJsonSchema
 
 from ..errors import ResourceNotFoundError
 from ..persitance.allowed import AllowedPersistence
@@ -87,25 +89,37 @@ class AllowedTypes:
         self.persistence.set_allowed(group, name, slug, allowed)
         return type_
 
-    def disallowed(self, slug: str) -> list[AllowedType]:
-        """The types *slug* may not use."""
-        return [type_ for type_, availability in self.availability() if not availability.allows(slug)]
+    def restrictions(self, slug: str) -> Restrictions:
+        """What *slug* may not use, read once for whatever is asked of it next."""
+        disallowed = [type_ for type_, availability in self.availability() if not availability.allows(slug)]
+        return Restrictions(slug, self.types, disallowed)
 
-    def catalog(self, slug: str, family: type[BaseSettingsModel]) -> dict[str, type[BaseSettingsModel]]:
-        """What *slug* may configure of *family* - module types or resource kinds - by type tag: each of which it may
-        use one of the types."""
-        disallowed = self.disallowed(slug)
-        configurable = {type_.configures for type_ in self.types if type_ not in disallowed}
+
+@dataclass(frozen=True)
+class Restrictions:
+    """The types one community may not use, and what follows from them for it."""
+
+    slug: str
+    types: list[AllowedType]
+    disallowed: list[AllowedType]
+
+    def catalog(self, family: type[BaseSettingsModel]) -> dict[str, type[BaseSettingsModel]]:
+        """What the community may configure of *family* - module types or resource kinds - by type tag: each of which
+        it may use one of the types."""
+        configurable = {type_.configures for type_ in self.types if type_ not in self.disallowed}
         return {tag: settings for tag, settings in sorted(family.registry().items()) if settings in configurable}
 
-    def check(self, slug: str, payload: BaseModel) -> None:
-        """Reject *payload* when it is, or holds anywhere in it, a type *slug* may not use."""
-        disallowed = {type_.cls: type_ for type_ in self.disallowed(slug)}
+    def check(self, payload: BaseModel) -> None:
+        """Reject *payload* when it is, or holds anywhere in it, a type the community may not use."""
+        disallowed = {type_.cls: type_ for type_ in self.disallowed}
         for model in iter_models(payload):
             if type(model) in disallowed:
-                raise ValueError(f"{disallowed[type(model)].name!r} is not allowed for community {slug!r}")
+                raise ValueError(f"{disallowed[type(model)].name!r} is not allowed for community {self.slug!r}")
 
-    def schema(self, slug: str, settings: type[BaseSettingsModel]) -> dict[str, Any]:
-        """The JSON Schema of *settings* for *slug*, leaving out the types it may not use."""
-        generator = schema_without({type_.cls for type_ in self.disallowed(slug)})
-        return settings.model_json_schema(mode="validation", schema_generator=generator)
+    def schema(self, settings: type[BaseSettingsModel]) -> dict[str, Any]:
+        """The JSON Schema of *settings* for the community, leaving out the types it may not use."""
+        return settings.model_json_schema(mode="validation", schema_generator=self._generator)
+
+    @cached_property
+    def _generator(self) -> type[GenerateJsonSchema]:
+        return schema_without({type_.cls for type_ in self.disallowed})
