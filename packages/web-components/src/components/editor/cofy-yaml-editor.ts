@@ -1,5 +1,5 @@
 import { forceLinting, linter, lintGutter, type Diagnostic } from "@codemirror/lint";
-import { EditorState, type Extension } from "@codemirror/state";
+import { EditorState, StateEffect, type Extension } from "@codemirror/state";
 import { EditorView, keymap } from "@codemirror/view";
 import { yaml as yamlLanguage } from "@codemirror/lang-yaml";
 import { basicSetup } from "codemirror";
@@ -13,6 +13,9 @@ import { CofyElement } from "../../cofy-element.js";
 import { nativeStyles } from "../../theme/native-styles.js";
 import { parseDocument } from "yaml";
 import { parsePointer } from "../form/schema/pointer.js";
+
+/** Marks a transaction as carrying new host-supplied issues, so the linter reruns on it. */
+const issuesChanged = StateEffect.define<null>();
 
 /** What the editor's current text means, recomputed on every change. */
 export interface YamlEditorChange {
@@ -93,9 +96,10 @@ export class CofyYamlEditor extends CofyElement {
       });
     }
     if (changed.has("issues")) {
-      // An empty dispatch does not satisfy any of the linter extension's rerun conditions
-      // (docChanged, a config change, or its own `needsRefresh` flag) - `forceLinting` is the
-      // linter's own API for exactly this, a source's output changing with no document edit.
+      // `forceLinting` only hurries along a lint that is already scheduled; once the debounced
+      // run after the last edit has happened, it does nothing. The effect schedules a fresh run
+      // through the linter's `needsRefresh` hook, which `forceLinting` then runs right away.
+      this.view.dispatch({ effects: issuesChanged.of(null) });
       forceLinting(this.view);
     }
   }
@@ -112,7 +116,9 @@ export class CofyYamlEditor extends CofyElement {
       yamlLanguage(),
       cofyEditorTheme(),
       lintGutter(),
-      linter((view) => this.diagnostics(view)),
+      linter((view) => this.diagnostics(view), {
+        needsRefresh: (update) => update.transactions.some((tr) => tr.effects.some((e) => e.is(issuesChanged))),
+      }),
       keymap.of([]),
       EditorView.updateListener.of((update) => {
         if (!update.docChanged) return;
