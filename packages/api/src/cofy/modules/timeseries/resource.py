@@ -15,7 +15,7 @@ class SourceResourceSettings(ResourceSettings):
     value: "AnyTimeseriesSourceSettings"
 
     @classmethod
-    def held_types(cls) -> dict[str, type[TimeseriesSourceSettings]]:
+    def held_types(cls) -> "dict[str, type[TimeseriesSourceSettings]]":
         # Each type of source is a type of its own.
         return TimeseriesSourceSettings.registry()
 

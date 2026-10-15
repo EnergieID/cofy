@@ -16,7 +16,7 @@ class ResourceSettings(BaseSettingsModel):
     description: str | None = Field(None, description="A short description of the resource.")
 
     @classmethod
-    def held_types(cls) -> dict[str, type[BaseModel]]:
+    def held_types(cls) -> "dict[str, type[BaseModel]]":
         """The types of value a resource of this kind holds, by name: its value's, under the kind's own name."""
         return {cls.model_fields["type"].default: cls.model_fields["value"].annotation}
 
