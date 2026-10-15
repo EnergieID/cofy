@@ -1,12 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import type * as CodemirrorLint from "@codemirror/lint";
-
-vi.mock("@codemirror/lint", async (importOriginal) => {
-  const actual = await importOriginal<typeof CodemirrorLint>();
-  return { ...actual, forceLinting: vi.fn(actual.forceLinting) };
-});
-
-import { forceLinting } from "@codemirror/lint";
+import { beforeEach, describe, expect, it } from "vitest";
+import { forEachDiagnostic } from "@codemirror/lint";
+import { EditorView } from "@codemirror/view";
 
 import type { CofyYamlEditor } from "../src/components/editor/cofy-yaml-editor.js";
 import { locate } from "../src/components/editor/cofy-yaml-editor.js";
@@ -67,30 +61,30 @@ describe("locate", () => {
   });
 });
 
+function shownMessages(element: CofyYamlEditor): string[] {
+  const view = EditorView.findFromDOM(element.renderRoot.querySelector<HTMLElement>(".cm-editor")!)!;
+  const messages: string[] = [];
+  forEachDiagnostic(view.state, (diagnostic) => messages.push(diagnostic.message));
+  return messages;
+}
+
 describe("cofy-yaml-editor's issues property", () => {
   beforeEach(() => {
     globalThis.document.body.replaceChildren();
   });
 
-  it("re-runs the linter when new issues arrive with no text change", async () => {
+  it("shows issues that arrive after the debounced lint has already run", async () => {
     const element = await mountEditor(document);
-    vi.mocked(forceLinting).mockClear(); // drop whatever mounting itself triggered
-
-    element.issues = [{ pointer: "/name", message: "not allowed" }];
+    element.issues = [{ pointer: "/name", message: "first" }];
     await element.updateComplete;
+    await expect.poll(() => shownMessages(element)).toEqual(["first"]);
 
-    // A plain CodeMirror `dispatch({})` satisfies none of the linter extension's own rerun
-    // conditions (docChanged, a config change, or `needsRefresh`) - only `forceLinting` does.
-    expect(forceLinting).toHaveBeenCalledTimes(1);
-  });
-
-  it("does not re-run the linter merely because the text prop is reassigned to its own value", async () => {
-    const element = await mountEditor(document);
-    vi.mocked(forceLinting).mockClear(); // drop whatever mounting itself triggered
-
-    element.text = document; // same value - the editor's own doc does not actually change
+    element.issues = [{ pointer: "/name", message: "second" }];
     await element.updateComplete;
+    await expect.poll(() => shownMessages(element), { timeout: 100 }).toEqual(["second"]);
 
-    expect(forceLinting).not.toHaveBeenCalled();
+    element.issues = [];
+    await element.updateComplete;
+    await expect.poll(() => shownMessages(element), { timeout: 100 }).toEqual([]);
   });
 });
