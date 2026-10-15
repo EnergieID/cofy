@@ -1,5 +1,6 @@
 import type { JsonSchema } from "@cofy/frontend-sdk";
 
+import { itemSchema, prefixItemsOf, sizeLimits } from "./collection.js";
 import { deref, isRecord, noneExpanding, type RefGuard } from "./ref.js";
 import { referableBranches, referableOf } from "./referable.js";
 import { unionBranches } from "./resolve.js";
@@ -55,8 +56,11 @@ function seed(schema: JsonSchema, root: JsonSchema, expanding: RefGuard): unknow
   switch (node["type"]) {
     case "object":
       return seedObject(node, root, path);
-    case "array":
-      return [];
+    case "array": {
+      // As many placeholders as it needs at least: one in each of a tuple's positions, and up to its minimum.
+      const length = Math.max(prefixItemsOf(node).length, sizeLimits(node, "items").min);
+      return Array.from({ length }, (_, index) => seed(itemSchema(node, index), root, path));
+    }
     case "string":
       return "";
     case "integer":

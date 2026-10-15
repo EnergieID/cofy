@@ -117,6 +117,18 @@ describe("seedFromSchema", () => {
     });
   });
 
+  it("starts a tuple with a placeholder in each position", () => {
+    const tuple = { type: "array", prefixItems: [{ type: "number" }, { type: "string" }], minItems: 2, maxItems: 2 };
+    expect(seedFromSchema(tuple)).toEqual([0, ""]);
+  });
+
+  it("starts a list with as many elements as its minimum", () => {
+    expect(seedFromSchema({ type: "array", items: { type: "string" }, minItems: 2 })).toEqual(["", ""]);
+    // A tuple's own positions first, then the elements every later one shares.
+    const tuple = { type: "array", prefixItems: [{ type: "number" }], items: { type: "boolean" }, minItems: 2 };
+    expect(seedFromSchema(tuple)).toEqual([0, false]);
+  });
+
   it("terminates on a schema that refers back to itself", () => {
     // Real module schemas are recursive - a tariff formula can contain further formulas -
     // and seeding walks the schema rather than an instance, so it needs a stop.
