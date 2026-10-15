@@ -60,7 +60,7 @@ class CommunityFileStore(FileStore[CofyAPISettings]):
         that edits one part can break a rule spanning several, like a module referencing a
         resource, and must fail rather than store a config that can't be read anymore."""
         document.revision = (document.revision or 0) + 1
-        dumped = document.model_dump(exclude_none=True, polymorphic_serialization=True, round_trip=True)
+        dumped = document.model_dump(mode="json", exclude_none=True, polymorphic_serialization=True, round_trip=True)
         CofyAPISettings.model_validate(dumped)
         return yaml.safe_dump(dumped, sort_keys=True)
 
