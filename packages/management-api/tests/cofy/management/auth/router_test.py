@@ -50,7 +50,7 @@ ANN = {
                     "allowed_resources",
                 )
                 for action in ("read", "write")
-                if action == "read" or not subject.startswith("allowed_")
+                if action == "read" or not (subject == "community" or subject.startswith("allowed_"))
             ],
         },
     ],

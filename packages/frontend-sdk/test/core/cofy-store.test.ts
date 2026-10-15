@@ -15,6 +15,7 @@ function answer(call: Call): StubResponse {
   if (call.path === "/auth/me") return { body: me };
   if (call.path.endsWith("/status")) return { body: live };
   if (call.path === "/management/communities") return { body: call.method === "GET" ? [community] : community };
+  if (call.path === "/management/communities/test") return { body: community };
   if (call.path.endsWith("/grants")) return { body: { email: "bob@example.com", role: "community_admin", bound: false } };
   if (call.path.includes("/secrets")) return { body: call.method === "GET" ? [] : { name: "key", description: null } };
   if (call.path.includes("/resources")) return { body: call.method === "GET" ? [] : { type: "source", name: "s", value: {} } };
@@ -45,6 +46,7 @@ describe("CofyStore", () => {
     ],
     ["a secret", (store: CofyStore): Promise<unknown> => store.secrets.delete("test", "key")],
     ["a token", (store: CofyStore): Promise<unknown> => store.tokens.delete("test", "app")],
+    ["its settings", (store: CofyStore): Promise<unknown> => store.communities.replace("test", { title: "Renamed" })],
   ])("makes a community's status out of date on a write to %s", async (_, write) => {
     const { store, calls } = cofy();
     await store.status.fetch("test");
@@ -117,7 +119,7 @@ describe("CofyStore", () => {
     ]);
   });
 
-  it("makes who is logged in out of date after creating a community, which gives them a role on it", async () => {
+  it("makes who is logged in out of date after creating a community, since it reports permissions per community", async () => {
     const { store, calls } = cofy();
     await store.session.fetch();
 

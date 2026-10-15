@@ -30,6 +30,7 @@ export { CofyFieldShell } from "./components/form/cofy-field-shell.js";
 export { CofyYamlForm } from "./components/form/cofy-yaml-form.js";
 export { CofyBreadcrumbs, type Crumb } from "./components/layout/cofy-breadcrumbs.js";
 export { CofyApiLink } from "./components/community/cofy-api-link.js";
+export { CofyCommunityDialog } from "./components/community/cofy-community-dialog.js";
 export { CofyCommunityList } from "./components/community/cofy-community-list.js";
 export { CofyCommunityStatus } from "./components/community/cofy-community-status.js";
 export { CofyHeading } from "./components/layout/cofy-heading.js";

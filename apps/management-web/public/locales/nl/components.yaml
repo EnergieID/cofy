@@ -11,6 +11,26 @@ communityList:
     slug: Naam
     modules: Modules
     status: Status
+    actions: Acties
+  add: Nieuwe gemeenschap
+  edit: Wijzigen
+  delete: Verwijderen
+  deleting: Verwijderen…
+  deleteConfirm: "{{name}} verwijderen? De modules, bronnen, geheimen, API-tokens en toegang ervan worden mee verwijderd, en de API stopt."
+
+communityDialog:
+  title: Nieuwe gemeenschap
+  changeTitle: "{{name}} wijzigen"
+  slug: Naam
+  slugHint: De naam van de gemeenschap in het adres van haar API. Enkel letters, cijfers, - en _; kan later niet meer gewijzigd worden.
+  name: Titel
+  description: Beschrijving
+  debugMode: Debugmodus
+  debugModeHint: Houdt debugsporen bij van wat de API berekent.
+  create: Aanmaken
+  save: Opslaan
+  saving: Opslaan…
+  cancel: Annuleren
 
 apiLink:
   copy: Kopieer het adres

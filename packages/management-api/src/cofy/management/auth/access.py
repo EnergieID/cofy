@@ -51,9 +51,10 @@ class Role(StrEnum):
 
 
 ROLE_PERMISSIONS: Mapping[Role, frozenset[Permission]] = {
-    # Everything in their community, except changing which types it may use.
+    # Everything in their community, except changing the community itself or which types it may use.
     Role.community_admin: frozenset(Permission.all())
     - {
+        Permission(action=Action.write, subject=Subject.community),
         Permission(action=Action.write, subject=Subject.allowed_modules),
         Permission(action=Action.write, subject=Subject.allowed_resources),
     },

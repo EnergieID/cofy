@@ -347,10 +347,10 @@ def test_a_community_admin_cannot_open_another_community(tmp_data: Path):
     assert community_admin_client(tmp_data).get("/management/communities/other").status_code == 403
 
 
-def test_a_community_admin_can_edit_but_not_delete_their_community(tmp_data: Path):
+def test_a_community_admin_can_neither_edit_nor_delete_their_community(tmp_data: Path):
     client = community_admin_client(tmp_data)
 
-    assert client.put("/management/communities/test", json={"title": "Renamed"}).status_code == 200
+    assert client.put("/management/communities/test", json={"title": "Renamed"}).status_code == 403
     assert client.delete("/management/communities/test").status_code == 403
 
 
