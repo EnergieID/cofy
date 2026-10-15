@@ -18,14 +18,18 @@ import type { FieldRegistry } from "./field-registry.js";
 import { defaultFieldRegistry } from "./field-registry.js";
 import { CofyFormField } from "./form-field.js";
 import { seedFromSchema } from "./schema/defaults.js";
+import { itemSchema, prefixItemsOf, sizeLimits } from "./schema/collection.js";
 import { pointerFor } from "./schema/pointer.js";
-import { isRecord } from "./schema/ref.js";
 
 /**
  * An array's elements, each a collapsible `wa-accordion-item` labelled with its own position
  * and a delete link, so a long list does not mean a long page - only the item being worked on
  * needs to stay open. An item's own body is a bare `cofy-any-form` (no card of its own): the
  * accordion item's outline is already its visual boundary.
+ *
+ * The schema's `minItems`/`maxItems` decide what can be removed and added: no "Add" once the list is full, and no
+ * delete link once it is down to its minimum. A tuple's elements are each in a position of their own, so only its last
+ * one can be removed - removing another would shift the ones after it into positions they do not belong in.
  *
  * The last item is not a real one: it is the "Add" affordance, styled and behaving like the
  * others (same trigger, a `+` instead of the expand chevron) but wired to append a fresh
@@ -67,24 +71,28 @@ export class CofyListForm extends CofyFormField {
           @wa-expand=${(event: CustomEvent<{ item: Element }>): void => this.onExpand(event)}
           @wa-collapse=${(event: CustomEvent<{ item: Element }>): void => this.onCollapse(event)}
         >
-          ${items.map((item, index) => this.renderItem(item, index))}
-          <wa-accordion-item class="cofy-list-add" label=${this.t("form.add")}>
-            <wa-icon slot="icon" name="plus" library="cofy"></wa-icon>
-          </wa-accordion-item>
+          ${items.map((item, index) => this.renderItem(item, index, this.removable(index, items.length)))}
+          ${items.length < sizeLimits(this.schema, "items").max
+            ? html`<wa-accordion-item class="cofy-list-add" label=${this.t("form.add")}>
+                <wa-icon slot="icon" name="plus" library="cofy"></wa-icon>
+              </wa-accordion-item>`
+            : ""}
         </wa-accordion>
       </cofy-field-shell>
     `;
   }
 
-  private renderItem(item: unknown, index: number): TemplateResult {
-    const itemsSchema = this.itemSchema(index);
+  private renderItem(item: unknown, index: number, removable: boolean): TemplateResult {
+    const itemsSchema = itemSchema(this.schema, index);
     const summary = this.fieldRegistry.getSummary(itemsSchema, this.root, item);
 
     return html`
       <wa-accordion-item data-segment=${index} ?expanded=${this.expandedIndices.has(index)}>
         <div slot="label" class="wa-split">
           <span>${index + 1}${summary ? html`. ${summary}` : ""}</span>
-          <cofy-link-button @click=${(): void => this.removeAt(index)}>${this.t("form.remove")}</cofy-link-button>
+          ${removable
+            ? html`<cofy-link-button @click=${(): void => this.removeAt(index)}>${this.t("form.remove")}</cofy-link-button>`
+            : ""}
         </div>
         <cofy-any-form
           .schema=${itemsSchema}
@@ -98,12 +106,14 @@ export class CofyListForm extends CofyFormField {
     `;
   }
 
-  /** The schema of the element at *index*: a tuple's own for its position, otherwise the one every element shares. */
-  private itemSchema(index: number): Record<string, unknown> {
-    const prefixItems = this.schema["prefixItems"];
-    const positional = Array.isArray(prefixItems) ? (prefixItems as unknown[])[index] : undefined;
-    if (isRecord(positional)) return positional;
-    return isRecord(this.schema["items"]) ? this.schema["items"] : {};
+  /**
+   * Whether the element at *index* of *length* can be removed: not once the list is down to its minimum, and only the
+   * last of a tuple's positional elements - any of the ones after them all share a schema, so removing one shifts nothing
+   * out of place.
+   */
+  private removable(index: number, length: number): boolean {
+    if (length <= sizeLimits(this.schema, "items").min) return false;
+    return index === length - 1 || index >= prefixItemsOf(this.schema).length;
   }
 
   /** The "Add" item is a fake: cancel its own expand and append a fresh element instead. */
@@ -135,7 +145,7 @@ export class CofyListForm extends CofyFormField {
   private add(): void {
     const items: unknown[] = Array.isArray(this.value) ? this.value : [];
     this.expandedIndices = new Set([...this.expandedIndices, items.length]);
-    const value = [...items, seedFromSchema(this.itemSchema(items.length), this.root)];
+    const value = [...items, seedFromSchema(itemSchema(this.schema, items.length), this.root)];
     this.dispatchEvent(
       new CustomEvent("field-change", { bubbles: true, composed: true, detail: { pointer: this.pointer, value } }),
     );

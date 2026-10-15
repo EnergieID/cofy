@@ -19,6 +19,7 @@ import type { FieldRegistry } from "./field-registry.js";
 import { defaultFieldRegistry } from "./field-registry.js";
 import { CofyFormField } from "./form-field.js";
 import { seedFromSchema } from "./schema/defaults.js";
+import { sizeLimits } from "./schema/collection.js";
 import { pointerFor } from "./schema/pointer.js";
 import { isRecord } from "./schema/ref.js";
 
@@ -30,6 +31,8 @@ import { isRecord } from "./schema/ref.js";
  * `cofy-any-form` of its own could otherwise address a property name), then the value - a bare
  * `cofy-any-form` for `additionalProperties`, since the accordion item is already its own visual
  * boundary.
+ *
+ * As in `cofy-list-form`, the schema's `minProperties`/`maxProperties` decide what can be removed and added.
  *
  * The last item is not a real one, exactly as in `cofy-list-form`: the "Add" affordance, same
  * trigger and a `+` instead of the expand chevron, wired to append a fresh entry under a
@@ -59,6 +62,8 @@ export class CofyDictForm extends CofyFormField {
   public override render(): TemplateResult {
     const valueSchema = isRecord(this.schema["additionalProperties"]) ? this.schema["additionalProperties"] : {};
     const entries = isRecord(this.value) ? this.value : {};
+    const count = Object.keys(entries).length;
+    const limits = sizeLimits(this.schema, "properties");
     const label = this.bare ? "" : this.label;
     const description = this.bare ? "" : this.description;
 
@@ -70,23 +75,27 @@ export class CofyDictForm extends CofyFormField {
           @wa-expand=${(event: CustomEvent<{ item: Element }>): void => this.onExpand(event, valueSchema)}
           @wa-collapse=${(event: CustomEvent<{ item: Element }>): void => this.onCollapse(event)}
         >
-          ${Object.entries(entries).map(([key, value]) => this.renderEntry(key, value, valueSchema))}
-          <wa-accordion-item class="cofy-dict-add" label=${this.t("form.add")}>
-            <wa-icon slot="icon" name="plus" library="cofy"></wa-icon>
-          </wa-accordion-item>
+          ${Object.entries(entries).map(([key, value]) => this.renderEntry(key, value, valueSchema, count > limits.min))}
+          ${count < limits.max
+            ? html`<wa-accordion-item class="cofy-dict-add" label=${this.t("form.add")}>
+                <wa-icon slot="icon" name="plus" library="cofy"></wa-icon>
+              </wa-accordion-item>`
+            : ""}
         </wa-accordion>
       </cofy-field-shell>
     `;
   }
 
-  private renderEntry(key: string, value: unknown, valueSchema: Record<string, unknown>): TemplateResult {
+  private renderEntry(key: string, value: unknown, valueSchema: Record<string, unknown>, removable: boolean): TemplateResult {
     const summary = this.fieldRegistry.getSummary(valueSchema, this.root, value);
 
     return html`
       <wa-accordion-item data-segment=${key} ?expanded=${this.expandedKeys.has(key)}>
         <div slot="label" class="wa-split">
           <span>${key}${summary ? html`: ${summary}` : ""}</span>
-          <cofy-link-button @click=${(): void => this.removeKey(key)}>${this.t("form.remove")}</cofy-link-button>
+          ${removable
+            ? html`<cofy-link-button @click=${(): void => this.removeKey(key)}>${this.t("form.remove")}</cofy-link-button>`
+            : ""}
         </div>
         <div class="wa-stack">
           <wa-input label=${this.t("form.key")} .value=${key} @input=${(event: Event): void => this.renameKey(key, event)}></wa-input>
