@@ -155,7 +155,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/management/communities/{slug}/allowed-modules": {
+    "/management/communities/{slug}/catalog/modules": {
         parameters: {
             query?: never;
             header?: never;
@@ -164,10 +164,110 @@ export interface paths {
         };
         /**
          * All
-         * @description List the module types this community may configure.
+         * @description List what this community may configure.
          */
-        get: operations["all_management_communities__slug__allowed_modules_get"];
+        get: operations["all_management_communities__slug__catalog_modules_get"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/management/communities/{slug}/catalog/resources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * All
+         * @description List what this community may configure.
+         */
+        get: operations["all_management_communities__slug__catalog_resources_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/management/allowed-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * All
+         * @description List every type, with the communities that may use it.
+         */
+        get: operations["all_management_allowed_types_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/management/allowed-types/{group}/{type_name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Put
+         * @description Replace which communities may use a type.
+         */
+        put: operations["put_management_allowed_types__group___type_name__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/management/communities/{slug}/allowed-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * All
+         * @description List every type, with whether this community may use it.
+         */
+        get: operations["all_management_communities__slug__allowed_types_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/management/communities/{slug}/allowed-types/{group}/{type_name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Put
+         * @description Allow a type to this community or not, keeping its default for the others.
+         */
+        put: operations["put_management_communities__slug__allowed_types__group___type_name__put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -286,26 +386,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/management/communities/{slug}/allowed-resources": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * All
-         * @description List the resource kinds this community may configure.
-         */
-        get: operations["all_management_communities__slug__allowed_resources_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/management/communities/{slug}/grants": {
         parameters: {
             query?: never;
@@ -410,50 +490,33 @@ export interface components {
          */
         Action: "read" | "write";
         /**
-         * AllowedModule
-         * @description One module type a community may configure.
+         * AllowedBody
+         * @description Whether a community may use a type.
          */
-        AllowedModule: {
+        AllowedBody: {
             /**
-             * Type
-             * @description Machine name, and the discriminator value in a module payload.
+             * Allowed
+             * @description Whether the community may use the type.
              */
-            type: string;
-            /**
-             * Description
-             * @description What the module type does, from the module class.
-             */
-            description: string;
-            /**
-             * Schema
-             * @description Self-contained JSON Schema for a full module settings payload of this type.
-             */
-            schema: {
-                [key: string]: unknown;
-            };
+            allowed: boolean;
         };
         /**
-         * AllowedResource
-         * @description One resource kind a community may configure.
+         * Availability
+         * @description Whether the communities may configure a type: by default, but for the exceptions.
          */
-        AllowedResource: {
+        Availability: {
             /**
-             * Type
-             * @description Machine name, and the discriminator value in a resource payload.
+             * Default
+             * @description Whether a community may configure the type, unless it is an exception.
+             * @default true
              */
-            type: string;
+            default?: boolean;
             /**
-             * Description
-             * @description What a resource of this kind holds.
+             * Exceptions
+             * @description The communities, by slug, for which the opposite of the default holds.
+             * @default []
              */
-            description: string;
-            /**
-             * Schema
-             * @description Self-contained JSON Schema for a full resource payload of this kind.
-             */
-            schema: {
-                [key: string]: unknown;
-            };
+            exceptions?: string[];
         };
         /** BillingModuleSettings */
         BillingModuleSettings: {
@@ -557,6 +620,29 @@ export interface components {
              * @default 1024
              */
             max_chunks?: number;
+        };
+        /**
+         * CatalogEntry
+         * @description A module type or resource kind a community may configure.
+         */
+        CatalogEntry: {
+            /**
+             * Type
+             * @description Machine name, and the discriminator value in a payload of this type.
+             */
+            type: string;
+            /**
+             * Description
+             * @description What the type is for.
+             */
+            description: string;
+            /**
+             * Schema
+             * @description Self-contained JSON Schema for a full payload of this type, as the community may configure it.
+             */
+            schema: {
+                [key: string]: unknown;
+            };
         };
         /**
          * CommunityBody
@@ -681,6 +767,32 @@ export interface components {
              * @description The revision of the settings the API runs, if it runs.
              */
             running_revision: number | null;
+        };
+        /**
+         * CommunityTypeAvailability
+         * @description A type, and whether one community may use it.
+         */
+        CommunityTypeAvailability: {
+            /**
+             * Allowed
+             * @description Whether the community may use the type.
+             */
+            allowed: boolean;
+            /**
+             * Group
+             * @description What the type is a type of: `module`, `resource`, or the resource kind holding it.
+             */
+            group: string;
+            /**
+             * Type
+             * @description Machine name of the type.
+             */
+            type: string;
+            /**
+             * Description
+             * @description What the type is for.
+             */
+            description: string;
         };
         /**
          * CostGroup
@@ -1557,7 +1669,7 @@ export interface components {
          * @description A part of a community that permissions are given on.
          * @enum {string}
          */
-        Subject: "community" | "modules" | "resources" | "secrets" | "tokens" | "grants" | "allowed_modules" | "allowed_resources";
+        Subject: "community" | "modules" | "resources" | "secrets" | "tokens" | "grants" | "allowed_types";
         /** Tariff */
         "Tariff-Input": components["schemas"]["TariffVersion-Input"][];
         /** Tariff */
@@ -1857,6 +1969,39 @@ export interface components {
             description?: string | null;
             /** Expires */
             expires?: string | null;
+        };
+        /**
+         * TypeAvailability
+         * @description Which communities may use a type.
+         */
+        TypeAvailability: {
+            /**
+             * Default
+             * @description Whether a community may configure the type, unless it is an exception.
+             * @default true
+             */
+            default?: boolean;
+            /**
+             * Exceptions
+             * @description The communities, by slug, for which the opposite of the default holds.
+             * @default []
+             */
+            exceptions?: string[];
+            /**
+             * Group
+             * @description What the type is a type of: `module`, `resource`, or the resource kind holding it.
+             */
+            group: string;
+            /**
+             * Type
+             * @description Machine name of the type.
+             */
+            type: string;
+            /**
+             * Description
+             * @description What the type is for.
+             */
+            description: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -2301,7 +2446,7 @@ export interface operations {
             };
         };
     };
-    all_management_communities__slug__allowed_modules_get: {
+    all_management_communities__slug__catalog_modules_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -2319,7 +2464,164 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AllowedModule"][];
+                    "application/json": components["schemas"]["CatalogEntry"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    all_management_communities__slug__catalog_resources_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Community slug */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CatalogEntry"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    all_management_allowed_types_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TypeAvailability"][];
+                };
+            };
+        };
+    };
+    put_management_allowed_types__group___type_name__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                group: string;
+                type_name: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Availability"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TypeAvailability"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    all_management_communities__slug__allowed_types_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Community slug */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommunityTypeAvailability"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_management_communities__slug__allowed_types__group___type_name__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+                group: string;
+                type_name: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AllowedBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommunityTypeAvailability"];
                 };
             };
             /** @description Validation Error */
@@ -2816,38 +3118,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    all_management_communities__slug__allowed_resources_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Community slug */
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AllowedResource"][];
-                };
             };
             /** @description Validation Error */
             422: {

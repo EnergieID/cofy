@@ -3,19 +3,26 @@ import { html } from "lit";
 import type { TemplateResult } from "lit";
 
 import { RouteState } from "../../src/states/route-state.js";
-import type { RouteTable } from "../../src/router.js";
+import type { Access, RouteTable } from "../../src/router.js";
 
 const routes = {
   communities: { path: "/", render: (): TemplateResult => html`<p>root</p>` },
-  modules: { path: "/communities/:slug", render: ({ slug }): TemplateResult => html`<p>modules ${slug}</p>` },
+  modules: {
+    path: "/communities/:slug",
+    render: ({ slug }): TemplateResult => html`<p>modules ${slug}</p>`,
+    allows: (access: Access, { slug }): boolean => access.can("read", "community", slug ?? null),
+  },
 } satisfies RouteTable;
+
+/** Someone who may see the community "foo", and nothing else. */
+const access: Access = { can: (_action, _subject, slug) => slug === "foo" };
 
 describe("RouteState", () => {
   let state: RouteState;
 
   beforeEach(() => {
     window.location.hash = "";
-    state = new RouteState(routes);
+    state = new RouteState(routes, access);
     state.start();
   });
 
@@ -26,7 +33,7 @@ describe("RouteState", () => {
   it("starts from the address bar", () => {
     window.location.hash = "#/communities/foo";
 
-    expect(new RouteState(routes).path).toBe("/communities/foo");
+    expect(new RouteState(routes, access).path).toBe("/communities/foo");
   });
 
   it("defaults to the root path", () => {
@@ -84,8 +91,22 @@ describe("RouteState", () => {
 
   it("says so when no route claims the path", () => {
     window.location.hash = "#/nope";
-    const orphan = new RouteState(routes);
+    const orphan = new RouteState(routes, access);
 
     expect(orphan.render()).toBeUndefined();
+  });
+
+  it("tells whether a route's page may be seen, as its rule says, and lets anyone see one without", () => {
+    expect(state.allows("modules", { slug: "foo" })).toBe(true);
+    expect(state.allows("modules", { slug: "bar" })).toBe(false);
+    expect(state.allows("communities")).toBe(true);
+  });
+
+  it("shows a page that may not be seen as refused, rather than rendering it", () => {
+    state.navigate("modules", { slug: "bar" });
+
+    const rendered = JSON.stringify(state.render()!.values);
+    expect(rendered).toContain("403");
+    expect(rendered).not.toContain("modules");
   });
 });

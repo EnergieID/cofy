@@ -67,6 +67,5 @@ def test_every_action_on_every_subject_is_a_permission():
 def test_a_community_admin_can_do_everything_in_its_community_but_change_it_or_the_allowed_types():
     assert set(Permission.all()) - ROLE_PERMISSIONS[Role.community_admin] == {
         Permission(action=Action.write, subject=Subject.community),
-        Permission(action=Action.write, subject=Subject.allowed_modules),
-        Permission(action=Action.write, subject=Subject.allowed_resources),
+        Permission(action=Action.write, subject=Subject.allowed_types),
     }

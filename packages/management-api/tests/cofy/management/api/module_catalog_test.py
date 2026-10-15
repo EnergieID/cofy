@@ -1,4 +1,4 @@
-"""Integration tests for AllowedModulesRouter.
+"""Integration tests for the module catalog.
 
 The catalog is what a schema-driven frontend builds every module form from, so these tests
 pin the properties it relies on: only constructible types, self-contained schemas, an intact
@@ -7,28 +7,30 @@ discriminator, and credentials marked as secrets.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from cofy.management.api.allowed_modules import AllowedModulesRouter
 from cofy.management.errors import add_exception_handlers
 
 from ..access_fixture import log_in_as_system_admin
+from ..allowed_fixture import allowed_in, include_catalogs
 
 
 @pytest.fixture()
-def client() -> TestClient:
+def client(tmp_path: Path) -> TestClient:
     app = FastAPI()
     add_exception_handlers(app)
     log_in_as_system_admin(app)
-    app.include_router(AllowedModulesRouter().router)
+    include_catalogs(app, allowed_in(tmp_path))
     return TestClient(app, raise_server_exceptions=False)
 
 
 @pytest.fixture()
 def catalog(client: TestClient) -> list[dict]:
-    r = client.get("/management/communities/test/allowed-modules")
+    r = client.get("/management/communities/test/catalog/modules")
     assert r.status_code == 200
     return r.json()
 

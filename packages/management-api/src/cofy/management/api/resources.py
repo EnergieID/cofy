@@ -7,11 +7,11 @@ from cofy.modules.discovery import discover_all_types
 from fastapi import Path
 
 from ..auth.access import Subject
+from ..domain.allowed import AllowedTypes
+from ..domain.in_use import check_unused
 from ..persitance.modules import ModulesPersistence
 from ..persitance.resources import ResourcesPersistence
 from ..policies.policy import Policy, PolicyRouter
-from .allowed_resources import allowed_resource_types
-from .in_use import check_unused
 
 # Import every installed module/source/format type,
 discover_all_types()
@@ -19,8 +19,9 @@ AnyResourceSettings = ResourceSettings.union_type()
 
 
 class ResourcesRouter:
-    def __init__(self, persistence: ResourcesPersistence, modules: ModulesPersistence):
+    def __init__(self, persistence: ResourcesPersistence, modules: ModulesPersistence, allowed: AllowedTypes):
         self.persistence = persistence
+        self.allowed = allowed
         self.modules = modules
         self.router = PolicyRouter(
             subject=Subject.resources, prefix="/management/communities/{slug}/resources", tags=["Resources"]
@@ -44,13 +45,13 @@ class ResourcesRouter:
         return self.persistence.get(slug, name)
 
     def create(self, slug: str, payload: AnyResourceSettings) -> AnyResourceSettings:
-        self._check_type_is_allowed(slug, payload)
+        self.allowed.restrictions(slug).check(payload)
         return self.persistence.create(slug, payload)
 
     def put(self, slug: str, name: str, payload: AnyResourceSettings) -> AnyResourceSettings:
         if payload.name != name:
             raise ValueError(f"Resource name in body ({payload.name!r}) must match the URL path ({name!r})")
-        self._check_type_is_allowed(slug, payload)
+        self.allowed.restrictions(slug).check(payload)
         return self.persistence.replace(slug, name, payload)
 
     def delete(self, slug: str, name: str) -> None:
@@ -58,13 +59,3 @@ class ResourcesRouter:
         check_unused("resource", name, self.modules.all(slug), self.persistence.all(slug))
         self.persistence.delete(slug, name)
         return None
-
-    @staticmethod
-    def _check_type_is_allowed(slug: str, resource: AnyResourceSettings) -> None:
-        """Reject a resource kind this community may not configure."""
-        allowed = allowed_resource_types(slug)
-        if resource.type not in allowed:
-            raise ValueError(
-                f"Resource type {resource.type!r} is not allowed for community {slug!r}. "
-                f"Allowed types: {', '.join(sorted(allowed))}"
-            )

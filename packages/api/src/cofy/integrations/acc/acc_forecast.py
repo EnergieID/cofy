@@ -39,6 +39,8 @@ class AccForecastPage(BaseModel):
 
 
 class AccForecastSource(NetVolumeSource, settings=AccForecastSettings):
+    """Forecast net volumes of a connection, from the ACC forecast API."""
+
     def __init__(
         self, ean: str, credentials: str, base_url: str = ACC_BASE_URL, cache: CacheSettings | None = None
     ) -> None:

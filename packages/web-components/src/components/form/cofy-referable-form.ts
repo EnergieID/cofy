@@ -1,5 +1,5 @@
 import { consume } from "@lit/context";
-import { css, html, nothing } from "lit";
+import { css, html } from "lit";
 import type { TemplateResult } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { repeat } from "lit/directives/repeat.js";
@@ -129,6 +129,7 @@ export class CofyReferableForm extends CofyFormField {
       aria-label=${this.label || this.t("form.resource")}
       placeholder=${this.t("form.chooseResource")}
       .value=${ref.name}
+      ?disabled=${options.length === 0}
       lang=${this.i18n?.resolvedLanguage ?? "en"}
       @change=${(event: Event): void => this.onChoose(event)}
     >
@@ -155,9 +156,6 @@ export class CofyReferableForm extends CofyFormField {
         ${this.bare
           ? html`<div class="picker">${picker}${menu}</div>`
           : html`${menu}${picker}`}
-        ${options.length === 0
-          ? html`<span class="wa-caption-s">${this.t("form.noResources", { kind: referable.kind })}</span>`
-          : nothing}
       </cofy-field-shell>
     `;
   }

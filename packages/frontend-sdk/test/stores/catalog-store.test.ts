@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { AllowedModulesStore } from "../../src/stores/allowed-modules-store.js";
+import { CatalogStore } from "../../src/stores/catalog-store.js";
 import { stubbedApi } from "../support/api.js";
 
 const catalog = [
@@ -8,20 +8,20 @@ const catalog = [
   { type: "tariff", description: "Tariff", schema: { type: "object" } },
 ];
 
-describe("AllowedModulesStore", () => {
+describe("CatalogStore", () => {
   it("loads a community's catalog", async () => {
     const { api, calls } = stubbedApi(() => ({ body: catalog }));
-    const store = new AllowedModulesStore(api);
+    const store = new CatalogStore(api, "modules");
 
     await store.fetch("test");
 
     expect(store.all("test")).toEqual(catalog);
-    expect(calls[0]!.path).toBe("/management/communities/test/allowed-modules");
+    expect(calls[0]!.path).toBe("/management/communities/test/catalog/modules");
   });
 
   it("fetches once however often it is read, because a schema only changes when the server does", async () => {
     const { api, calls } = stubbedApi(() => ({ body: catalog }));
-    const store = new AllowedModulesStore(api);
+    const store = new CatalogStore(api, "modules");
 
     store.all("test");
     await store.fetch("test");
@@ -32,7 +32,7 @@ describe("AllowedModulesStore", () => {
 
   it("finds one allowed type, and reports an unknown one as absent", async () => {
     const { api } = stubbedApi(() => ({ body: catalog }));
-    const store = new AllowedModulesStore(api);
+    const store = new CatalogStore(api, "modules");
     await store.fetch("test");
 
     expect(store.get("test", "billing")?.description).toBe("Billing");
@@ -43,7 +43,7 @@ describe("AllowedModulesStore", () => {
     const { api } = stubbedApi((call) =>
       call.path.includes("/other/") ? { body: [catalog[0]] } : { body: catalog },
     );
-    const store = new AllowedModulesStore(api);
+    const store = new CatalogStore(api, "modules");
 
     await store.fetch("test");
     await store.fetch("other");
@@ -54,7 +54,7 @@ describe("AllowedModulesStore", () => {
 
   it("keeps a failure to show", async () => {
     const { api } = stubbedApi(() => ({ status: 404, body: { status: 404, detail: "no community" } }));
-    const store = new AllowedModulesStore(api);
+    const store = new CatalogStore(api, "modules");
 
     await store.fetch("nope").catch(() => {});
 

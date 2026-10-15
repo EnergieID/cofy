@@ -23,6 +23,8 @@ class DirectiveSourceSettings(DirectiveSeriesSourceSettings):
 
 
 class DirectiveSource(DirectiveSeriesSource, settings=DirectiveSourceSettings):
+    """Directive steps, from a numeric source and fixed boundaries between the steps."""
+
     def __init__(
         self,
         source: NumericSource,

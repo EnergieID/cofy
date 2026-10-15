@@ -10,11 +10,11 @@ from fastapi import Path
 from pydantic import BaseModel, Field
 
 from ..auth.access import Subject
+from ..domain.in_use import check_unused
 from ..persitance.modules import ModulesPersistence
 from ..persitance.resources import ResourcesPersistence
 from ..persitance.secrets import SecretsPersistence
 from ..policies.policy import Policy, PolicyRouter
-from .in_use import check_unused
 
 
 class SecretBody(BaseModel):

@@ -4,7 +4,7 @@ import type { TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import {
   EditableValue,
-  type AllowedResource,
+  type CatalogEntry,
   type ProblemError,
   type ResourceSettings,
 } from "@cofy/frontend-sdk";
@@ -46,7 +46,7 @@ export class CofyResourceCreate extends CofyElement {
   @state() private mode: ModuleFormMode = "form";
 
   public override render(): TemplateResult {
-    const catalog = this.slug === "" ? undefined : this.cofy?.allowedResources.all(this.slug);
+    const catalog = this.slug === "" ? undefined : this.cofy?.resourceCatalog.all(this.slug);
     if (catalog === undefined) {
       return html`<div class="wa-stack">
         ${Array.from({ length: 4 }, () => html`<wa-skeleton></wa-skeleton>`)}
@@ -93,7 +93,7 @@ export class CofyResourceCreate extends CofyElement {
                 </div>
                 ${draft.issues.length === 0
                   ? nothing
-                  : html`<wa-badge variant="danger">${this.t("form.issuesToggle", { count: draft.issues.length })}</wa-badge>`}
+                  : html`<wa-badge variant="danger">${this.t("form.savingBlocked")}</wa-badge>`}
               </footer>
             `}
       </div>
@@ -113,8 +113,8 @@ export class CofyResourceCreate extends CofyElement {
     this.check(draft);
   }
 
-  private catalog(): readonly AllowedResource[] {
-    return this.cofy?.allowedResources.all(this.slug) ?? [];
+  private catalog(): readonly CatalogEntry[] {
+    return this.cofy?.resourceCatalog.all(this.slug) ?? [];
   }
 
   private check(draft: EditableValue<ResourceSettings>): void {

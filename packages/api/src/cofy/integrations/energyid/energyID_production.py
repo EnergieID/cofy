@@ -33,6 +33,8 @@ class EnergyIDResponse(BaseModel):
 
 
 class EnergyIDProduction(ProductionSource, settings=EnergyIDProductionSettings):
+    """Production of a meter, from an EnergyID record."""
+
     SUPPORTED_RESOLUTIONS: list[str] = ["PT5M", "PT15M", "PT1H", "P1D", "P7D", "P1M", "P1Y"]
 
     def __init__(self, api_key: str, record_id: str, cache: CacheSettings | None = None) -> None:

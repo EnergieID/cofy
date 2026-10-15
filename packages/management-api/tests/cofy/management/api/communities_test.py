@@ -19,11 +19,13 @@ from cofy.management.api.communities import CommunitiesRouter
 from cofy.management.auth.access import Grant, Role
 from cofy.management.auth.user import User
 from cofy.management.community_api import CommunityApi
+from cofy.management.domain.availability import Availability
 from cofy.management.errors import add_exception_handlers
 from cofy.management.persitance.file.communities import FileCommunitiesPersistence
 from cofy.management.persitance.file.grants import FileGrantsPersistence
 
 from ..access_fixture import log_in, log_in_as_system_admin, user
+from ..allowed_fixture import allowed_types_in
 
 TOKEN = "super-secret-token"
 API = CommunityApi(httpx.Client(base_url="https://cofy.example/communities/"))
@@ -61,7 +63,11 @@ def client(tmp_data: Path) -> TestClient:
     app = FastAPI()
     add_exception_handlers(app)
     log_in_as_system_admin(app)
-    app.include_router(CommunitiesRouter(FileCommunitiesPersistence(tmp_data), grants_in(tmp_data), API).router)
+    app.include_router(
+        CommunitiesRouter(
+            FileCommunitiesPersistence(tmp_data), grants_in(tmp_data), allowed_types_in(tmp_data), API
+        ).router
+    )
     return TestClient(app, raise_server_exceptions=False)
 
 
@@ -94,7 +100,12 @@ def test_listing_is_empty_when_no_communities_exist(tmp_path: Path):
     add_exception_handlers(app)
     log_in_as_system_admin(app)
     app.include_router(
-        CommunitiesRouter(FileCommunitiesPersistence(tmp_path / "missing"), grants_in(tmp_path / "missing"), API).router
+        CommunitiesRouter(
+            FileCommunitiesPersistence(tmp_path / "missing"),
+            grants_in(tmp_path / "missing"),
+            allowed_types_in(tmp_path / "missing"),
+            API,
+        ).router
     )
 
     r = TestClient(app).get("/management/communities")
@@ -227,7 +238,11 @@ def test_create_in_a_missing_data_directory_creates_it(tmp_path: Path):
     app = FastAPI()
     add_exception_handlers(app)
     log_in_as_system_admin(app)
-    app.include_router(CommunitiesRouter(FileCommunitiesPersistence(data_dir), grants_in(data_dir), API).router)
+    app.include_router(
+        CommunitiesRouter(
+            FileCommunitiesPersistence(data_dir), grants_in(data_dir), allowed_types_in(data_dir), API
+        ).router
+    )
 
     r = TestClient(app).post("/management/communities", json={"slug": "first", "title": "First"})
 
@@ -322,7 +337,11 @@ def client_as(tmp_data: Path, logged_in: User) -> TestClient:
     app = FastAPI()
     add_exception_handlers(app)
     log_in(app, logged_in)
-    app.include_router(CommunitiesRouter(FileCommunitiesPersistence(tmp_data), grants_in(tmp_data), API).router)
+    app.include_router(
+        CommunitiesRouter(
+            FileCommunitiesPersistence(tmp_data), grants_in(tmp_data), allowed_types_in(tmp_data), API
+        ).router
+    )
     return TestClient(app, raise_server_exceptions=False)
 
 
@@ -372,6 +391,15 @@ def test_deleting_a_community_revokes_every_role_in_it(client: TestClient, tmp_d
     assert [str(grant.email) for grant in grants.all("other")] == ["ann@example.com"]
 
 
+def test_deleting_a_community_drops_it_from_the_exceptions_of_every_type(client: TestClient, tmp_data: Path):
+    allowed = allowed_types_in(tmp_data)
+    allowed.put("module", "billing", Availability(default=False, exceptions=["test"]))
+
+    assert client.delete("/management/communities/test").status_code == 204
+
+    assert allowed.get("module", "billing") == Availability(default=False)
+
+
 def test_a_failed_delete_leaves_the_community_without_access_rather_than_access_without_it(
     tmp_data: Path, monkeypatch: pytest.MonkeyPatch
 ):
@@ -385,7 +413,9 @@ def test_a_failed_delete_leaves_the_community_without_access_rather_than_access_
     app = FastAPI()
     add_exception_handlers(app)
     log_in_as_system_admin(app)
-    app.include_router(CommunitiesRouter(FileCommunitiesPersistence(tmp_data), grants, API).router)
+    app.include_router(
+        CommunitiesRouter(FileCommunitiesPersistence(tmp_data), grants, allowed_types_in(tmp_data), API).router
+    )
 
     assert TestClient(app, raise_server_exceptions=False).delete("/management/communities/test").status_code == 500
 

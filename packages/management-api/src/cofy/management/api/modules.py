@@ -7,9 +7,9 @@ from cofy.modules.discovery import discover_all_types
 from fastapi import Path
 
 from ..auth.access import Subject
+from ..domain.allowed import AllowedTypes
 from ..persitance.modules import ModulesPersistence
 from ..policies.policy import Policy, PolicyRouter
-from .allowed_modules import allowed_module_types
 
 # Import every installed module/source/format type,
 discover_all_types()
@@ -17,8 +17,9 @@ AnyModuleSettings = ModuleSettings.union_type()
 
 
 class ModulesRouter:
-    def __init__(self, persitance: ModulesPersistence):
+    def __init__(self, persitance: ModulesPersistence, allowed: AllowedTypes):
         self.persistence = persitance
+        self.allowed = allowed
         self.router = PolicyRouter(
             subject=Subject.modules, prefix="/management/communities/{slug}/modules", tags=["Modules"]
         )
@@ -52,7 +53,7 @@ class ModulesRouter:
         slug: str,
         payload: AnyModuleSettings,
     ) -> AnyModuleSettings:
-        self._check_type_is_allowed(slug, payload)
+        self.allowed.restrictions(slug).check(payload)
         return self.persistence.create(slug, payload)
 
     def put(
@@ -63,18 +64,8 @@ class ModulesRouter:
         payload: AnyModuleSettings,
     ) -> AnyModuleSettings:
         self._check_identity_matches_path(payload, module_type, name)
-        self._check_type_is_allowed(slug, payload)
+        self.allowed.restrictions(slug).check(payload)
         return self.persistence.replace(slug, module_type, name, payload)
-
-    @staticmethod
-    def _check_type_is_allowed(slug: str, module: AnyModuleSettings) -> None:
-        """Reject a module type this community may not configure."""
-        allowed = allowed_module_types(slug)
-        if module.type not in allowed:
-            raise ValueError(
-                f"Module type {module.type!r} is not allowed for community {slug!r}. "
-                f"Allowed types: {', '.join(sorted(allowed))}"
-            )
 
     @staticmethod
     def _check_identity_matches_path(module: AnyModuleSettings, module_type: str, name: str) -> None:

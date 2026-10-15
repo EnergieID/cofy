@@ -16,7 +16,8 @@ stack running together.
 
 `COFY_MANAGEMENT_DATA_DIR` and `COFY_MANAGEMENT_COMMUNITIES_DIR` must be set to writable
 directories - there is no built-in default. The first holds who may do what in
-`access/users.yaml`, the second the community configs, as `<slug>.yaml`. They are apart so the
+`access/users.yaml`, and which types communities may configure in `access/allowed.yaml`; the second the community
+configs, as `<slug>.yaml`. They are apart so the
 community configs can live elsewhere: the [runner](../runner) serving them needs nothing else. See [apps/demo_multitenant](../../apps/demo_multitenant)
 for a worked example, including a reset script that restores its data to committed defaults.
 
@@ -94,6 +95,41 @@ a system admin may delete. System admins are let through every rule.
 `/auth/me` reports what the person logged in may do, per community, and for a system admin also
 outside any one community (`slug: null`), such as creating communities. Listing communities takes
 being able to see at least one; anyone else is refused, as for a community they can't see.
+
+### Which types communities may configure
+
+System admins restrict which types each community may use. A type belongs to a group: a module type (`module`), a
+kind of resource holding one type of value (`resource`, such as `tariff`), or a member of the family a kind of
+resource holds (named after that kind: `source`, such as `entsoe_day_ahead`). Each type is available by default or
+not, and its exceptions are the communities for which the opposite holds; a type that isn't listed is available
+everywhere. They are kept in `access/allowed.yaml` in the data directory, apart from the community configs, as they
+are not the community's to change:
+
+```yaml
+module:
+  directive:
+    default: false
+    exceptions: [demo]
+source:
+  entsoe_day_ahead:
+    default: true
+    exceptions: [acme]
+```
+
+- `/management/allowed-types` lists every type with its availability, and a `PUT` of
+  `/management/allowed-types/{group}/{type}` replaces one.
+- `/management/communities/{slug}/allowed-types` lists every type with whether that community may use it, and a
+  `PUT` of `.../allowed-types/{group}/{type}` with `{"allowed": ...}` allows one to it or not, keeping its default:
+  the community becomes an exception to it, or no longer is one.
+- `/management/communities/{slug}/catalog/modules` and `.../catalog/resources` list the module types and resource
+  kinds a community may configure, to whoever may see its modules or resources. In their JSON Schemas, a type it may
+  not use is one nothing is valid against (`{"not": {}}`), wherever it is nested; the console offers no such branch of
+  a union, and explains a field nothing fits. A resource kind is listed while one of the types it holds may be used.
+- A type a community may not use can't be given anywhere: not as a module, not in a resource, and not inline in a
+  module or resource either. What it already has keeps running, but can only be deleted - or, for a resource, still
+  be referenced.
+
+Deleting a community drops it from every type's exceptions.
 
 ### EnergyID
 

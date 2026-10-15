@@ -23,6 +23,7 @@ from pydantic import BaseModel, Field
 from ..auth.access import Subject
 from ..auth.user import User, current_user
 from ..community_api import CommunityApi
+from ..persitance.allowed import AllowedPersistence
 from ..persitance.communities import CommunitiesPersistence
 from ..persitance.grants import GrantsPersistence
 from ..policies.community import CommunityPolicy
@@ -80,9 +81,16 @@ class CommunityInfo(CommunityBody):
 
 
 class CommunitiesRouter:
-    def __init__(self, persitance: CommunitiesPersistence, grants: GrantsPersistence, api: CommunityApi):
+    def __init__(
+        self,
+        persitance: CommunitiesPersistence,
+        grants: GrantsPersistence,
+        allowed: AllowedPersistence,
+        api: CommunityApi,
+    ):
         self.persistence = persitance
         self.grants = grants
+        self.allowed = allowed
         self.api = api
         self.router = PolicyRouter(
             subject=Subject.community, policy=CommunityPolicy, prefix="/management/communities", tags=["Communities"]
@@ -125,9 +133,10 @@ class CommunitiesRouter:
         return CommunityInfo.of(slug, settings, self.api.url(slug))
 
     def delete(self, slug: str) -> None:
-        # Revoked first, or a community created later under the same slug could inherit them; should deleting then
-        # fail, the community is left without anyone having access, rather than access without a community. Its
-        # config isn't read, so a community whose config is broken can still be deleted.
+        # Revoked and forgotten first, or a community created later under the same slug could inherit them; should
+        # deleting then fail, the community is left without anyone having access, rather than access without a
+        # community. Its config isn't read, so a community whose config is broken can still be deleted.
         self.grants.delete_all(slug)
+        self.allowed.forget(slug)
         self.persistence.delete(slug)
         return None

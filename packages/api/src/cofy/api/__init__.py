@@ -1,6 +1,7 @@
 from .cofy_api import CofyAPI
 from .docs_router import DocsRouter
 from .from_settings_mixin import BaseSettingsModel, FromSettingsMixin, finalize
+from .json_schema import schema_without
 from .module import Module, ModuleSettings
 from .references import Referable, RefSettings
 from .resource import Resource, ResourceSettings
@@ -14,6 +15,7 @@ __all__ = [
     "BaseSettingsModel",
     "FromSettingsMixin",
     "finalize",
+    "schema_without",
     "Module",
     "ModuleSettings",
     "Referable",

@@ -231,4 +231,59 @@ describe("cofy-referable-form", () => {
     expect(element.shadowRoot!.querySelector("cofy-save-resource-dialog")).toBeNull();
     expect(element.shadowRoot!.querySelector<HTMLElement & { value: string }>("wa-select")!.value).toBe("be_prices");
   });
+
+  it("disables the picker while there is no resource to pick, but leaves specifying a value", async () => {
+    const tariff: JsonSchema = { ...note, "x-referable": { kind: "tariff" } };
+    const element = await mount(tariff, { type: "resource", name: "" });
+
+    expect(element.shadowRoot!.querySelector<HTMLElement & { disabled: boolean }>("wa-select")!.disabled).toBe(true);
+    expect(refMenu(element).map((action) => action.id)).toEqual(["specify-value"]);
+    expect(element.shadowRoot!.querySelector(".wa-caption-s")).toBeNull();
+  });
+
+  it("says a value nothing is valid against isn't available, and still offers a resource where one fits", async () => {
+    // What the server sends where the community may not use any type of source: a value nothing is valid against.
+    const deadValue: JsonSchema = { ...source, oneOf: [{ not: {} }, { $ref: "#/$defs/RefSettings" }] };
+    const element = await mount(deadValue, undefined);
+
+    expect(deepText(element)).toContain("No valid options available for this community.");
+    expect(valueActions(element).map((action) => action.id)).toEqual(["use-resource"]);
+  });
+
+  it("says so where every type its value could be is one nothing is valid against", async () => {
+    const deadUnion: JsonSchema = {
+      oneOf: [
+        {
+          oneOf: [{ $ref: "#/$defs/Entsoe" }],
+          discriminator: { propertyName: "type", mapping: { entsoe_day_ahead: "#/$defs/Entsoe" } },
+        },
+        { $ref: "#/$defs/RefSettings" },
+      ],
+      "x-referable": { kind: "source", types: ["entsoe_day_ahead"] },
+      $defs: { RefSettings: refSettings, Entsoe: { not: {} } },
+    };
+    const element = await mount(deadUnion, undefined);
+
+    expect(deepText(element)).toContain("No valid options available for this community.");
+    expect(element.shadowRoot!.querySelector("wa-select")).toBeNull();
+  });
+
+  it("offers no resource where none fits, a value nothing is valid against or not", async () => {
+    const deadTariff: JsonSchema = {
+      ...note,
+      "x-referable": { kind: "tariff" },
+      oneOf: [{ not: {} }, { $ref: "#/$defs/RefSettings" }],
+    };
+    const element = await mount(deadTariff, undefined);
+
+    expect(deepText(element)).toContain("No valid options available for this community.");
+    expect(element.shadowRoot!.querySelector("cofy-action-menu")).toBeNull();
+  });
 });
+
+/** The text of *element* and everything rendered inside it, through every shadow root. */
+function deepText(element: Element): string {
+  const own = element.shadowRoot ?? element;
+  const nested = Array.from(own.querySelectorAll("*"), (child) => (child.shadowRoot ? deepText(child) : ""));
+  return [own.textContent ?? "", ...nested].join(" ");
+}

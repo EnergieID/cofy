@@ -92,6 +92,21 @@ describe("Cache", () => {
     expect(cache.get("a")).toBe("A2");
   });
 
+  it("makes every scope out of date at once", async () => {
+    const { cache, requests } = controlled();
+    cache.get("a");
+    cache.get("b");
+    requests[0]!.resolve("A");
+    requests[1]!.resolve("B");
+    await flush();
+
+    cache.invalidateAll();
+    cache.get("a");
+    cache.get("b");
+
+    expect(requests.slice(2).map((request) => request.slug)).toEqual(["a", "b"]);
+  });
+
   it("does not trust an answer to a request invalidated while it was under way", async () => {
     const { cache, requests } = controlled();
     cache.get("a");

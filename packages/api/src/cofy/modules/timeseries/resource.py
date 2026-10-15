@@ -14,6 +14,11 @@ class SourceResourceSettings(ResourceSettings):
     # Unresolved until cofy.api.finalize() publishes the discriminated unions.
     value: "AnyTimeseriesSourceSettings"
 
+    @classmethod
+    def held_types(cls) -> "dict[str, type[TimeseriesSourceSettings]]":
+        # Each type of source is a type of its own.
+        return TimeseriesSourceSettings.registry()
+
 
 class SourceResource(Resource, settings=SourceResourceSettings):
     """A timeseries source, built once and shared by every reference to it."""

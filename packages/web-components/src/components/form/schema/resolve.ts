@@ -1,5 +1,6 @@
 import type { JsonSchema } from "@cofy/frontend-sdk";
 
+import { isNever } from "./never.js";
 import { deref, isRecord, refOf } from "./ref.js";
 
 /** An OpenAPI-style discriminator, tying a union's branches to a tag property. */
@@ -41,11 +42,14 @@ export function resolveNode(schema: JsonSchema, root: JsonSchema): JsonSchema {
 
 /**
  * *node*'s own union branches - `oneOf`, or an `anyOf` with more than one non-`null` branch - or
- * `undefined` if it isn't one. Expects *node* already resolved by {@link resolveNode}.
+ * `undefined` if it isn't one. A branch nothing is valid against is not one to offer, so it is left
+ * out - which can leave a union with none. Expects *node* already resolved by {@link resolveNode}.
  */
 export function unionBranches(node: JsonSchema, root: JsonSchema): readonly JsonSchema[] | undefined {
   const oneOf = node["oneOf"];
-  if (Array.isArray(oneOf) && oneOf.length > 0) return oneOf as JsonSchema[];
+  if (Array.isArray(oneOf) && oneOf.length > 0) {
+    return (oneOf as JsonSchema[]).filter((branch) => !isNever(branch, root));
+  }
 
   const nonNull = nonNullBranches(node["anyOf"], root);
   return nonNull !== undefined && nonNull.length > 1 ? nonNull : undefined;

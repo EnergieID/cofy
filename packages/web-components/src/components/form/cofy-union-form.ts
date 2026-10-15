@@ -18,6 +18,7 @@ import { utilityStyles } from "../../theme/utility-styles.js";
 import type { FieldRegistry } from "./field-registry.js";
 import { defaultFieldRegistry } from "./field-registry.js";
 import { CofyFormField } from "./form-field.js";
+import { isNever } from "./schema/never.js";
 import { isRecord } from "./schema/ref.js";
 import { seedFromSchema } from "./schema/defaults.js";
 import {
@@ -126,7 +127,10 @@ export class CofyUnionForm extends CofyFormField {
 
   private renderDiscriminated(discriminator: Discriminator): TemplateResult {
     const tag = isRecord(this.value) ? this.value[discriminator.propertyName] : undefined;
-    const options = Object.keys(discriminator.mapping);
+    // A tag whose branch nothing is valid against is not one to offer.
+    const options = Object.entries(discriminator.mapping)
+      .filter(([, ref]) => !isNever({ $ref: ref }, this.root))
+      .map(([option]) => option);
 
     return html`
       <wa-select

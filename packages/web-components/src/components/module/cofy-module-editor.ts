@@ -4,7 +4,7 @@ import type { TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import {
   ModuleDraft,
-  type AllowedModule,
+  type CatalogEntry,
   type ModuleId,
   type ModuleSettings,
   type ProblemError,
@@ -68,7 +68,7 @@ export class CofyModuleEditor extends CofyElement {
 
   public override render(): TemplateResult {
     if (this.draft === null) {
-      const error = this.cofy?.modules.error(this.slug) ?? this.cofy?.allowedModules.error(this.slug) ?? null;
+      const error = this.cofy?.modules.error(this.slug) ?? this.cofy?.moduleCatalog.error(this.slug) ?? null;
       return error !== null
         ? html`<cofy-problem-details .problem=${error}></cofy-problem-details>`
         : html`<div class="wa-stack">
@@ -129,7 +129,7 @@ export class CofyModuleEditor extends CofyElement {
             </span>
           ${draft.issues.length === 0
               ? nothing
-              : html`<wa-badge variant="danger">${this.t("form.issuesToggle", { count: draft.issues.length })}</wa-badge>`}
+              : html`<wa-badge variant="danger">${this.t("form.savingBlocked")}</wa-badge>`}
           </div>
         </footer>
       </div>
@@ -142,7 +142,7 @@ export class CofyModuleEditor extends CofyElement {
     if (slug === "" || moduleId === null || cofy === undefined) return;
 
     const stored = cofy.modules.get(slug, moduleId);
-    if (stored === undefined || cofy.allowedModules.all(slug) === undefined) return;
+    if (stored === undefined || cofy.moduleCatalog.all(slug) === undefined) return;
 
     const draft = new ModuleDraft(stored);
     this.draft = draft;
@@ -165,8 +165,8 @@ export class CofyModuleEditor extends CofyElement {
     this.saved = false;
   }
 
-  private catalog(): readonly AllowedModule[] {
-    return this.cofy?.allowedModules.all(this.slug) ?? [];
+  private catalog(): readonly CatalogEntry[] {
+    return this.cofy?.moduleCatalog.all(this.slug) ?? [];
   }
 
   private check(draft: ModuleDraft): void {

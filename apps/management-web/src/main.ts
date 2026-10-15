@@ -23,6 +23,7 @@ import { LitElement, css, html } from "lit";
 import type { TemplateResult } from "lit";
 import { customElement } from "lit/decorators.js";
 
+import "./components/cofy-settings-panel.js";
 import { crumbStateContext, routeStateContext } from "./context.js";
 import { useLocalIcons } from "./icons.js";
 import { APP_NAMESPACE, LANGUAGES } from "./i18n.js";
@@ -110,7 +111,7 @@ export class CofyApp extends LitElement {
   public cofy = new CofyStore(this.api);
 
   @provide({ context: routeStateContext })
-  public routeState = new RouteState(routes);
+  public routeState = new RouteState(routes, this.cofy.session);
 
   @provide({ context: crumbStateContext })
   public crumbState = new CrumbState();

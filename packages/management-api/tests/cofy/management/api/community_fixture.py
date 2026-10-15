@@ -8,7 +8,6 @@ import yaml
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from cofy.management.api.allowed_resources import AllowedResourcesRouter
 from cofy.management.api.modules import ModulesRouter
 from cofy.management.api.resources import ResourcesRouter
 from cofy.management.api.secrets import SecretsRouter
@@ -18,6 +17,7 @@ from cofy.management.persitance.file.resources import FileResourcesPersistence
 from cofy.management.persitance.file.secrets import FileSecretsPersistence
 
 from ..access_fixture import log_in_as_system_admin
+from ..allowed_fixture import allowed_in, include_catalogs
 
 COMMUNITY = "/management/communities/test"
 
@@ -64,10 +64,11 @@ def client_for(path: Path) -> TestClient:
         FileResourcesPersistence(path),
         FileSecretsPersistence(path),
     )
-    app.include_router(ModulesRouter(modules).router)
-    app.include_router(ResourcesRouter(resources, modules).router)
+    allowed = allowed_in(path)
+    app.include_router(ModulesRouter(modules, allowed).router)
+    app.include_router(ResourcesRouter(resources, modules, allowed).router)
     app.include_router(SecretsRouter(secrets, modules, resources).router)
-    app.include_router(AllowedResourcesRouter().router)
+    include_catalogs(app, allowed)
     return TestClient(app, raise_server_exceptions=False)
 
 

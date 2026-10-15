@@ -15,7 +15,7 @@ from ..access_fixture import identity, user
 RULES = ("all", "get", "create", "put", "delete")
 EVERYTHING = set(RULES)
 INSIDE_A_COMMUNITY = [Subject.modules, Subject.resources, Subject.secrets, Subject.tokens, Subject.grants]
-ALLOWED_TYPES = [Subject.allowed_modules, Subject.allowed_resources]
+ALLOWED_TYPES = [Subject.allowed_types]
 
 
 @pytest.fixture()

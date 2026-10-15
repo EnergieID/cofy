@@ -22,6 +22,8 @@ class SimultaneitySourceSettings(RatioSourceSettings):
 
 
 class SimultaneitySource(RatioSource, settings=SimultaneitySourceSettings):
+    """Consumption as a percentage of production per timestamp, over sources of net volumes."""
+
     def __init__(self, sources: Sequence[NetVolumeSource], cache: CacheSettings | None = None):
         """Total consumption as a percentage of total production per timestamp, over sources of net volumes.
 

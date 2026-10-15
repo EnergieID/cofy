@@ -1,25 +1,30 @@
 import os
 
 import httpx
+from cofy.api import ModuleSettings, ResourceSettings
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 
-from .api.allowed_modules import AllowedModulesRouter
-from .api.allowed_resources import AllowedResourcesRouter
+from .api.allowed import AllowedTypesRouter
+from .api.catalog import CatalogRouter
 from .api.communities import CommunitiesRouter
+from .api.community_allowed_types import CommunityAllowedTypesRouter
 from .api.grants import GrantsRouter
 from .api.modules import ModulesRouter
 from .api.resources import ResourcesRouter
 from .api.secrets import SecretsRouter
 from .api.status import StatusRouter
 from .api.tokens import TokensRouter
+from .auth.access import Subject
 from .auth.config import OidcConfig
 from .auth.router import AuthRouter
 from .auth.session import install_session
 from .auth.user import install_users
 from .community_api import CommunityApi
+from .domain.allowed import AllowedTypes
 from .errors import add_exception_handlers
+from .persitance.file.allowed import FileAllowedPersistence
 from .persitance.file.base import data_dir
 from .persitance.file.communities import FileCommunitiesPersistence
 from .persitance.file.grants import FileGrantsPersistence
@@ -68,6 +73,8 @@ community_api = community_api_from_env()
 users_file = data_dir() / "access" / "users.yaml"
 users = FileUsersPersistence(users_file)
 grants = FileGrantsPersistence(users_file)
+allowed_types = FileAllowedPersistence(data_dir() / "access" / "allowed.yaml")
+allowed = AllowedTypes(allowed_types)
 
 app = FastAPI(title="Cofy Management API", version="0.1.0", description="Management API for Cofy")
 add_exception_handlers(app)
@@ -75,13 +82,19 @@ install_session(app, oidc_config)
 install_users(app, users)
 
 app.include_router(AuthRouter(oidc_config, users, FileCommunitiesPersistence()).router)
-app.include_router(CommunitiesRouter(FileCommunitiesPersistence(), grants, community_api).router)
-app.include_router(ModulesRouter(FileModulesPersistence()).router)
-app.include_router(AllowedModulesRouter().router)
-app.include_router(ResourcesRouter(FileResourcesPersistence(), FileModulesPersistence()).router)
+app.include_router(CommunitiesRouter(FileCommunitiesPersistence(), grants, allowed_types, community_api).router)
+app.include_router(ModulesRouter(FileModulesPersistence(), allowed).router)
+app.include_router(
+    CatalogRouter(allowed, ModuleSettings, subject=Subject.modules, path="modules", tag="Module catalog").router
+)
+app.include_router(
+    CatalogRouter(allowed, ResourceSettings, subject=Subject.resources, path="resources", tag="Resource catalog").router
+)
+app.include_router(AllowedTypesRouter(allowed, FileCommunitiesPersistence()).router)
+app.include_router(CommunityAllowedTypesRouter(allowed, FileCommunitiesPersistence()).router)
+app.include_router(ResourcesRouter(FileResourcesPersistence(), FileModulesPersistence(), allowed).router)
 app.include_router(SecretsRouter(FileSecretsPersistence(), FileModulesPersistence(), FileResourcesPersistence()).router)
 app.include_router(TokensRouter(FileTokensPersistence()).router)
-app.include_router(AllowedResourcesRouter().router)
 app.include_router(GrantsRouter(grants, FileCommunitiesPersistence()).router)
 app.include_router(StatusRouter(FileCommunitiesPersistence(), community_api).router)
 

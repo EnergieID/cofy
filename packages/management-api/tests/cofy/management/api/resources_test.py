@@ -1,4 +1,4 @@
-"""Integration tests for ResourcesRouter and AllowedResourcesRouter with file persistence."""
+"""Integration tests for ResourcesRouter, and the resource catalog, with file persistence."""
 
 from __future__ import annotations
 
@@ -137,7 +137,7 @@ def test_a_module_referencing_an_unknown_resource_is_rejected_and_stores_nothing
 
 
 def test_allowed_resources_lists_every_kind_with_its_schema(client: TestClient):
-    r = client.get(f"{COMMUNITY}/allowed-resources")
+    r = client.get(f"{COMMUNITY}/catalog/resources")
 
     assert r.status_code == 200
     kinds = {entry["type"]: entry for entry in r.json()}

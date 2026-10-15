@@ -12,6 +12,7 @@ import { CofyConstForm } from "./cofy-const-form.js";
 import { CofyDictForm } from "./cofy-dict-form.js";
 import { CofyEnumForm } from "./cofy-enum-form.js";
 import { CofyListForm } from "./cofy-list-form.js";
+import { CofyNeverForm } from "./cofy-never-form.js";
 import { CofyNumberForm } from "./cofy-number-form.js";
 import { CofyObjectForm } from "./cofy-object-form.js";
 import { CofyReferableForm } from "./cofy-referable-form.js";
@@ -19,6 +20,7 @@ import { CofySecretForm } from "./cofy-secret-form.js";
 import { CofyStringForm } from "./cofy-string-form.js";
 import { CofyUnionForm } from "./cofy-union-form.js";
 
+import { isNever } from "./schema/never.js";
 import { isRecord } from "./schema/ref.js";
 import { isRefValue, referableOf } from "./schema/referable.js";
 import { resolveNode, unionBranches } from "./schema/resolve.js";
@@ -65,6 +67,14 @@ export interface FieldMapper {
  */
 export const defaultFieldMappers: readonly FieldMapper[] = [
   /* Special cases */
+  {
+    // Ahead of everything: a field nothing is valid against - or a union with none of its types left to offer -
+    // has nothing to fill in, whatever else it looks like.
+    tag: "cofy-never-form",
+    component: CofyNeverForm,
+    matches: (node: JsonSchema, root: JsonSchema): boolean =>
+      isNever(node, root) || unionBranches(node, root)?.length === 0,
+  },
   {
     // Ahead of the union mapper: a referable field is a union of its value and a reference, but
     // is edited as its value, with a reference as an alternative to it.

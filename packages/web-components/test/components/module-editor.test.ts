@@ -14,11 +14,11 @@ const stored: ModuleSettings = {
 
 const catalog = [{ type: "tariff", description: "Tariff", schema: { type: "object" } }];
 
-function stubApi(allowedModules: unknown = catalog): ApiClient {
+function stubApi(moduleCatalog: unknown = catalog): ApiClient {
   const fetchStub = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const request = input instanceof Request ? input : new Request(input, init);
     const path = new URL(request.url).pathname;
-    const body = path.endsWith("/allowed-modules") ? allowedModules : [stored];
+    const body = path.endsWith("/catalog/modules") ? moduleCatalog : [stored];
     return Promise.resolve(
       new Response(JSON.stringify(body), { status: 200, headers: { "content-type": "application/json" } }),
     );
@@ -26,8 +26,8 @@ function stubApi(allowedModules: unknown = catalog): ApiClient {
   return new ApiClient({ fetch: fetchStub, baseUrl: "http://localhost" });
 }
 
-async function mount(allowedModules?: unknown): Promise<CofyModuleEditor> {
-  const api = stubApi(allowedModules);
+async function mount(moduleCatalog?: unknown): Promise<CofyModuleEditor> {
+  const api = stubApi(moduleCatalog);
   const element = new CofyModuleEditor();
   element.i18n = await testI18n();
   element.cofy = new CofyStore(api);
@@ -148,7 +148,7 @@ describe("cofy-module-editor", () => {
     const badge = element.shadowRoot!.querySelector("wa-badge");
     expect(badge).not.toBeNull();
     expect(badge!.getAttribute("variant")).toBe("danger");
-    expect(badge!.textContent).toMatch(/blocks? saving/);
+    expect(badge!.textContent).toContain("Saving blocked by errors");
     expect(element.shadowRoot!.querySelector("ul.issues")).toBeNull();
   });
 });

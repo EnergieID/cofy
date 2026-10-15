@@ -26,6 +26,8 @@ class DynamicBoundaryDirectiveSourceSettings(DirectiveSeriesSourceSettings):
 
 
 class DynamicBoundaryDirectiveSource(DirectiveSeriesSource, settings=DynamicBoundaryDirectiveSourceSettings):
+    """Directive steps, from a numeric source and boundaries between the steps that change over time."""
+
     def __init__(
         self,
         signal_source: NumericSource,

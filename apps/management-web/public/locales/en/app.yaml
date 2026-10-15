@@ -12,6 +12,16 @@ community:
     secrets: Secrets
     tokens: API tokens
     grants: Access
+    allowedTypes: Allowed types
+
+settings:
+  open: Settings
+  logout: Log out
+  admin: Admin console
+  allowedTypes: Allowed types
+
+allowed:
+  crumb: Allowed types
 
 newModule:
   crumb: New module
