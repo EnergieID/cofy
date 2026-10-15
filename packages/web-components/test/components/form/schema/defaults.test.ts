@@ -78,7 +78,7 @@ describe("seedFromSchema", () => {
 
     expect(referable({ type: "object", properties: { type: { const: "a" } }, required: ["type"] })).toEqual({ type: "a" });
     // Not a reference to no resource in particular where nothing is valid against the value.
-    expect(referable({ not: {} })).toBeNull();
+    expect(referable({ not: {} })).toEqual({});
   });
 
   it("takes the first branch of a plain (non-discriminated) union too, which pydantic emits as anyOf", () => {
@@ -129,54 +129,53 @@ describe("seedFromSchema", () => {
     expect(seedFromSchema(tuple)).toEqual([0, false]);
   });
 
-  it("terminates on a schema that refers back to itself", () => {
-    // Real module schemas are recursive - a tariff formula can contain further formulas -
-    // and seeding walks the schema rather than an instance, so it needs a stop.
-    const seeded = seedFromSchema({
-      type: "object",
-      properties: { formula: { $ref: "#/$defs/Formula" } },
-      required: ["formula"],
-      $defs: {
-        Formula: {
-          type: "object",
-          properties: { kind: { const: "index", default: "index" }, inner: { $ref: "#/$defs/Formula" } },
-          required: ["kind", "inner"],
-        },
-      },
-    });
-
-    expect(seeded).toEqual({ formula: { kind: "index", inner: null } });
+  it("starts an optional out as null, even one without a default", () => {
+    expect(seedFromSchema({ anyOf: [{ type: "string" }, { type: "null" }] })).toBeNull();
+    expect(seedFromSchema({ anyOf: [{ type: "string" }, { type: "integer" }, { type: "null" }] })).toBeNull();
   });
 
-  it("terminates on mutual recursion between two definitions", () => {
-    const seeded = seedFromSchema({
-      type: "object",
-      properties: { a: { $ref: "#/$defs/A" } },
-      required: ["a"],
-      $defs: {
-        A: { type: "object", properties: { b: { $ref: "#/$defs/B" } }, required: ["b"] },
-        B: { type: "object", properties: { a: { $ref: "#/$defs/A" } }, required: ["a"] },
-      },
-    });
+  it("seeds something other than null for a value nothing is valid against, so it shows why", () => {
+    expect(seedFromSchema({ not: {} })).toEqual({});
+    expect(seedFromSchema({ oneOf: [{ $ref: "#/$defs/Gone" }], $defs: { Gone: { not: {} } } })).toEqual({});
+  });
 
-    expect(seeded).toEqual({ a: { b: { a: null } } });
+  // Real module schemas are recursive - a tariff formula can contain further formulas - and seeding walks the schema
+  // rather than an instance. A schema that can be satisfied at all leads back to itself only through something that
+  // can stop.
+  it("stops a schema that refers back to itself through an optional", () => {
+    const formula = {
+      type: "object",
+      properties: { kind: { const: "index" }, inner: { anyOf: [{ $ref: "#/$defs/Formula" }, { type: "null" }] } },
+      required: ["kind", "inner"],
+    };
+    expect(seedFromSchema({ $ref: "#/$defs/Formula" }, { $defs: { Formula: formula } })).toEqual({ kind: "index", inner: null });
+  });
+
+  it("stops a schema that refers back to itself through a union, at a branch that does not", () => {
+    const root = {
+      $defs: {
+        Formula: { oneOf: [{ $ref: "#/$defs/Minimum" }, { $ref: "#/$defs/Constant" }] },
+        Minimum: {
+          type: "object",
+          properties: { kind: { const: "minimum" }, of: { $ref: "#/$defs/Formula" } },
+          required: ["kind", "of"],
+        },
+        Constant: { type: "object", properties: { kind: { const: "constant" } }, required: ["kind"] },
+      },
+    };
+    expect(seedFromSchema({ $ref: "#/$defs/Formula" }, root)).toEqual({ kind: "minimum", of: { kind: "constant" } });
+  });
+
+  it("stops a schema that refers back to itself through a list", () => {
+    const formula = {
+      type: "object",
+      properties: { kind: { const: "sum" }, terms: { type: "array", items: { $ref: "#/$defs/Formula" } } },
+      required: ["kind", "terms"],
+    };
+    expect(seedFromSchema({ $ref: "#/$defs/Formula" }, { $defs: { Formula: formula } })).toEqual({ kind: "sum", terms: [] });
   });
 
   it("returns an empty object for a schema with no properties", () => {
     expect(seedFromSchema({ type: "object" })).toEqual({});
-  });
-
-  it("terminates the same way when called with an already-resolved node, not just a raw $ref", () => {
-    // `cofy-object-form` seeds itself from its own `.schema`, which `cofy-any-form` has already
-    // resolved past its `$ref` by the time it gets there - it has no `$ref` string left to track
-    // by, only the node's own identity, which is what the cycle guard now keys on either way.
-    const cyclic = {
-      type: "object",
-      properties: { kind: { const: "index", default: "index" }, inner: { $ref: "#/$defs/Formula" } },
-      required: ["kind", "inner"],
-    };
-    const root = { $defs: { Formula: cyclic } };
-
-    expect(seedFromSchema(cyclic, root)).toEqual({ kind: "index", inner: null });
   });
 });

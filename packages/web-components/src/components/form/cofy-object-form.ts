@@ -4,11 +4,7 @@ import type { TemplateResult } from "lit";
 import { customElement } from "lit/decorators.js";
 
 import "@awesome.me/webawesome/dist/components/details/details.js";
-import "@awesome.me/webawesome/dist/components/icon/icon.js";
 import "./cofy-any-form.js";
-import "./cofy-field-shell.js";
-import "../../icons.js";
-import "../layout/cofy-link-button.js";
 
 import { fieldRegistryContext } from "../../context.js";
 import { nativeStyles } from "../../theme/native-styles.js";
@@ -16,29 +12,18 @@ import { utilityStyles } from "../../theme/utility-styles.js";
 import type { FieldRegistry } from "./field-registry.js";
 import { defaultFieldRegistry } from "./field-registry.js";
 import { CofyFormField } from "./form-field.js";
-import { seedFromSchema } from "./schema/defaults.js";
 import { pointerFor } from "./schema/pointer.js";
 import { isRecord } from "./schema/ref.js";
 
 /**
  * An object's own properties, each rendered by a child `cofy-any-form`.
  *
- * An absent value renders as a label plus a fake "Create" details item - the same affordance
- * `cofy-list-form` uses for an empty list's own "Add" - instead of recursing into properties
- * that do not exist yet. This is the one gate this family needs against a cyclic schema (a
- * `directive` source can wrap another `directive`, unbounded): a cyclic property is always
- * absent until a real click creates it, so nothing is ever expanded except in response to one,
- * one level at a time. Each property is handed to its own `cofy-any-form` regardless of kind or
- * value - this gate is `cofy-object-form`'s own concern, not something a parent has to know to
- * check first.
+ * Its fields are grouped in a details of their own - unless `bare`, meaning the ancestor that
+ * mounted it (a union, around the branch it resolved to, or the document itself at its root)
+ * already is their boundary, and a second one would double up.
  *
- * A populated, non-required value can be deleted back to that same absent state, through a link
- * in the details' own header - not offered when `required`, since deleting a required field
- * would leave the document invalid with no schema-driven way back except re-creating it.
- *
- * A nested object (anywhere but the document root) draws its own label and details, like any
- * other field - unless `bare`, meaning the ancestor that mounted it (a union, around the
- * branch it resolved to) already drew both, and drawing them again would double up.
+ * Creating an object that is not there yet, and clearing one back to not being there, is left to
+ * `cofy-optional-form` around it - an object that is not optional is always there.
  */
 @customElement("cofy-object-form")
 export class CofyObjectForm extends CofyFormField {
@@ -49,9 +34,6 @@ export class CofyObjectForm extends CofyFormField {
       :host {
         display: block;
       }
-      [slot="summary"] {
-        flex: 1;
-      }
     `,
   ];
 
@@ -59,11 +41,8 @@ export class CofyObjectForm extends CofyFormField {
   public fieldRegistry: FieldRegistry = defaultFieldRegistry;
 
   public override render(): TemplateResult {
-    if (this.value === undefined || this.value === null) return this.renderEmpty();
-
     const properties = this.schema["properties"];
     const required = new Set(Array.isArray(this.schema["required"]) ? (this.schema["required"] as string[]) : []);
-    const wrapped = this.pointer !== "" && !this.bare;
 
     const propertiesBlock = html`
       <div class="wa-stack">
@@ -75,17 +54,7 @@ export class CofyObjectForm extends CofyFormField {
       </div>
     `;
 
-    return html`
-      <cofy-field-shell
-        data-pointer=${this.pointer}
-        label=${wrapped ? this.label : ""}
-        description=${wrapped ? this.description : ""}
-        .issues=${this.ownIssues}
-      >
-        <slot name="actions" slot="actions"></slot>
-        ${wrapped ? this.renderPopulated(propertiesBlock) : propertiesBlock}
-      </cofy-field-shell>
-    `;
+    return this.bare ? propertiesBlock : this.renderPopulated(propertiesBlock);
   }
 
   private renderPopulated(content: TemplateResult): TemplateResult {
@@ -93,12 +62,7 @@ export class CofyObjectForm extends CofyFormField {
 
     return html`
       <wa-details appearance="outlined" open>
-        <div slot="summary" class="wa-split">
-          <span>${summary ?? ""}</span>
-          ${this.required
-            ? nothing
-            : html`<cofy-link-button @click=${(): void => this.clear()}>${this.t("form.remove")}</cofy-link-button>`}
-        </div>
+        <span slot="summary">${summary ?? ""}</span>
         ${content}
       </wa-details>
     `;
@@ -119,37 +83,6 @@ export class CofyObjectForm extends CofyFormField {
         .issues=${this.issues}
       ></cofy-any-form>
     `;
-  }
-
-  private renderEmpty(): TemplateResult {
-    return html`
-      <cofy-field-shell data-pointer=${this.pointer} label=${this.label} description=${this.description}>
-        <wa-details
-          appearance="outlined"
-          summary=${this.t("form.create")}
-          @wa-show=${(event: CustomEvent): void => {
-            event.stopPropagation();
-            event.preventDefault();
-            this.add();
-          }}
-        >
-          <wa-icon slot="expand-icon" name="plus" library="cofy"></wa-icon>
-        </wa-details>
-      </cofy-field-shell>
-    `;
-  }
-
-  private add(): void {
-    const value = seedFromSchema(this.schema, this.root);
-    this.dispatchEvent(
-      new CustomEvent("field-change", { bubbles: true, composed: true, detail: { pointer: this.pointer, value } }),
-    );
-  }
-
-  private clear(): void {
-    this.dispatchEvent(
-      new CustomEvent("field-change", { bubbles: true, composed: true, detail: { pointer: this.pointer, value: null } }),
-    );
   }
 }
 

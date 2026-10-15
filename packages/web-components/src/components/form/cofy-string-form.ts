@@ -1,27 +1,26 @@
 import { html } from "lit";
 import type { TemplateResult } from "lit";
 import { customElement } from "lit/decorators.js";
-import { ifDefined } from "lit/directives/if-defined.js";
 
 import "@awesome.me/webawesome/dist/components/input/input.js";
-import "./cofy-field-shell.js";
 
+import { utilityStyles } from "../../theme/utility-styles.js";
 import { CofyFormField } from "./form-field.js";
 
-/** A plain string field, rendered as a `wa-input`. */
+/** A plain string field, rendered as a `wa-input` - labelled only for assistive technology, under its field's own label. */
 @customElement("cofy-string-form")
 export class CofyStringForm extends CofyFormField {
+  public static override styles = [utilityStyles];
+
   public override render(): TemplateResult {
     return html`
-      <cofy-field-shell data-pointer=${this.pointer} .issues=${this.ownIssues}>
-        <wa-input
-          label=${this.bare ? "" : this.label}
-          hint=${ifDefined(this.description || undefined)}
-          .value=${typeof this.value === "string" ? this.value : ""}
-          ?required=${this.required}
-          @input=${(event: Event): void => this.onInput(event)}
-        ></wa-input>
-      </cofy-field-shell>
+      <wa-input
+        class="wa-visually-hidden-label"
+        label=${this.label}
+        .value=${typeof this.value === "string" ? this.value : ""}
+        ?required=${this.required}
+        @input=${(event: Event): void => this.onInput(event)}
+      ></wa-input>
     `;
   }
 

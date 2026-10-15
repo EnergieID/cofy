@@ -2,15 +2,15 @@ import { describe, expect, it } from "vitest";
 import type { JsonSchema } from "@cofy/frontend-sdk";
 
 import { defaultFieldRegistry, FieldRegistry, type AS_YAML_OPTION } from "../../../src/components/form/field-registry.js";
-import { resolveNode } from "../../../src/components/form/schema/resolve.js";
+import { deref } from "../../../src/components/form/schema/ref.js";
 
-/** Dispatches *schema* through *registry*, the same way `cofy-any-form` does - the mounted tag always gets the resolved node. */
+/** Dispatches *schema* through *registry*, the same way `cofy-any-form` does - the mounted tag always gets the node resolved past its `$ref`. */
 function dispatch(
   schema: JsonSchema,
   root: JsonSchema = {},
   registry = defaultFieldRegistry,
 ): { tag: string; schema: JsonSchema } | undefined {
-  const node = resolveNode(schema, root);
+  const node = deref(schema, root);
   const match = registry.getFirstMatch(node, root);
   return match === undefined ? undefined : { tag: match.tag, schema: node };
 }
@@ -89,27 +89,17 @@ describe("defaultFieldRegistry", () => {
     expect(dispatch(schema)?.tag).toBe("cofy-union-form");
   });
 
-  it("unwraps Optional[string] (anyOf with one non-null branch) to dispatch as a string, carrying the resolved node", () => {
-    const schema = { anyOf: [{ type: "string" }, { type: "null" }], default: null };
-    expect(dispatch(schema)).toEqual({ tag: "cofy-string-form", schema: { type: "string" } });
+  it("dispatches an Optional - of a single input, a container, or several types - to the optional form, whole", () => {
+    const optionalString = { anyOf: [{ type: "string" }, { type: "null" }], default: null };
+    expect(dispatch(optionalString)).toEqual({ tag: "cofy-optional-form", schema: optionalString });
+    expect(dispatch({ anyOf: [{ type: "array", items: { type: "string" } }, { type: "null" }] })?.tag).toBe("cofy-optional-form");
+    expect(dispatch({ anyOf: [{ type: "string" }, { type: "integer" }, { type: "null" }] })?.tag).toBe("cofy-optional-form");
   });
 
-  it("unwraps Optional[$ref] through to the ref's own dispatch", () => {
-    const costGroup = { enum: ["low", "high"] };
-    const root: JsonSchema = { $defs: { CostGroup: costGroup } };
-    const schema = { anyOf: [{ $ref: "#/$defs/CostGroup" }, { type: "null" }], default: null };
-    expect(dispatch(schema, root)).toEqual({ tag: "cofy-enum-form", schema: costGroup });
-  });
-
-  it("treats Optional[array-of-union] as an array, not a union - the null sits beside the array", () => {
-    const schema = {
-      anyOf: [
-        { type: "array", items: { oneOf: [{ $ref: "#/$defs/JSONFormatSettings" }, { $ref: "#/$defs/CSVFormatSettings" }] } },
-        { type: "null" },
-      ],
-      default: null,
-    };
-    expect(dispatch(schema)?.tag).toBe("cofy-list-form");
+  it("summarizes an Optional as what it holds, and as nothing while it is null", () => {
+    const optionalTags = { anyOf: [{ type: "array", items: { type: "string" } }, { type: "null" }] };
+    expect(defaultFieldRegistry.getSummary(optionalTags, {}, ["a", "b"])).toBe("2");
+    expect(defaultFieldRegistry.getSummary(optionalTags, {}, null)).toBeUndefined();
   });
 
   it("treats a multi-branch anyOf with no null option as a union", () => {
@@ -182,22 +172,22 @@ describe("FieldRegistry.getSummary", () => {
 describe("FieldMapper.asYaml", () => {
   it("marks a plain array as optionally yaml, form by default", () => {
     const schema = { type: "array", items: { type: "string" } };
-    expect(defaultFieldRegistry.getFirstMatch(resolveNode(schema, {}), {})?.asYaml).toBe("optional");
+    expect(defaultFieldRegistry.getFirstMatch(deref(schema, {}), {})?.asYaml).toBe("optional");
   });
 
   it("marks an array specifically titled Tariff as yaml by default", () => {
     const schema = { type: "array", items: { type: "string" }, title: "Tariff" };
-    expect(defaultFieldRegistry.getFirstMatch(resolveNode(schema, {}), {})?.asYaml).toBe("default");
+    expect(defaultFieldRegistry.getFirstMatch(deref(schema, {}), {})?.asYaml).toBe("default");
   });
 
   it("does not mark an array with an unrelated title as yaml by default", () => {
     const schema = { type: "array", items: { type: "string" }, title: "Tags" };
-    expect(defaultFieldRegistry.getFirstMatch(resolveNode(schema, {}), {})?.asYaml).toBe("optional");
+    expect(defaultFieldRegistry.getFirstMatch(deref(schema, {}), {})?.asYaml).toBe("optional");
   });
 
   it("marks object, dict, and union as optionally yaml", () => {
     const asYaml = (schema: JsonSchema): AS_YAML_OPTION | undefined =>
-      defaultFieldRegistry.getFirstMatch(resolveNode(schema, {}), {})?.asYaml;
+      defaultFieldRegistry.getFirstMatch(deref(schema, {}), {})?.asYaml;
 
     expect(asYaml({ type: "object", properties: { name: { type: "string" } } })).toBe("optional");
     expect(asYaml({ type: "object", additionalProperties: { type: "string" } })).toBe("optional");
@@ -205,8 +195,8 @@ describe("FieldMapper.asYaml", () => {
   });
 
   it("leaves plain leaves with no asYaml option at all", () => {
-    expect(defaultFieldRegistry.getFirstMatch(resolveNode({ type: "string" }, {}), {})?.asYaml).toBeUndefined();
-    expect(defaultFieldRegistry.getFirstMatch(resolveNode({ type: "boolean" }, {}), {})?.asYaml).toBeUndefined();
+    expect(defaultFieldRegistry.getFirstMatch(deref({ type: "string" }, {}), {})?.asYaml).toBeUndefined();
+    expect(defaultFieldRegistry.getFirstMatch(deref({ type: "boolean" }, {}), {})?.asYaml).toBeUndefined();
   });
 });
 
@@ -214,15 +204,25 @@ describe("new FieldRegistry(overrides)", () => {
   it("tries the override before the built-ins", () => {
     const formula = { $ref: "#/$defs/Formula" };
     const registry = new FieldRegistry([
-      { tag: "cofy-formula-form", component: HTMLElement, matches: (node): boolean => node === formula },
+      { tag: "cofy-formula-form", component: HTMLElement, kind: "container", matches: (node): boolean => node === formula },
     ]);
 
     // No $defs to resolve `formula` against, so the node handed to `matches` is `formula` itself.
     expect(dispatch(formula, {}, registry)?.tag).toBe("cofy-formula-form");
   });
 
+  it("still leaves an Optional to the optional form, even where an override matches on the title it carries", () => {
+    const registry = new FieldRegistry([
+      { tag: "cofy-tariff-form", component: HTMLElement, kind: "container", matches: (node): boolean => node["title"] === "Tariff" },
+    ]);
+
+    expect(dispatch({ title: "Tariff", anyOf: [{ type: "array" }, { type: "null" }] }, {}, registry)?.tag).toBe("cofy-optional-form");
+  });
+
   it("falls through to the built-ins for anything the override does not itself match", () => {
-    const registry = new FieldRegistry([{ tag: "cofy-formula-form", component: HTMLElement, matches: (): boolean => false }]);
+    const registry = new FieldRegistry([
+      { tag: "cofy-formula-form", component: HTMLElement, kind: "container", matches: (): boolean => false },
+    ]);
 
     expect(dispatch({ type: "string" }, {}, registry)).toEqual({ tag: "cofy-string-form", schema: { type: "string" } });
   });

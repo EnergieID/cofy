@@ -8,7 +8,6 @@ import type { SecretInfo, SecretRef } from "@cofy/frontend-sdk";
 import "@awesome.me/webawesome/dist/components/button/button.js";
 import "@awesome.me/webawesome/dist/components/option/option.js";
 import "@awesome.me/webawesome/dist/components/select/select.js";
-import "./cofy-field-shell.js";
 import "../secret/cofy-secret-dialog.js";
 
 import { communitySlugContext } from "../../context.js";
@@ -50,37 +49,31 @@ export class CofySecretForm extends CofyFormField {
     const none = secrets.length === 0;
 
     return html`
-      <cofy-field-shell
-        data-pointer=${this.pointer}
-        label=${this.bare ? "" : this.required ? `${this.label}*` : this.label}
-        description=${this.description}
-        .issues=${this.ownIssues}
-      >
-        <div class="picker">
-          <wa-select
-            aria-label=${this.label}
-            placeholder=${none ? this.t("form.noSecrets") : this.t("form.chooseSecret")}
-            .value=${this.chosenName()}
-            ?disabled=${none}
-            lang=${this.i18n?.resolvedLanguage ?? "en"}
-            @change=${(event: Event): void => this.emit((event.target as HTMLElement & { value?: string }).value ?? "")}
-          >
-            ${repeat(
-              secrets,
-              (secret) => secret.name,
-              (secret) => html`<wa-option value=${secret.name}>${this.optionLabel(secret)}</wa-option>`,
-            )}
-          </wa-select>
-          <wa-button
-            appearance="outlined"
-            @click=${(): void => {
-              this.creating = true;
-            }}
-          >
-            ${this.t("form.newSecret")}
-          </wa-button>
-        </div>
-      </cofy-field-shell>
+      <div class="picker">
+        <wa-select
+          class="wa-visually-hidden-label"
+          label=${this.label}
+          placeholder=${none ? this.t("form.noSecrets") : this.t("form.chooseSecret")}
+          .value=${this.chosenName()}
+          ?disabled=${none}
+          lang=${this.i18n?.resolvedLanguage ?? "en"}
+          @change=${(event: Event): void => this.emit((event.target as HTMLElement & { value?: string }).value ?? "")}
+        >
+          ${repeat(
+            secrets,
+            (secret) => secret.name,
+            (secret) => html`<wa-option value=${secret.name}>${this.optionLabel(secret)}</wa-option>`,
+          )}
+        </wa-select>
+        <wa-button
+          appearance="outlined"
+          @click=${(): void => {
+            this.creating = true;
+          }}
+        >
+          ${this.t("form.newSecret")}
+        </wa-button>
+      </div>
       <cofy-secret-dialog
         .open=${this.creating}
         @secret-saved=${(event: CustomEvent<{ name: string }>): void => {

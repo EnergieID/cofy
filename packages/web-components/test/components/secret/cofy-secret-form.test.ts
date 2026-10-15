@@ -25,7 +25,7 @@ function changes(element: CofySecretForm): unknown[] {
 }
 
 function newSecret(element: CofySecretForm): HTMLElement {
-  return element.shadowRoot!.querySelector<HTMLElement>("cofy-field-shell wa-button")!;
+  return element.shadowRoot!.querySelector<HTMLElement>(".picker wa-button")!;
 }
 
 function dialog(element: CofySecretForm): CofySecretDialog {
@@ -37,13 +37,14 @@ describe("cofy-secret-form", () => {
     document.body.replaceChildren();
   });
 
-  it("offers the community's secrets by name, under the field's own label", async () => {
+  it("offers the community's secrets by name, named after the field", async () => {
     const element = await mount(secret("entsoe_key"));
 
     const options = Array.from(element.shadowRoot!.querySelectorAll("wa-option"));
     expect(options.map((option) => option.getAttribute("value"))).toEqual(["entsoe_key", "acc"]);
     expect(options[0]!.textContent).toContain("ENTSO-E");
-    expect(element.shadowRoot!.querySelector("cofy-field-shell")!.label).toBe("Api Key");
+    // Visible only to assistive technology: the field's own label sits in the shell around it.
+    expect(element.shadowRoot!.querySelector("wa-select")!.getAttribute("label")).toBe("Api Key");
   });
 
   it("holds the secret picked", async () => {
@@ -89,7 +90,7 @@ describe("cofy-secret-form", () => {
   it("puts creating a secret beside the picker", async () => {
     const element = await mount(secret("entsoe_key"));
 
-    const row = element.shadowRoot!.querySelector("cofy-field-shell > .picker")!;
+    const row = element.shadowRoot!.querySelector(".picker")!;
     expect(row.querySelector("wa-select")).not.toBeNull();
     expect(row.querySelector("wa-button")!.textContent.trim()).toBe("New secret");
   });
