@@ -1,6 +1,7 @@
 import type { JsonSchema } from "@cofy/frontend-sdk";
 
 import { deref, isRecord, noneExpanding, type RefGuard } from "./ref.js";
+import { referableBranches, referableOf } from "./referable.js";
 import { unionBranches } from "./resolve.js";
 
 /**
@@ -30,6 +31,11 @@ function seed(schema: JsonSchema, root: JsonSchema, expanding: RefGuard): unknow
   const path = new Set([...expanding, node]);
 
   if ("default" in node) return node["default"];
+
+  // A referable field starts as its value, a reference to a resource being the alternative to it - even when nothing is
+  // valid against the value, which the union below would drop, leaving a reference to no resource in particular.
+  const referable = referableOf(node) !== undefined ? referableBranches(node) : undefined;
+  if (referable !== undefined) return seed(referable.value, root, path);
 
   // `unionBranches` is the same test `cofy-union-form` uses to decide whether it has a genuine
   // union to show a picker for - a `oneOf`, or a multi-branch `anyOf` (a plain, non-optional

@@ -71,6 +71,16 @@ describe("seedFromSchema", () => {
     expect(seeded).toEqual({ source: { type: "a" } });
   });
 
+  it("starts a referable field as its value, not as a reference", () => {
+    const ref = { type: "object", properties: { type: { const: "resource" }, name: { type: "string" } } };
+    const referable = (value: object): unknown =>
+      seedFromSchema({ oneOf: [value, { $ref: "#/$defs/Ref" }], "x-referable": { kind: "source" }, $defs: { Ref: ref } });
+
+    expect(referable({ type: "object", properties: { type: { const: "a" } }, required: ["type"] })).toEqual({ type: "a" });
+    // Not a reference to no resource in particular where nothing is valid against the value.
+    expect(referable({ not: {} })).toBeNull();
+  });
+
   it("takes the first branch of a plain (non-discriminated) union too, which pydantic emits as anyOf", () => {
     const seeded = seedFromSchema({
       type: "object",
