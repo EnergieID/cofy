@@ -55,7 +55,6 @@ export class CofyListForm extends CofyFormField {
   @state() private expandedIndices: ReadonlySet<number> = new Set();
 
   public override render(): TemplateResult {
-    const itemsSchema = isRecord(this.schema["items"]) ? this.schema["items"] : {};
     const items = Array.isArray(this.value) ? this.value : [];
     const label = this.bare ? "" : this.label;
     const description = this.bare ? "" : this.description;
@@ -65,10 +64,10 @@ export class CofyListForm extends CofyFormField {
         <slot name="actions" slot="actions"></slot>
         <wa-accordion
           appearance="outlined"
-          @wa-expand=${(event: CustomEvent<{ item: Element }>): void => this.onExpand(event, itemsSchema)}
+          @wa-expand=${(event: CustomEvent<{ item: Element }>): void => this.onExpand(event)}
           @wa-collapse=${(event: CustomEvent<{ item: Element }>): void => this.onCollapse(event)}
         >
-          ${items.map((item, index) => this.renderItem(item, index, itemsSchema))}
+          ${items.map((item, index) => this.renderItem(item, index))}
           <wa-accordion-item class="cofy-list-add" label=${this.t("form.add")}>
             <wa-icon slot="icon" name="plus" library="cofy"></wa-icon>
           </wa-accordion-item>
@@ -77,7 +76,8 @@ export class CofyListForm extends CofyFormField {
     `;
   }
 
-  private renderItem(item: unknown, index: number, itemsSchema: Record<string, unknown>): TemplateResult {
+  private renderItem(item: unknown, index: number): TemplateResult {
+    const itemsSchema = this.itemSchema(index);
     const summary = this.fieldRegistry.getSummary(itemsSchema, this.root, item);
 
     return html`
@@ -98,12 +98,20 @@ export class CofyListForm extends CofyFormField {
     `;
   }
 
+  /** The schema of the element at *index*: a tuple's own for its position, otherwise the one every element shares. */
+  private itemSchema(index: number): Record<string, unknown> {
+    const prefixItems = this.schema["prefixItems"];
+    const positional = Array.isArray(prefixItems) ? (prefixItems as unknown[])[index] : undefined;
+    if (isRecord(positional)) return positional;
+    return isRecord(this.schema["items"]) ? this.schema["items"] : {};
+  }
+
   /** The "Add" item is a fake: cancel its own expand and append a fresh element instead. */
-  private onExpand(event: CustomEvent<{ item: Element }>, itemsSchema: Record<string, unknown>): void {
+  private onExpand(event: CustomEvent<{ item: Element }>): void {
     event.stopPropagation();
     if (event.detail.item.classList.contains("cofy-list-add")) {
       event.preventDefault();
-      this.add(itemsSchema);
+      this.add();
       return;
     }
     this.setExpanded(event.detail.item, true);
@@ -124,10 +132,10 @@ export class CofyListForm extends CofyFormField {
     this.expandedIndices = next;
   }
 
-  private add(itemsSchema: Record<string, unknown>): void {
+  private add(): void {
     const items: unknown[] = Array.isArray(this.value) ? this.value : [];
     this.expandedIndices = new Set([...this.expandedIndices, items.length]);
-    const value = [...items, seedFromSchema(itemsSchema, this.root)];
+    const value = [...items, seedFromSchema(this.itemSchema(items.length), this.root)];
     this.dispatchEvent(
       new CustomEvent("field-change", { bubbles: true, composed: true, detail: { pointer: this.pointer, value } }),
     );

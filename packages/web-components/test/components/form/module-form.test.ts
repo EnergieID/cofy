@@ -606,6 +606,31 @@ describe("the generic form family, mounted end to end", () => {
     expect(item.querySelector('[slot="label"]')?.textContent).toContain("Csv");
   });
 
+  it("edits a tuple's elements with their own positional schemas, not as YAML", async () => {
+    const listSchema: JsonSchema = {
+      title: "Boundaries",
+      type: "array",
+      prefixItems: [{ type: "number" }, { type: "number" }],
+      minItems: 2,
+      maxItems: 2,
+    };
+    const element = document.createElement("cofy-list-form");
+    await provideI18n(element);
+    element.schema = listSchema;
+    element.root = listSchema;
+    element.pointer = "/boundaries";
+    element.value = [1, 2];
+    document.body.append(element);
+    await element.updateComplete;
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const forms = Array.from(element.shadowRoot!.querySelectorAll("cofy-any-form"));
+    expect(forms.map((form) => form.shadowRoot!.firstElementChild?.tagName.toLowerCase())).toEqual([
+      "cofy-number-form",
+      "cofy-number-form",
+    ]);
+  });
+
   it("opens a newly added item automatically, without needing another click", async () => {
     const listSchema: JsonSchema = { title: "Tags", type: "array", items: { type: "string" } };
     const element = document.createElement("cofy-list-form");

@@ -50,7 +50,10 @@ function seed(schema: JsonSchema, root: JsonSchema, expanding: RefGuard): unknow
     case "object":
       return seedObject(node, root, path);
     case "array":
-      return [];
+      // A tuple starts with a placeholder in each of its positions, any other array empty.
+      return Array.isArray(node["prefixItems"])
+        ? (node["prefixItems"] as JsonSchema[]).map((item) => seed(item, root, path))
+        : [];
     case "string":
       return "";
     case "integer":
