@@ -9,6 +9,7 @@ import type { JsonSchema } from "@cofy/frontend-sdk";
 // observed reference it can never prove unused, instead of one it happens not to drop today.
 import { CofyBooleanForm } from "./cofy-boolean-form.js";
 import { CofyConstForm } from "./cofy-const-form.js";
+import { CofyDateTimeForm } from "./cofy-date-time-form.js";
 import { CofyDictForm } from "./cofy-dict-form.js";
 import { CofyEnumForm } from "./cofy-enum-form.js";
 import { CofyListForm } from "./cofy-list-form.js";
@@ -153,6 +154,14 @@ export const defaultFieldMappers: readonly FieldMapper[] = [
     // Ahead of the object mapper: a reference to a secret is an object too, but only its name is chosen.
     matches: (node: JsonSchema): boolean => node["x-secret"] === true,
     summarize: (value: unknown): string | undefined => (isRecord(value) ? primitiveText(value["name"]) : undefined),
+  },
+  {
+    tag: "cofy-date-time-form",
+    component: CofyDateTimeForm,
+    kind: "input",
+    // Ahead of the string mapper: a point in time is a string too, in one particular format.
+    matches: (node: JsonSchema): boolean => node["type"] === "string" && node["format"] === "date-time",
+    summarize: primitiveText,
   },
   {
     tag: "cofy-string-form",
