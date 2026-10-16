@@ -224,11 +224,10 @@ describe("the generic form family, mounted end to end", () => {
     expect(fieldBody(field).querySelector("wa-input")).not.toBeNull();
   });
 
-  it("renders a number field as a numeric wa-input", async () => {
+  it("renders a number field as a wa-number-input", async () => {
     const element = await mountObjectForm({ value: { ...value, count: 3 } });
 
-    const input = fieldBody(fieldAt(element, "/count")!).querySelector<HTMLElement & { value: string; type: string }>("wa-input")!;
-    expect(input.type).toBe("number");
+    const input = fieldBody(fieldAt(element, "/count")!).querySelector<HTMLElement & { value: string }>("wa-number-input")!;
     expect(input.value).toBe("3");
   });
 
