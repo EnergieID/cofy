@@ -26,8 +26,9 @@ export class CofyDateTimeForm extends CofyFormField {
   public static override styles = [
     utilityStyles,
     css`
-      .wa-grid {
-        --min-column-size: 8rem;
+      /* A select is as wide as its container otherwise; the other controls already take the room their content needs. */
+      wa-select {
+        inline-size: 5rem;
       }
     `,
   ];
@@ -43,7 +44,7 @@ export class CofyDateTimeForm extends CofyFormField {
 
     return html`
       <div class="wa-stack wa-gap-xs">
-        <div class="wa-grid wa-gap-xs">
+        <div class="wa-cluster wa-gap-xs">
           <wa-input
             class="wa-visually-hidden-label"
             type="date"
