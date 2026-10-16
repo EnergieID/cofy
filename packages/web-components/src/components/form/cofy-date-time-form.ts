@@ -26,23 +26,8 @@ export class CofyDateTimeForm extends CofyFormField {
   public static override styles = [
     utilityStyles,
     css`
-      .row {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: var(--wa-space-xs);
-      }
-      .date {
-        flex: 0 1 10rem;
-      }
-      .time {
-        flex: 0 1 8.5rem;
-      }
-      .sign {
-        flex: 0 0 5rem;
-      }
-      .offset {
-        flex: 0 1 6.5rem;
+      .wa-grid {
+        --min-column-size: 8rem;
       }
     `,
   ];
@@ -58,9 +43,9 @@ export class CofyDateTimeForm extends CofyFormField {
 
     return html`
       <div class="wa-stack wa-gap-xs">
-        <div class="row">
+        <div class="wa-grid wa-gap-xs">
           <wa-input
-            class="date wa-visually-hidden-label"
+            class="wa-visually-hidden-label"
             type="date"
             label=${this.label}
             .value=${parts.date}
@@ -69,25 +54,25 @@ export class CofyDateTimeForm extends CofyFormField {
             @change=${(event: Event): void => this.change(parts, { date: valueOf(event) }, parsed)}
           ></wa-input>
           <wa-time-input
-            class="time wa-visually-hidden-label"
+            class="wa-visually-hidden-label"
             label=${this.t("form.time")}
             .value=${parts.time}
             hour-format="24"
             lang=${lang}
             @change=${(event: Event): void => this.change(parts, { time: valueOf(event) }, parsed)}
           ></wa-time-input>
-          <span class="wa-color-text-quiet">${this.t("form.utc")}</span>
           <wa-select
-            class="sign wa-visually-hidden-label"
+            class="wa-visually-hidden-label"
             label=${this.t("form.utcOffsetSign")}
             .value=${parts.sign}
             @change=${(event: Event): void => this.change(parts, { sign: valueOf(event) as "+" | "-" }, parsed)}
           >
+            <span slot="start" class="wa-color-text-quiet">${this.t("form.utc")}</span>
             <wa-option value="+">+</wa-option>
             <wa-option value="-">−</wa-option>
           </wa-select>
           <wa-time-input
-            class="offset wa-visually-hidden-label"
+            class="wa-visually-hidden-label"
             label=${this.t("form.utcOffset")}
             .value=${parts.offset}
             hour-format="24"
