@@ -3,6 +3,7 @@ import type { JsonSchema } from "@cofy/frontend-sdk";
 import { itemSchema, prefixItemsOf, sizeLimits } from "./collection.js";
 import { deref, isRecord, noneExpanding, type RefGuard } from "./ref.js";
 import { isNever } from "./never.js";
+import { seedNumber } from "./number.js";
 import { referableBranches, referableOf } from "./referable.js";
 import { optionalInner, unionBranches } from "./resolve.js";
 
@@ -72,7 +73,7 @@ function seed(schema: JsonSchema, root: JsonSchema, expanding: RefGuard): unknow
       return "";
     case "integer":
     case "number":
-      return 0;
+      return seedNumber(node);
     case "boolean":
       return false;
     default:
