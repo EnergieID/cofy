@@ -4,23 +4,24 @@ import type { JsonSchema } from "@cofy/frontend-sdk";
 export interface NumberLimits {
   min: number | undefined;
   max: number | undefined;
-  step: number | "any";
+  step: number;
 }
 
 /**
- * *node*'s `minimum`/`maximum`, `multipleOf`, and the exclusive bounds where a step makes them inclusive ones - one step
- * further in. Without a step - a decimal number with no `multipleOf` - an exclusive bound has no inclusive equivalent.
+ * *node*'s `minimum`/`maximum`, its `multipleOf` as the step - one otherwise, for the input's buttons to step by - and its
+ * exclusive bounds where the schema's own granularity makes them inclusive ones, one step further in. A decimal number
+ * with no `multipleOf` has none, so its exclusive bounds are left to the validator.
  */
 export function numberLimits(node: JsonSchema): NumberLimits {
   const multipleOf = numeric(node["multipleOf"]);
-  const step = multipleOf ?? (node["type"] === "integer" ? 1 : "any");
+  const granularity = multipleOf ?? (node["type"] === "integer" ? 1 : undefined);
   const nudge = (bound: number | undefined, direction: 1 | -1): number | undefined =>
-    bound === undefined || step === "any" ? undefined : bound + direction * step;
+    bound === undefined || granularity === undefined ? undefined : bound + direction * granularity;
 
   return {
     min: numeric(node["minimum"]) ?? nudge(numeric(node["exclusiveMinimum"]), 1),
     max: numeric(node["maximum"]) ?? nudge(numeric(node["exclusiveMaximum"]), -1),
-    step,
+    step: multipleOf ?? 1,
   };
 }
 

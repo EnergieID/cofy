@@ -4,25 +4,25 @@ import { numberLimits, seedNumber } from "../../../../src/components/form/schema
 
 describe("numberLimits", () => {
   it("takes an inclusive range as it is", () => {
-    expect(numberLimits({ type: "number", minimum: 0, maximum: 100 })).toEqual({ min: 0, max: 100, step: "any" });
+    expect(numberLimits({ type: "number", minimum: 0, maximum: 100 })).toEqual({ min: 0, max: 100, step: 1 });
   });
 
-  it("steps an integer by one, and a decimal number by any amount", () => {
+  it("steps by one, integer or decimal, where there is no multipleOf", () => {
     expect(numberLimits({ type: "integer" }).step).toBe(1);
-    expect(numberLimits({ type: "number" }).step).toBe("any");
+    expect(numberLimits({ type: "number" }).step).toBe(1);
   });
 
   it("steps by multipleOf where there is one", () => {
     expect(numberLimits({ type: "number", multipleOf: 0.25 }).step).toBe(0.25);
   });
 
-  it("turns an exclusive bound into an inclusive one a step further in, where there is a step", () => {
+  it("turns an exclusive bound into an inclusive one a step further in, where the schema has a granularity", () => {
     expect(numberLimits({ type: "integer", exclusiveMinimum: 0, exclusiveMaximum: 10 })).toEqual({ min: 1, max: 9, step: 1 });
     expect(numberLimits({ type: "number", multipleOf: 0.5, exclusiveMinimum: 1 }).min).toBe(1.5);
   });
 
-  it("leaves an exclusive bound to the validator where there is no step to turn it into an inclusive one", () => {
-    expect(numberLimits({ type: "number", exclusiveMinimum: 0 })).toEqual({ min: undefined, max: undefined, step: "any" });
+  it("leaves a decimal's exclusive bound to the validator, rather than one step that would rule out 0.5", () => {
+    expect(numberLimits({ type: "number", exclusiveMinimum: 0 })).toEqual({ min: undefined, max: undefined, step: 1 });
   });
 });
 

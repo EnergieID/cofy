@@ -3,14 +3,14 @@ import type { TemplateResult } from "lit";
 import { customElement } from "lit/decorators.js";
 import { ifDefined } from "lit/directives/if-defined.js";
 
-import "@awesome.me/webawesome/dist/components/number-input/number-input.js";
+import "@awesome.me/webawesome/dist/components/input/input.js";
 
 import { utilityStyles } from "../../theme/utility-styles.js";
 import { CofyFormField } from "./form-field.js";
 import { numberLimits } from "./schema/number.js";
 
 /**
- * A number/integer field, rendered as a `wa-number-input` limited to the range and granularity its schema accepts -
+ * A number/integer field, rendered as a `wa-input[type=number]` limited to the range and step its schema accepts -
  * labelled only for assistive technology, under its field's own label.
  */
 @customElement("cofy-number-form")
@@ -21,8 +21,9 @@ export class CofyNumberForm extends CofyFormField {
     const { min, max, step } = numberLimits(this.schema);
 
     return html`
-      <wa-number-input
+      <wa-input
         class="wa-visually-hidden-label"
+        type="number"
         label=${this.label}
         .value=${typeof this.value === "number" ? String(this.value) : ""}
         min=${ifDefined(min)}
@@ -30,7 +31,7 @@ export class CofyNumberForm extends CofyFormField {
         step=${step}
         ?required=${this.required}
         @input=${(event: Event): void => this.onInput(event)}
-      ></wa-number-input>
+      ></wa-input>
     `;
   }
 

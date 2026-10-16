@@ -3,7 +3,7 @@ import type { JsonSchema } from "@cofy/frontend-sdk";
 
 import { CofyNumberForm } from "../../../src/components/form/cofy-number-form.js";
 
-type NumberInput = HTMLElement & { value: string | null; min: number; max: number; step: number | "any" };
+type NumberInput = HTMLElement & { value: string };
 
 async function mount(schema: JsonSchema, value: unknown): Promise<CofyNumberForm> {
   const element = new CofyNumberForm();
@@ -17,7 +17,7 @@ async function mount(schema: JsonSchema, value: unknown): Promise<CofyNumberForm
 }
 
 function input(element: CofyNumberForm): NumberInput {
-  return element.shadowRoot!.querySelector<NumberInput>("wa-number-input")!;
+  return element.shadowRoot!.querySelector<NumberInput>("wa-input")!;
 }
 
 describe("cofy-number-form", () => {
@@ -29,12 +29,12 @@ describe("cofy-number-form", () => {
     expect(input(element).getAttribute("step")).toBe("1");
   });
 
-  it("sets no bound its schema does not have", async () => {
+  it("sets no bound its schema does not have, and steps by one", async () => {
     const element = await mount({ type: "number" }, 3.5);
 
     expect(input(element).hasAttribute("min")).toBe(false);
     expect(input(element).hasAttribute("max")).toBe(false);
-    expect(input(element).getAttribute("step")).toBe("any");
+    expect(input(element).getAttribute("step")).toBe("1");
   });
 
   it("reports what is typed as a number, and an empty input as null", async () => {
