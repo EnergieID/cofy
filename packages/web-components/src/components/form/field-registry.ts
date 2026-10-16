@@ -10,6 +10,7 @@ import type { JsonSchema } from "@cofy/frontend-sdk";
 import { CofyBooleanForm } from "./cofy-boolean-form.js";
 import { CofyConstForm } from "./cofy-const-form.js";
 import { CofyDictForm } from "./cofy-dict-form.js";
+import { CofyDurationForm } from "./cofy-duration-form.js";
 import { CofyEnumForm } from "./cofy-enum-form.js";
 import { CofyListForm } from "./cofy-list-form.js";
 import { CofyNeverForm } from "./cofy-never-form.js";
@@ -153,6 +154,14 @@ export const defaultFieldMappers: readonly FieldMapper[] = [
     // Ahead of the object mapper: a reference to a secret is an object too, but only its name is chosen.
     matches: (node: JsonSchema): boolean => node["x-secret"] === true,
     summarize: (value: unknown): string | undefined => (isRecord(value) ? primitiveText(value["name"]) : undefined),
+  },
+  {
+    tag: "cofy-duration-form",
+    component: CofyDurationForm,
+    kind: "input",
+    // Ahead of the string mapper: a duration is a string too, in one particular format.
+    matches: (node: JsonSchema): boolean => node["type"] === "string" && node["format"] === "duration",
+    summarize: primitiveText,
   },
   {
     tag: "cofy-string-form",

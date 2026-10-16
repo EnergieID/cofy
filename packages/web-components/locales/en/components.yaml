@@ -258,6 +258,16 @@ form:
   viewAsYaml: View as YAML
   viewAsForm: View as form
   savingBlocked: Saving blocked by errors
+  unshownValue: "The current value, {{value}}, can't be shown here. Entering a new one replaces it."
+  durationUnit: Unit
+  durationUnits:
+    seconds: seconds
+    minutes: minutes
+    hours: hours
+    days: days
+    weeks: weeks
+    months: months
+    years: years
 
 settings:
   theme:
