@@ -26,10 +26,11 @@ describe("cofy-time-form", () => {
     expect(defaultFieldRegistry.getFirstMatch({ type: "string" }, {})?.tag).toBe("cofy-string-form");
   });
 
-  it("shows the time it holds", async () => {
+  it("shows the time it holds, in 24 hours whatever the locale", async () => {
     const element = await mount("07:30");
 
     expect(input(element).value).toBe("07:30");
+    expect(input(element).getAttribute("hour-format")).toBe("24");
   });
 
   it("reports the time entered with its seconds, as the format requires, and an emptied field as null", async () => {

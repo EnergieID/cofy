@@ -8,7 +8,7 @@ import { utilityStyles } from "../../theme/utility-styles.js";
 import { CofyFormField } from "./form-field.js";
 
 /**
- * A time of day (a `format: time` string), rendered as a `wa-time-input` in the reader's own clock - labelled only for
+ * A time of day (a `format: time` string), rendered as a `wa-time-input` in 24 hours - labelled only for
  * assistive technology, under its field's own label. Its value is always `HH:mm:ss`, as the format requires, though the
  * input itself leaves seconds out unless they are set; an emptied field is `null`.
  */
@@ -22,6 +22,7 @@ export class CofyTimeForm extends CofyFormField {
         class="wa-visually-hidden-label"
         label=${this.label}
         .value=${typeof this.value === "string" ? this.value : null}
+        hour-format="24"
         lang=${this.i18n?.resolvedLanguage ?? "en"}
         ?required=${this.required}
         @input=${(event: Event): void => this.onInput(event)}
