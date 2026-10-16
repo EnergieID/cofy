@@ -9,8 +9,8 @@ import { CofyFormField } from "./form-field.js";
 
 /**
  * A time of day (a `format: time` string), rendered as a `wa-time-input` in the reader's own clock - labelled only for
- * assistive technology, under its field's own label. Its value is `HH:mm`, or `HH:mm:ss` where seconds are set; an
- * emptied field is `null`.
+ * assistive technology, under its field's own label. Its value is always `HH:mm:ss`, as the format requires, though the
+ * input itself leaves seconds out unless they are set; an emptied field is `null`.
  */
 @customElement("cofy-time-form")
 export class CofyTimeForm extends CofyFormField {
@@ -31,7 +31,7 @@ export class CofyTimeForm extends CofyFormField {
 
   private onInput(event: Event): void {
     const raw = (event.target as HTMLElement & { value?: string }).value ?? "";
-    const value = raw === "" ? null : raw;
+    const value = raw === "" ? null : raw.length === 5 ? `${raw}:00` : raw;
     this.dispatchEvent(
       new CustomEvent("field-change", { bubbles: true, composed: true, detail: { pointer: this.pointer, value } }),
     );

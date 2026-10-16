@@ -32,16 +32,18 @@ describe("cofy-time-form", () => {
     expect(input(element).value).toBe("07:30");
   });
 
-  it("reports the time entered, and an emptied field as null", async () => {
+  it("reports the time entered with its seconds, as the format requires, and an emptied field as null", async () => {
     const element = await mount("07:30");
     const values: unknown[] = [];
     element.addEventListener("field-change", (event) => values.push((event as CustomEvent<{ value: unknown }>).detail.value));
 
     input(element).value = "22:00";
     input(element).dispatchEvent(new Event("input"));
+    input(element).value = "22:00:15";
+    input(element).dispatchEvent(new Event("input"));
     input(element).value = null;
     input(element).dispatchEvent(new Event("input"));
 
-    expect(values).toEqual(["22:00", null]);
+    expect(values).toEqual(["22:00:00", "22:00:15", null]);
   });
 });
