@@ -1,6 +1,6 @@
 import { css, html, nothing } from "lit";
 import type { TemplateResult } from "lit";
-import { customElement } from "lit/decorators.js";
+import { customElement, state } from "lit/decorators.js";
 
 import "@awesome.me/webawesome/dist/components/callout/callout.js";
 import "@awesome.me/webawesome/dist/components/input/input.js";
@@ -18,7 +18,8 @@ import { emptyDateTime, formatDateTime, localOffset, parseDateTime, type DateTim
  * starts at the reader's own offset for the date entered. A value this can't take apart is shown in a warning instead,
  * until a new one replaces it.
  *
- * Each control reports on `change` - once what it holds is complete - since one still being typed reads as empty.
+ * Each control reports on `change` - once what it holds is complete - since one still being typed reads as empty. Both
+ * times are in 24 hours, whatever the reader's locale.
  */
 @customElement("cofy-date-time-form")
 export class CofyDateTimeForm extends CofyFormField {
@@ -46,9 +47,13 @@ export class CofyDateTimeForm extends CofyFormField {
     `,
   ];
 
+  /** What was entered before there was a date to hold it in a value - a time, an offset - kept until there is one. */
+  @state() private pending: DateTimeParts | undefined;
+
   public override render(): TemplateResult {
     const parsed = parseDateTime(this.value);
-    const parts = parsed ?? emptyDateTime();
+    const held = parsed !== undefined && parsed.date !== "";
+    const parts = held ? parsed : (this.pending ?? parsed ?? emptyDateTime());
     const lang = this.i18n?.resolvedLanguage ?? "en";
 
     return html`
@@ -67,6 +72,7 @@ export class CofyDateTimeForm extends CofyFormField {
             class="time wa-visually-hidden-label"
             label=${this.t("form.time")}
             .value=${parts.time}
+            hour-format="24"
             lang=${lang}
             @change=${(event: Event): void => this.change(parts, { time: valueOf(event) }, parsed)}
           ></wa-time-input>
@@ -107,6 +113,7 @@ export class CofyDateTimeForm extends CofyFormField {
     const held = parsed !== undefined && parsed.date !== "";
     const offset = held || changed.sign !== undefined || changed.offset !== undefined ? {} : localOffset(local(next));
     const value = formatDateTime({ ...next, ...offset });
+    this.pending = value === null ? { ...next, ...offset } : undefined;
     this.dispatchEvent(
       new CustomEvent("field-change", { bubbles: true, composed: true, detail: { pointer: this.pointer, value } }),
     );

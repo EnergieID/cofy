@@ -75,6 +75,32 @@ describe("cofy-date-time-form", () => {
     expect(values).toEqual(["2026-07-01T00:00:00+02:00"]);
   });
 
+  it("keeps a time entered before the date, for when the date is entered", async () => {
+    const { element, values } = await mount(null);
+
+    enter(controls(element)[1]!, "08:15");
+    await element.updateComplete;
+    expect(controls(element)[1]!.value).toBe("08:15");
+    enter(controls(element)[0]!, "2026-01-15");
+
+    expect(values).toEqual([null, "2026-01-15T08:15:00+01:00"]);
+  });
+
+  it("keeps the time when the date changes", async () => {
+    const { element, values } = await mount("2026-01-01T07:30:00+01:00");
+
+    enter(controls(element)[0]!, "2026-02-01");
+
+    expect(values).toEqual(["2026-02-01T07:30:00+01:00"]);
+  });
+
+  it("shows both times in 24 hours, whatever the locale", async () => {
+    const { element } = await mount(null);
+
+    const times = Array.from(element.shadowRoot!.querySelectorAll("wa-time-input"));
+    expect(times.map((time) => time.getAttribute("hour-format"))).toEqual(["24", "24"]);
+  });
+
   it("warns about a value it can't take apart, until a new one replaces it", async () => {
     const { element, values } = await mount("next tuesday");
 
