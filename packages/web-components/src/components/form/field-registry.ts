@@ -20,6 +20,7 @@ import { CofyOptionalForm } from "./cofy-optional-form.js";
 import { CofyReferableForm } from "./cofy-referable-form.js";
 import { CofySecretForm } from "./cofy-secret-form.js";
 import { CofyStringForm } from "./cofy-string-form.js";
+import { CofyTimeForm } from "./cofy-time-form.js";
 import { CofyUnionForm } from "./cofy-union-form.js";
 
 import { isNever } from "./schema/never.js";
@@ -154,6 +155,14 @@ export const defaultFieldMappers: readonly FieldMapper[] = [
     // Ahead of the object mapper: a reference to a secret is an object too, but only its name is chosen.
     matches: (node: JsonSchema): boolean => node["x-secret"] === true,
     summarize: (value: unknown): string | undefined => (isRecord(value) ? primitiveText(value["name"]) : undefined),
+  },
+  {
+    tag: "cofy-time-form",
+    component: CofyTimeForm,
+    kind: "input",
+    // Ahead of the string mapper: a time of day is a string too, in one particular format.
+    matches: (node: JsonSchema): boolean => node["type"] === "string" && node["format"] === "time",
+    summarize: primitiveText,
   },
   {
     tag: "cofy-duration-form",
