@@ -111,6 +111,10 @@ describe("seedFromSchema", () => {
     expect(seeded).toEqual({ nickname: null });
   });
 
+  it("starts a number within its range", () => {
+    expect(seedFromSchema({ type: "integer", minimum: 1 })).toBe(1);
+  });
+
   it("starts arrays empty", () => {
     expect(seedFromSchema({ type: "object", properties: { xs: { type: "array" } }, required: ["xs"] })).toEqual({
       xs: [],
