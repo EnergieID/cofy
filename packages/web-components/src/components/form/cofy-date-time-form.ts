@@ -67,7 +67,6 @@ export class CofyDateTimeForm extends CofyFormField {
             .value=${parts.sign}
             @change=${(event: Event): void => this.change(parts, { sign: valueOf(event) as "+" | "-" }, parsed)}
           >
-            <span slot="start" class="wa-color-text-quiet">${this.t("form.utc")}</span>
             <wa-option value="+">+</wa-option>
             <wa-option value="-">−</wa-option>
           </wa-select>
