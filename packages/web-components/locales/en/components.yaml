@@ -258,6 +258,10 @@ form:
   viewAsYaml: View as YAML
   viewAsForm: View as form
   savingBlocked: Saving blocked by errors
+  unshownValue: "The current value, {{value}}, can't be shown here. Entering a new one replaces it."
+  time: Time
+  utcOffset: Offset from UTC
+  utcOffsetSign: Ahead of or behind UTC
 
 settings:
   theme:
