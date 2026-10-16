@@ -11,6 +11,7 @@ import { CofyBooleanForm } from "./cofy-boolean-form.js";
 import { CofyConstForm } from "./cofy-const-form.js";
 import { CofyDateTimeForm } from "./cofy-date-time-form.js";
 import { CofyDictForm } from "./cofy-dict-form.js";
+import { CofyDurationForm } from "./cofy-duration-form.js";
 import { CofyEnumForm } from "./cofy-enum-form.js";
 import { CofyListForm } from "./cofy-list-form.js";
 import { CofyNeverForm } from "./cofy-never-form.js";
@@ -170,6 +171,14 @@ export const defaultFieldMappers: readonly FieldMapper[] = [
     kind: "input",
     // Ahead of the string mapper: a point in time is a string too, in one particular format.
     matches: (node: JsonSchema): boolean => node["type"] === "string" && node["format"] === "date-time",
+    summarize: primitiveText,
+  },
+  {
+    tag: "cofy-duration-form",
+    component: CofyDurationForm,
+    kind: "input",
+    // Ahead of the string mapper: a duration is a string too, in one particular format.
+    matches: (node: JsonSchema): boolean => node["type"] === "string" && node["format"] === "duration",
     summarize: primitiveText,
   },
   {

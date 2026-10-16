@@ -262,6 +262,15 @@ form:
   time: Time
   utcOffset: Offset from UTC
   utcOffsetSign: Ahead of or behind UTC
+  durationUnit: Unit
+  durationUnits:
+    seconds: seconds
+    minutes: minutes
+    hours: hours
+    days: days
+    weeks: weeks
+    months: months
+    years: years
 
 settings:
   theme:
