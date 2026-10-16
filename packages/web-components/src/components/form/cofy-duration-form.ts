@@ -4,7 +4,7 @@ import { customElement, state } from "lit/decorators.js";
 import { repeat } from "lit/directives/repeat.js";
 
 import "@awesome.me/webawesome/dist/components/callout/callout.js";
-import "@awesome.me/webawesome/dist/components/number-input/number-input.js";
+import "@awesome.me/webawesome/dist/components/input/input.js";
 import "@awesome.me/webawesome/dist/components/option/option.js";
 import "@awesome.me/webawesome/dist/components/select/select.js";
 
@@ -22,15 +22,8 @@ export class CofyDurationForm extends CofyFormField {
   public static override styles = [
     utilityStyles,
     css`
-      .row {
-        display: flex;
-        gap: var(--wa-space-xs);
-      }
-      wa-number-input {
-        flex: 1 1 8rem;
-      }
-      wa-select {
-        flex: 1 1 10rem;
+      .wa-flank\\:end {
+        --flank-size: 10rem;
       }
     `,
   ];
@@ -45,16 +38,17 @@ export class CofyDurationForm extends CofyFormField {
 
     return html`
       <div class="wa-stack wa-gap-xs">
-        <div class="row">
-          <wa-number-input
+        <div class="wa-flank:end wa-gap-xs">
+          <wa-input
             class="wa-visually-hidden-label"
+            type="number"
             label=${this.label}
             .value=${duration === undefined ? "" : String(duration.amount)}
             min="0"
             step="1"
             ?required=${this.required}
             @input=${(event: Event): void => this.onAmount(event, unit)}
-          ></wa-number-input>
+          ></wa-input>
           <wa-select
             class="wa-visually-hidden-label"
             label=${this.t("form.durationUnit")}

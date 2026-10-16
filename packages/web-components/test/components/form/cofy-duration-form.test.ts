@@ -22,7 +22,7 @@ async function mount(value: unknown): Promise<{ element: CofyDurationForm; value
 }
 
 function amount(element: CofyDurationForm): Control {
-  return element.shadowRoot!.querySelector<Control>("wa-number-input")!;
+  return element.shadowRoot!.querySelector<Control>("wa-input")!;
 }
 
 function unit(element: CofyDurationForm): Control {
