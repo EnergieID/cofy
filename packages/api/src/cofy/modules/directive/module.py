@@ -24,7 +24,11 @@ class DirectiveModuleSettings(TimeseriesModuleSettings):
     type: Literal["directive"] = "directive"
     source: "AnyDirectiveSeriesSourceSettings"
     # Generic formats, and the formats that only fit this module's series.
-    formats: 'list[Annotated[AnyGenericTimeseriesFormatSettings | AnyDirectiveSeriesFormatSettings, Field(discriminator="type")]] | None' = None
+    formats: 'list[Annotated[AnyGenericTimeseriesFormatSettings | AnyDirectiveSeriesFormatSettings, Field(discriminator="type")]] | None' = Field(
+        None,
+        description="The formats the data is offered in. Defaults to the directive format.",
+        json_schema_extra={"x-advanced": True},
+    )
 
 
 class DirectiveModule(TimeseriesModule[DirectiveSeriesSource], settings=DirectiveModuleSettings):

@@ -24,7 +24,11 @@ class TariffModuleSettings(TimeseriesModuleSettings):
     type: Literal["tariff"] = "tariff"
     source: "AnyPriceSourceSettings"
     # Generic formats, and the formats that only fit this module's series.
-    formats: 'list[Annotated[AnyGenericTimeseriesFormatSettings | AnyPriceFormatSettings, Field(discriminator="type")]] | None' = None
+    formats: 'list[Annotated[AnyGenericTimeseriesFormatSettings | AnyPriceFormatSettings, Field(discriminator="type")]] | None' = Field(
+        None,
+        description="The formats the data is offered in. Defaults to JSON and CSV.",
+        json_schema_extra={"x-advanced": True},
+    )
 
 
 class TariffModule(TimeseriesModule[PriceSource], settings=TariffModuleSettings):

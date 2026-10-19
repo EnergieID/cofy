@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Annotated, Generic, Literal, TypeVar
 from fastapi import Depends, Query, Request, Response
 from fastapi.exceptions import RequestValidationError
 from isodate import ISO8601Error, parse_duration
-from pydantic import create_model
+from pydantic import Field, create_model
 
 from cofy.api import Module, ModuleSettings
 
@@ -27,7 +27,11 @@ class TimeseriesModuleSettings(ModuleSettings):
     type: Literal["timeseries"] = "timeseries"
     # Unresolved until cofy.api.finalize() publishes the discriminated unions - see there.
     source: "AnyTimeseriesSourceSettings"
-    formats: "list[AnyGenericTimeseriesFormatSettings] | None" = None
+    formats: "list[AnyGenericTimeseriesFormatSettings] | None" = Field(
+        None,
+        description="The formats the data is offered in. Defaults to JSON and CSV.",
+        json_schema_extra={"x-advanced": True},
+    )
 
 
 class TimeseriesModule(Module, Generic[S], settings=TimeseriesModuleSettings):

@@ -31,7 +31,11 @@ class ResponseModel(BaseModel):
 
 class KiwattFormatSettings(TimeseriesFormatSettings):
     type: Literal["kiwatt"] = "kiwatt"
-    source: str = Field(default="Cofy-API-Demo")
+    source: str = Field(
+        default="Cofy-API-Demo",
+        description="The source named in the data sent to Kiwatt.",
+        json_schema_extra={"x-advanced": True},
+    )
 
 
 class KiwattFormat(PriceFormat, settings=KiwattFormatSettings):
