@@ -420,6 +420,18 @@ def test_settings_json_schema_describes_durations_as_strings():
     assert (properties["chunk_size"]["type"], properties["chunk_size"]["format"]) == ("string", "duration")
 
 
+def test_settings_json_schema_marks_all_but_the_lifetime_as_advanced():
+    finalize()
+    schema = TimeseriesSourceSettings.registry()["dummy_timeseries_source"].model_json_schema(mode="validation")
+
+    properties = schema["$defs"]["CacheSettings"]["properties"]
+
+    assert schema["properties"]["cache"]["x-advanced"] is True
+    assert "x-advanced" not in properties["max_age"]
+    assert properties["chunk_size"]["x-advanced"] is True
+    assert properties["max_chunks"]["x-advanced"] is True
+
+
 def seconds_until(expires: dt.datetime) -> float:
     return (expires - dt.datetime.now(dt.UTC)).total_seconds()
 

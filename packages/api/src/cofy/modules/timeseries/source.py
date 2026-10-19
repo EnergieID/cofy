@@ -12,7 +12,9 @@ from .model import ISODuration, Timeseries
 
 class TimeseriesSourceSettings(BaseSettingsModel):
     type: Literal["timeseries_source"] = "timeseries_source"
-    cache: CacheSettings | None = Field(None, description="Cache what this source fetches, if set.")
+    cache: CacheSettings | None = Field(
+        None, description="Cache what this source fetches, if set.", json_schema_extra={"x-advanced": True}
+    )
 
     @classmethod
     def union_annotations(cls) -> tuple[Any, ...]:

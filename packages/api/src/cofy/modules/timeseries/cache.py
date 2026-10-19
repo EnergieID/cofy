@@ -26,9 +26,15 @@ class CacheSettings(BaseModel):
         None, description="How long fetched data stays valid. Defaults to how long the source says its data does."
     )
     chunk_size: ISOTimedelta = Field(
-        dt.timedelta(days=1), description="The size of the chunks of time that are fetched and cached as a whole."
+        dt.timedelta(days=1),
+        description="The size of the chunks of time that are fetched and cached as a whole.",
+        json_schema_extra={"x-advanced": True},
     )
-    max_chunks: int = Field(1024, description="The most chunks kept in memory, the least recently used evicted first.")
+    max_chunks: int = Field(
+        1024,
+        description="The most chunks kept in memory, the least recently used evicted first.",
+        json_schema_extra={"x-advanced": True},
+    )
 
 
 @dataclass

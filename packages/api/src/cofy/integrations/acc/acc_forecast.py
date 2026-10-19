@@ -9,7 +9,7 @@ import polars as pl
 import requests
 from google.auth.transport.requests import Request
 from google.oauth2.service_account import IDTokenCredentials
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from cofy.api import Secret
 from cofy.modules.simultaneity import NetVolumeSource, NetVolumeSourceSettings
@@ -25,7 +25,9 @@ class AccForecastSettings(NetVolumeSourceSettings):
     type: Literal["acc_forecast"] = "acc_forecast"
     ean: str
     credentials: Secret
-    base_url: str = ACC_BASE_URL
+    base_url: str = Field(
+        ACC_BASE_URL, description="The address of the ACC service.", json_schema_extra={"x-advanced": True}
+    )
 
 
 class AccForecast(BaseModel):

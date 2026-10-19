@@ -257,6 +257,7 @@ form:
   chooseType: Choose a type…
   viewAsYaml: View as YAML
   viewAsForm: View as form
+  advancedOptions: Advanced options
   savingBlocked: Saving blocked by errors
   unshownValue: "The current value, {{value}}, can't be shown here. Entering a new one replaces it."
   time: Time
