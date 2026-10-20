@@ -1,12 +1,20 @@
-# Deployed to the Scaleway instance by `.github/workflows/deploy-scaleway.yml`. `app` and
-# `runner` have no published port - they're only reachable from `caddy` (and each other) over
-# the compose network, so the only way in from outside is through Caddy's TLS-terminated 80/443.
+# Deployed to a server by `cofy-deploy` (see `cloud-init.yaml`), with the server's own settings in the `.env` next to
+# it - `.env.example` lists them. `app` and `runner` have no published port - they're only reachable from `caddy` (and
+# each other) over the compose network, so the only way in from outside is through Caddy's TLS-terminated 80/443.
 services:
   app:
-    image: ghcr.io/energieid/cofy-api/management:latest
+    image: ghcr.io/energieid/cofy-api/management:${COFY_VERSION:-latest}
     container_name: cofy-management
     restart: unless-stopped
-    env_file: .env
+    environment:
+      COFY_MANAGEMENT_OIDC_ISSUER: ${COFY_MANAGEMENT_OIDC_ISSUER:?}
+      COFY_MANAGEMENT_OIDC_CLIENT_ID: ${COFY_MANAGEMENT_OIDC_CLIENT_ID:?}
+      COFY_MANAGEMENT_OIDC_CLIENT_SECRET: ${COFY_MANAGEMENT_OIDC_CLIENT_SECRET:?}
+      COFY_MANAGEMENT_OIDC_SCOPES: ${COFY_MANAGEMENT_OIDC_SCOPES:-}
+      COFY_MANAGEMENT_SESSION_SECRET: ${COFY_MANAGEMENT_SESSION_SECRET:?}
+      COFY_MANAGEMENT_SESSION_LIFETIME: ${COFY_MANAGEMENT_SESSION_LIFETIME:-}
+      # The management API links to the communities' APIs here, and checks their health here, through Caddy.
+      COFY_MANAGEMENT_COMMUNITIES_URL: https://${COFY_DOMAIN:?}/communities
     # The community configs are their own volume, so they can live elsewhere than the rest of the data.
     volumes:
       - /data/management:/data
@@ -16,7 +24,7 @@ services:
 
   # Serves every community's API from its settings, which it only reads.
   runner:
-    image: ghcr.io/energieid/cofy-api/runner:latest
+    image: ghcr.io/energieid/cofy-api/runner:${COFY_VERSION:-latest}
     container_name: cofy-runner
     restart: unless-stopped
     environment:
@@ -31,9 +39,12 @@ services:
     image: caddy:2-alpine
     container_name: cofy-caddy
     restart: unless-stopped
+    environment:
+      COFY_DOMAIN: ${COFY_DOMAIN:?}
     ports:
       - "80:80"
       - "443:443"
+      - "443:443/udp"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
@@ -42,8 +53,27 @@ services:
       - app
       - runner
 
+  # Ships every container's logs to Loki (`config.alloy`). The Docker socket gives it what is running, and their logs;
+  # mounted read-only or not, it is full access to Docker, so nothing but this pinned image gets it.
+  alloy:
+    image: grafana/alloy:v1.10.0
+    container_name: cofy-alloy
+    restart: unless-stopped
+    command: run --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
+    environment:
+      COFY_ENVIRONMENT: ${COFY_ENVIRONMENT:?}
+      LOKI_URL: ${LOKI_URL:?}
+      LOKI_USERNAME: ${LOKI_USERNAME:-}
+      LOKI_PASSWORD: ${LOKI_PASSWORD:-}
+    volumes:
+      - ./config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - alloy_data:/var/lib/alloy/data
+
 volumes:
   # Let's Encrypt certificates and Caddy's own state - must survive a redeploy, or every
   # `docker compose up` would re-issue a certificate and risk Let's Encrypt's rate limits.
   caddy_data:
   caddy_config:
+  # How far Alloy got in each log, so a restart neither resends nor skips lines.
+  alloy_data:

@@ -1,4 +1,4 @@
-dev.cofy.cloud, 1a359b2c-2759-499a-83f3-1cf449b951e8.pub.instances.scw.cloud {
+{$COFY_DOMAIN} {
 	# The communities' APIs, each under /communities/<slug>/; the prefix is stripped, and the
 	# runner told it through UVICORN_ROOT_PATH.
 	handle_path /communities/* {

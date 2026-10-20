@@ -86,30 +86,33 @@ takes the path prefix a proxy strips in `UVICORN_ROOT_PATH`. Both honor a `VERSI
 
 ## Production deploy
 
-`.github/workflows/deploy-scaleway.yml` builds both images from the same commit, pushes them to
-`ghcr.io`, and deploys them to a Scaleway instance on every push to `main`. There,
-`docker-compose.yml` runs them as `app`, the management API, and `runner`, which mounts only the
-community configs, read-only - behind `caddy` (`Caddyfile`) for TLS. Caddy sends `/communities/<slug>/...` to the runner and
-everything else to the management API. Neither has a published port at all, so the only way in
-from outside is through Caddy's automatic Let's Encrypt HTTPS on 80/443 - see
-[deploy-scaleway.yml](../../.github/workflows/deploy-scaleway.yml) for exactly what it copies
-to the server and runs. `caddy_data`/`caddy_config` (the issued certificate and Caddy's own
-state) are named volumes, so a redeploy doesn't force reissuing the certificate.
+EnergyID runs two servers this way, dev and production, each on a Scaleway instance set up by `cloud-init.yaml`.
+`.github/workflows/deploy-scaleway.yml` builds both images on every push to `main`, tagged with the commit, pushes
+them to `ghcr.io`, and deploys them to dev. Run by hand, `.github/workflows/deploy-production.yml` releases `main` as
+the next `cloud-v<YYYY.MM.DD.N>` tag and deploys its images to production, or deploys an earlier tag again, to go back to it. On
+the server,
+`docker-compose.yml` runs them as `app`, the management API, and `runner`, which mounts only the community configs,
+read-only - behind `caddy` (`Caddyfile`) for TLS. Caddy sends `/communities/<slug>/...` to the runner and everything
+else to the management API. Neither has a published port at all, so the only way in from outside is through Caddy's
+automatic Let's Encrypt HTTPS on 80/443. `caddy_data`/`caddy_config` (the issued certificate and Caddy's own state) are
+named volumes, so a redeploy doesn't force reissuing the certificate. `alloy` ships every container's logs to Loki
+(`config.alloy`), labelled with the environment and the compose service.
 
-The server needs two things the repository doesn't carry:
+Both workflows deploy through `.github/workflows/deploy-to-server.yml`, logging in as `deploy`, whose key can run
+nothing but `cofy-deploy`. That deploys a branch or tag only if the server's `COFY_DEPLOY_REFS` allows it: it reads
+the commit from GitHub itself, fetches that commit's `docker-compose.yml`, `Caddyfile` and `config.alloy` into
+`/opt/cofy`, and runs the images built from it. Each GitHub environment, `multitenant-dev` and `multitenant-prod`, has
+its server's `SCALEWAY_SSH_HOST`, `SCALEWAY_SSH_KEY` (the deploy key's private half) and `SCALEWAY_SSH_KNOWN_HOSTS`
+(the server's host key, as `ssh-keyscan` prints it) secrets.
 
-- a `.env` file next to `docker-compose.yml`, with the login configuration: `COFY_MANAGEMENT_OIDC_ISSUER`,
-  `COFY_MANAGEMENT_OIDC_CLIENT_ID`, `COFY_MANAGEMENT_OIDC_CLIENT_SECRET` and a long random
-  `COFY_MANAGEMENT_SESSION_SECRET`; and `COFY_MANAGEMENT_COMMUNITIES_URL`, where the communities' APIs are
-  served, such as `https://dev.cofy.cloud/communities` - the management API links to them there, and checks
-  their health there, through Caddy;
-- the data: the community configs in `/data/communities`, and in `/data/management/access/users.yaml` at least
-  your own entry, with `system_admin: true`. `docker-compose.yml` mounts the two apart, so the community configs
-  can move to another disk by changing their volume alone.
+Each server needs what the repository doesn't carry:
+
+- `/opt/cofy/.env`, with its domain, which refs it deploys, its login configuration and where its logs go -
+  `.env.example` lists them;
+- the data, on a volume labelled `cofy-data`, mounted at `/data`.
 
 This is how EnergyID runs its own hosted instance, not generally reachable images - the
 `ghcr.io/energieid/cofy-api/management` and `.../runner` packages are private, so
 `docker-compose.yml` as committed here only works for EnergyID's own deploy. To deploy your own
-copy the same way, build and push the images to a registry you control, point
-`docker-compose.yml` at those instead, and put your own
-`Caddyfile` host names in front of it.
+copy the same way, build and push the images to a registry you control, and point
+`docker-compose.yml` and `cofy-deploy` at those and your repository instead.

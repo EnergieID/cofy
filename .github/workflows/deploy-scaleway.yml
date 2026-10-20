@@ -14,9 +14,8 @@ jobs:
   test-container:
     uses: ./.github/workflows/test-container-management.yml
 
-  build-and-deploy:
+  build:
     needs: test-container
-    environment: scaleway
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -53,26 +52,14 @@ jobs:
           docker push ${{ env.RUNNER_IMAGE }}:${{ github.sha }}
           docker push ${{ env.RUNNER_IMAGE }}:latest
 
-      - name: Copy the compose stack to the server
-        uses: appleboy/scp-action@v1
-        with:
-          host: ${{ secrets.SCALEWAY_SSH_HOST }}
-          username: deploy
-          key: ${{ secrets.SCALEWAY_SSH_KEY }}
-          source: "apps/demo_multitenant/docker-compose.yml,apps/demo_multitenant/Caddyfile"
-          target: "~/app"
-          strip_components: 2
-
-      - name: Deploy to the Scaleway instance
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.SCALEWAY_SSH_HOST }}
-          username: deploy
-          key: ${{ secrets.SCALEWAY_SSH_KEY }}
-          script: |
-            set -e
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            cd ~/app
-            docker compose pull
-            docker compose up -d
-            docker image prune -f
+  # The dev server only accepts main, so running this by hand from another branch builds its images, but deploys none.
+  deploy:
+    needs: build
+    permissions:
+      contents: read
+      packages: read
+    uses: ./.github/workflows/deploy-to-server.yml
+    with:
+      environment: multitenant-dev
+      ref: ${{ github.ref }}
+    secrets: inherit
