@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { JsonSchema } from "@cofy/frontend-sdk";
 
 import {
+  constTagsOf,
   discriminatorOf,
   matchBranch,
   optionalInner,
@@ -124,5 +125,22 @@ describe("matchBranch", () => {
       { type: "object", properties: { b: { type: "string" } }, required: ["b"] },
     ];
     expect(matchBranch({ c: "x" }, untagged, {})).toBe(0);
+  });
+});
+
+describe("constTagsOf", () => {
+  const root: JsonSchema = {
+    $defs: {
+      Index: { type: "object", properties: { kind: { const: "index" }, constant_cost: { type: "number" } } },
+      Periodic: { type: "object", properties: { kind: { const: "periodic" }, unit: { const: "month" } } },
+    },
+  };
+
+  it("is the properties every branch fixes to a const", () => {
+    expect(constTagsOf([{ $ref: "#/$defs/Index" }, { $ref: "#/$defs/Periodic" }], root)).toEqual(["kind"]);
+  });
+
+  it("is empty when branches share no const property", () => {
+    expect(constTagsOf([{ type: "integer" }, { type: "string" }], {})).toEqual([]);
   });
 });

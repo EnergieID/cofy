@@ -2,7 +2,7 @@ from os import environ
 from pathlib import Path
 
 from energy_cost import Supplier, Tariff
-from energy_cost.index import CachedEntsoeDayAheadIndex, CSVIndex, Index
+from energy_cost.index import CachedIndex, CSVIndex, EntsoeDayAheadIndex, Index
 from isodate import Duration
 
 from cofy.api import CofyAPI, TokenAuth, TokenInfo
@@ -51,7 +51,10 @@ kiwatt = TariffModule(
 cofy.register_module(kiwatt)
 
 ## Tariff app with EnergyCost as source
-Index.register("Belpex15min", CachedEntsoeDayAheadIndex("BE", api_key=environ.get("ENTSOE_API_KEY", "")))
+Index.register(
+    "Belpex15min",
+    CachedIndex(EntsoeDayAheadIndex("BE", api_key=environ.get("ENTSOE_API_KEY", "")), file_name="belpex15min"),
+)
 TARIFF_CONFIG_PATH = str(DATA_DIR / "dynamic_tariff.yaml")
 dynamic_tariff = TariffModule(
     source=EnergyCostTariffSource(Tariff.from_yaml(TARIFF_CONFIG_PATH)),

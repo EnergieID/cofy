@@ -6,7 +6,7 @@ from functools import reduce
 from operator import or_
 from typing import Annotated, Any, ClassVar, Self
 
-from pydantic import BaseModel, Field, SecretStr
+from pydantic import BaseModel, ConfigDict, Field, SecretStr
 from pydantic.fields import FieldInfo
 
 from .json_schema import Nothing
@@ -38,10 +38,31 @@ _resolved_count = 0
 _resolving = False
 
 
+def _describe_in_schema(schema: dict[str, Any], cls: type[BaseSettingsModel]) -> None:
+    if "description" not in schema and (description := cls.describe()):
+        schema["description"] = description
+
+
 class BaseSettingsModel(BaseModel):
+    # Settings without a docstring of their own are described by the class built from them.
+    model_config = ConfigDict(json_schema_extra=_describe_in_schema)
+
     _model: ClassVar[Any]  # wired automatically on registration
     # Fields that aren't passed on to the object being built.
     _not_converted: ClassVar[frozenset[str]] = frozenset({"type"})
+
+    def model_post_init(self, context: Any, /) -> None:
+        # Always serialised, also with `exclude_unset`: the type selects which settings a payload holds.
+        if "type" in type(self).model_fields:
+            self.__pydantic_fields_set__.add("type")
+
+    @classmethod
+    def describe(cls) -> str:
+        """What the class built from these settings is for, as it says itself."""
+        model = getattr(cls, "_model", None)
+        if model is None:
+            return ""
+        return getattr(model, "type_description", None) or (model.__doc__ or "").strip()
 
     def convert(self) -> Any:
         fields = self.__class__.model_fields
