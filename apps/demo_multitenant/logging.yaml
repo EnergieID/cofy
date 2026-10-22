@@ -1,0 +1,35 @@
+# How both images log, given to uvicorn as UVICORN_LOG_CONFIG. uvicorn applies it before it imports the app, so what
+# is logged while importing gets it too. Every record starts with its time, level and logger, uvicorn's own included,
+# so a line that doesn't - such as a traceback's - is known to continue the record before it (`config.alloy`). All of
+# it goes to stderr, access log too: Docker keeps stdout and stderr apart, and a request logged on the one could land
+# between a record on the other and its traceback.
+version: 1
+disable_existing_loggers: false
+formatters:
+  default:
+    format: "%(asctime)s %(levelname)s %(name)s: %(message)s"
+  access:
+    (): uvicorn.logging.AccessFormatter
+    format: '%(asctime)s %(levelname)s %(name)s: %(client_addr)s - "%(request_line)s" %(status_code)s'
+    use_colors: false
+handlers:
+  default:
+    class: logging.StreamHandler
+    formatter: default
+    stream: ext://sys.stderr
+  access:
+    class: logging.StreamHandler
+    formatter: access
+    stream: ext://sys.stderr
+loggers:
+  uvicorn:
+    handlers: [default]
+    level: INFO
+    propagate: false
+  uvicorn.access:
+    handlers: [access]
+    level: INFO
+    propagate: false
+root:
+  handlers: [default]
+  level: INFO
