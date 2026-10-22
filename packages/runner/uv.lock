@@ -369,9 +369,9 @@ requires-dist = [
     { name = "cofy-api", extras = ["timeseries"], marker = "extra == 'simultaneity'" },
     { name = "cofy-api", extras = ["timeseries"], marker = "extra == 'tariff'" },
     { name = "cofy-api", extras = ["timeseries", "tariff", "members", "production", "directive", "simultaneity", "billing", "entsoe", "energy-cost", "energyid", "acc", "demo", "debug"], marker = "extra == 'all'" },
-    { name = "energy-cost", marker = "extra == 'billing'", specifier = ">=0.7.0" },
-    { name = "energy-cost", marker = "extra == 'energy-cost'", specifier = "==0.7.0" },
-    { name = "energy-cost", marker = "extra == 'members'", specifier = "==0.7.0" },
+    { name = "energy-cost", marker = "extra == 'billing'", specifier = ">=0.8.5" },
+    { name = "energy-cost", marker = "extra == 'energy-cost'", specifier = "==0.8.5" },
+    { name = "energy-cost", marker = "extra == 'members'", specifier = "==0.8.5" },
     { name = "entsoe-py", marker = "extra == 'entsoe'", specifier = ">=0.7.10" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.128.0" },
     { name = "google-auth", marker = "extra == 'acc'", specifier = ">=2.40.0" },
@@ -673,18 +673,19 @@ wheels = [
 
 [[package]]
 name = "energy-cost"
-version = "0.7.0"
+version = "0.8.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "entsoe-py" },
     { name = "isodate" },
     { name = "pandas" },
     { name = "pydantic" },
+    { name = "pyxlsb" },
     { name = "pyyaml" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ac/a6/6b4edd5dd008aa57406153a62abbc9e2d41a4e392340c60139dd2eccec49/energy_cost-0.7.0.tar.gz", hash = "sha256:4cc1823b99a06714a772e04f1496c312ff8023ad1e2bedf667746b9a0f6eff7a", size = 65864, upload-time = "2026-06-15T07:51:55.406Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/60/16/1471de6f8a5298ac69fd97e891a31eccceee6d3b377cad4d52b833e7e182/energy_cost-0.8.5.tar.gz", hash = "sha256:bba5f79089eced9c50f8cdb06b562cb18a1292a5312ed38a5fa04717e72ca47e", size = 6919134, upload-time = "2026-10-21T12:09:52.625Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/03/2b/60d47756138766a806649b265a5a54a206721bf7b7d5ca353e0a09c54f43/energy_cost-0.7.0-py3-none-any.whl", hash = "sha256:4a7bacdce99a7610665ea9959f75dfb3823092292f178454805e1541f82cd79b", size = 61753, upload-time = "2026-06-15T07:51:54.418Z" },
+    { url = "https://files.pythonhosted.org/packages/da/46/4938aba1ec923080ff84bde0a88ffe089a4726f4c7df55381922a633936d/energy_cost-0.8.5-py3-none-any.whl", hash = "sha256:c9e9282ff85222c8de0e02476f08f8d0a5b492bad1a975bccdba6bb031716e0d", size = 7091139, upload-time = "2026-10-21T12:09:50.553Z" },
 ]
 
 [[package]]
@@ -1899,6 +1900,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/14/21/d83d6ef28c4c912c4bb4d1dcf591f7b8c6bde87b9c66f9f454677314e16d/pytz-2026.5.tar.gz", hash = "sha256:fa23724b9c486543b9ff54a327ee7569ac83ade54bb9afd0fc18676620401c86", size = 318572, upload-time = "2026-10-04T02:37:58.719Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/4f/ef/c66110d46fb800dda0bf33164182dfadabe26a90e4476844d502a23dca8e/pytz-2026.5-py2.py3-none-any.whl", hash = "sha256:e658af3757f9e26a9d25dd2aff38335acd92bc9104f890a894b2c1ba28311b03", size = 506342, upload-time = "2026-10-04T02:37:56.814Z" },
+]
+
+[[package]]
+name = "pyxlsb"
+version = "1.0.10"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/3f/13/eebaeb7a40b062d1c6f7f91d09e73d30a69e33e4baa7cbe4b7658548b1cd/pyxlsb-1.0.10.tar.gz", hash = "sha256:8062d1ea8626d3f1980e8b1cfe91a4483747449242ecb61013bc2df85435f685", size = 22424, upload-time = "2022-10-14T19:17:47.308Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7e/92/345823838ae367c59b63e03aef9c331f485370f9df6d049256a61a28f06d/pyxlsb-1.0.10-py2.py3-none-any.whl", hash = "sha256:87c122a9a622e35ca5e741d2e541201d28af00fb46bec492cfa9586890b120b4", size = 23849, upload-time = "2022-10-14T19:17:46.079Z" },
 ]
 
 [[package]]

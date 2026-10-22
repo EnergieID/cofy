@@ -79,6 +79,24 @@ export function schemaTypeName(schema: JsonSchema): string | undefined {
 }
 
 /**
+ * The properties every one of *branches* fixes to a `const` - the tag a union without a discriminator is still told
+ * apart by, like a formula's `kind`. It is chosen with the union's branch picker, not as a field of its own.
+ */
+export function constTagsOf(branches: readonly JsonSchema[], root: JsonSchema): string[] {
+  const [first, ...rest] = branches.map((branch) => constProperties(deref(branch, root)));
+  if (first === undefined) return [];
+  return first.filter((name) => rest.every((names) => names.includes(name)));
+}
+
+function constProperties(node: JsonSchema): string[] {
+  const properties = node["properties"];
+  if (!isRecord(properties)) return [];
+  return Object.entries(properties)
+    .filter(([, propSchema]) => isRecord(propSchema) && "const" in propSchema)
+    .map(([name]) => name);
+}
+
+/**
  * A best-effort guess at which of *branches* *value* already matches. Defaults to the first.
  *
  * A branch whose own `const`-tagged property matches the value's is preferred - that is what a

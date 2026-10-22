@@ -41,8 +41,7 @@ class AllowedType:
 
 def describe(settings: type[BaseSettingsModel]) -> str:
     """What the type *settings* configures is for, as the class built from them says."""
-    model = settings._model
-    return getattr(model, "type_description", None) or (model.__doc__ or "").strip()
+    return settings.describe()
 
 
 def installed_types() -> list[AllowedType]:

@@ -661,3 +661,34 @@ def test_an_abstract_family_with_implementations_warns_about_nothing(caplog: pyt
 
     assert set(Pair._registry) == {"pr_real"}
     assert not [r for r in caplog.records if "Pair" in r.getMessage()]
+
+
+def test_type_is_kept_when_dumping_only_what_was_set():
+    class TaggedSettings(BaseSettingsModel):
+        type: Literal["tagged"] = "tagged"
+        size: int = 1
+
+    class Tagged(FromSettingsMixin, settings=TaggedSettings):
+        def __init__(self, size: int):
+            self.size = size
+
+    assert TaggedSettings().model_dump(exclude_unset=True) == {"type": "tagged"}
+
+
+def test_settings_are_described_by_the_class_built_from_them():
+    class DescribedSettings(BaseSettingsModel):
+        type: Literal["described"] = "described"
+
+    class Described(FromSettingsMixin, settings=DescribedSettings):
+        """Something worth describing."""
+
+    class SelfDescribedSettings(BaseSettingsModel):
+        """Its own description."""
+
+        type: Literal["self_described"] = "self_described"
+
+    class SelfDescribed(FromSettingsMixin, settings=SelfDescribedSettings):
+        """The built class's description."""
+
+    assert DescribedSettings.model_json_schema()["description"] == "Something worth describing."
+    assert SelfDescribedSettings.model_json_schema()["description"] == "Its own description."

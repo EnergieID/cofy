@@ -132,3 +132,56 @@ describe("cofy-union-form with a type the community may not use", () => {
     expect(options).toEqual(["energyid_production"]);
   });
 });
+
+/** A union told apart by a callable discriminator, like `energy_cost.Formula`: no `discriminator`, a `kind` const per branch. */
+const formula: JsonSchema = {
+  oneOf: [{ $ref: "#/$defs/IndexFormula" }, { $ref: "#/$defs/PeriodicFormula" }],
+  $defs: {
+    IndexFormula: {
+      type: "object",
+      description: "A price per unit.",
+      properties: { kind: { const: "index" }, constant_cost: { type: "number" } },
+    },
+    PeriodicFormula: {
+      type: "object",
+      description: "A fixed amount every period.",
+      properties: { kind: { const: "periodic" }, constant_cost: { type: "number" } },
+    },
+  },
+};
+
+describe("cofy-union-form with a const-tagged union", () => {
+  beforeEach(() => {
+    document.body.replaceChildren();
+  });
+
+  it("describes each option, as the module type picker does", async () => {
+    const element = await mountSingle(formula, { kind: "index", constant_cost: 2 });
+
+    const options = Array.from(element.shadowRoot!.querySelectorAll("wa-option"));
+    expect(options.map((option) => option.textContent?.trim())).toEqual([
+      "IndexFormula — A price per unit.",
+      "PeriodicFormula — A fixed amount every period.",
+    ]);
+  });
+
+  it("leaves the tag to the picker rather than showing it as a field", async () => {
+    const element = await mountSingle(formula, { kind: "index", constant_cost: 2 });
+
+    expect(element.shadowRoot!.querySelector("cofy-any-form")!.hide).toEqual(["kind"]);
+  });
+});
+
+describe("cofy-union-form with a discriminator", () => {
+  it("describes each option by its branch", async () => {
+    const described: JsonSchema = {
+      ...single,
+      $defs: { EnergyID: { type: "object", description: "Production from EnergyID.", properties: { type: { const: "energyid_production" } } } },
+    };
+    const element = await mountSingle(described, { type: "energyid_production" });
+
+    expect(element.shadowRoot!.querySelector("wa-option")!.textContent?.trim()).toBe(
+      "Energyid Production — Production from EnergyID.",
+    );
+  });
+});

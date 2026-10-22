@@ -447,7 +447,10 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** AccForecastSettings */
+        /**
+         * AccForecastSettings
+         * @description Forecast net volumes of a connection, from the ACC forecast API.
+         */
         "AccForecastSettings-Input": {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -466,7 +469,10 @@ export interface components {
              */
             base_url?: string;
         };
-        /** AccForecastSettings */
+        /**
+         * AccForecastSettings
+         * @description Forecast net volumes of a connection, from the ACC forecast API.
+         */
         "AccForecastSettings-Output": {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -525,7 +531,10 @@ export interface components {
              */
             exceptions?: string[];
         };
-        /** BillingModuleSettings */
+        /**
+         * BillingModuleSettings
+         * @description Module that computes energy costs based on meter data and contract information.
+         */
         BillingModuleSettings: {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -549,7 +558,10 @@ export interface components {
              */
             description?: string | null;
         };
-        /** CSVFormatSettings */
+        /**
+         * CSVFormatSettings
+         * @description Timeseries format for CSV.
+         */
         CSVFormatSettings: {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -783,6 +795,7 @@ export interface components {
         };
         /**
          * ConnectionType
+         * @description The energy carrier of a grid connection.
          * @enum {string}
          */
         ConnectionType: "electricity" | "gas";
@@ -816,6 +829,7 @@ export interface components {
         };
         /**
          * CostGroup
+         * @description A group of costs that is billed on the same basis.
          * @enum {string}
          */
         CostGroup: "consumption" | "injection" | "capacity" | "fixed";
@@ -838,15 +852,20 @@ export interface components {
         };
         /**
          * CustomerType
+         * @description The kind of customer, as fees differ per customer type.
          * @enum {string}
          */
         CustomerType: "residential" | "non_residential" | "protected";
         /**
          * DayOfWeek
+         * @description A day of the week.
          * @enum {string}
          */
         DayOfWeek: "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
-        /** DemoBoundarySourceSettings */
+        /**
+         * DemoBoundarySourceSettings
+         * @description Generated directive boundaries, for demos.
+         */
         "DemoBoundarySourceSettings-Input": {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -901,7 +920,10 @@ export interface components {
              */
             period?: string;
         };
-        /** DemoBoundarySourceSettings */
+        /**
+         * DemoBoundarySourceSettings
+         * @description Generated directive boundaries, for demos.
+         */
         "DemoBoundarySourceSettings-Output": {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -955,7 +977,10 @@ export interface components {
              */
             period?: string;
         };
-        /** DemoMembersSourceSettings */
+        /**
+         * DemoMembersSourceSettings
+         * @description Example members, for demos.
+         */
         DemoMembersSourceSettings: {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -1061,7 +1086,10 @@ export interface components {
              */
             members?: components["schemas"]["Member"][];
         };
-        /** DemoNetVolumeSourceSettings */
+        /**
+         * DemoNetVolumeSourceSettings
+         * @description Generated net volumes of a household with solar panels, for demos.
+         */
         "DemoNetVolumeSourceSettings-Input": {
             /**
              * Period
@@ -1117,7 +1145,10 @@ export interface components {
              */
             pattern?: number[];
         };
-        /** DemoNetVolumeSourceSettings */
+        /**
+         * DemoNetVolumeSourceSettings
+         * @description Generated net volumes of a household with solar panels, for demos.
+         */
         "DemoNetVolumeSourceSettings-Output": {
             /**
              * Period
@@ -1172,7 +1203,10 @@ export interface components {
              */
             pattern?: number[];
         };
-        /** DemoPriceSourceSettings */
+        /**
+         * DemoPriceSourceSettings
+         * @description Generated day-ahead prices, for demos.
+         */
         "DemoPriceSourceSettings-Input": {
             /**
              * Period
@@ -1228,7 +1262,10 @@ export interface components {
              */
             pattern?: number[];
         };
-        /** DemoPriceSourceSettings */
+        /**
+         * DemoPriceSourceSettings
+         * @description Generated day-ahead prices, for demos.
+         */
         "DemoPriceSourceSettings-Output": {
             /**
              * Period
@@ -1283,7 +1320,10 @@ export interface components {
              */
             pattern?: number[];
         };
-        /** DemoProductionSourceSettings */
+        /**
+         * DemoProductionSourceSettings
+         * @description Generated solar production, for demos.
+         */
         "DemoProductionSourceSettings-Input": {
             /**
              * Period
@@ -1339,7 +1379,10 @@ export interface components {
              */
             pattern?: number[];
         };
-        /** DemoProductionSourceSettings */
+        /**
+         * DemoProductionSourceSettings
+         * @description Generated solar production, for demos.
+         */
         "DemoProductionSourceSettings-Output": {
             /**
              * Period
@@ -1394,7 +1437,10 @@ export interface components {
              */
             pattern?: number[];
         };
-        /** DemoRatioSourceSettings */
+        /**
+         * DemoRatioSourceSettings
+         * @description Generated simultaneity ratios, for demos.
+         */
         "DemoRatioSourceSettings-Input": {
             /**
              * Period
@@ -1450,7 +1496,10 @@ export interface components {
              */
             pattern?: number[];
         };
-        /** DemoRatioSourceSettings */
+        /**
+         * DemoRatioSourceSettings
+         * @description Generated simultaneity ratios, for demos.
+         */
         "DemoRatioSourceSettings-Output": {
             /**
              * Period
@@ -1513,7 +1562,10 @@ export interface components {
              */
             type: "directive";
         };
-        /** DirectiveModuleSettings */
+        /**
+         * DirectiveModuleSettings
+         * @description Module providing directives as time series.
+         */
         "DirectiveModuleSettings-Input": {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -1544,7 +1596,10 @@ export interface components {
              */
             formats?: (components["schemas"]["JSONFormatSettings"] | components["schemas"]["CSVFormatSettings"] | components["schemas"]["DirectiveFormatSettings"])[] | null;
         };
-        /** DirectiveModuleSettings */
+        /**
+         * DirectiveModuleSettings
+         * @description Module providing directives as time series.
+         */
         "DirectiveModuleSettings-Output": {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -1575,7 +1630,10 @@ export interface components {
              */
             formats?: (components["schemas"]["JSONFormatSettings"] | components["schemas"]["CSVFormatSettings"] | components["schemas"]["DirectiveFormatSettings"])[] | null;
         };
-        /** DirectiveSourceSettings */
+        /**
+         * DirectiveSourceSettings
+         * @description Directive steps, from a numeric source and fixed boundaries between the steps.
+         */
         "DirectiveSourceSettings-Input": {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -1599,7 +1657,10 @@ export interface components {
              */
             reverse?: boolean;
         };
-        /** DirectiveSourceSettings */
+        /**
+         * DirectiveSourceSettings
+         * @description Directive steps, from a numeric source and fixed boundaries between the steps.
+         */
         "DirectiveSourceSettings-Output": {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -1623,7 +1684,10 @@ export interface components {
              */
             reverse?: boolean;
         };
-        /** DynamicBoundaryDirectiveSourceSettings */
+        /**
+         * DynamicBoundaryDirectiveSourceSettings
+         * @description Directive steps, from a numeric source and boundaries between the steps that change over time.
+         */
         "DynamicBoundaryDirectiveSourceSettings-Input": {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -1642,7 +1706,10 @@ export interface components {
              */
             reverse?: boolean;
         };
-        /** DynamicBoundaryDirectiveSourceSettings */
+        /**
+         * DynamicBoundaryDirectiveSourceSettings
+         * @description Directive steps, from a numeric source and boundaries between the steps that change over time.
+         */
         "DynamicBoundaryDirectiveSourceSettings-Output": {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -1661,7 +1728,10 @@ export interface components {
              */
             reverse?: boolean;
         };
-        /** EnergyCostTariffSourceSettings */
+        /**
+         * EnergyCostTariffSourceSettings
+         * @description Energy prices, computed from a tariff.
+         */
         "EnergyCostTariffSourceSettings-Input": {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -1677,7 +1747,10 @@ export interface components {
             tariff: components["schemas"]["Tariff-Input"] | components["schemas"]["RefSettings"];
             cost_group?: components["schemas"]["CostGroup"] | null;
         };
-        /** EnergyCostTariffSourceSettings */
+        /**
+         * EnergyCostTariffSourceSettings
+         * @description Energy prices, computed from a tariff.
+         */
         "EnergyCostTariffSourceSettings-Output": {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -1693,7 +1766,10 @@ export interface components {
             tariff: components["schemas"]["Tariff-Output"] | components["schemas"]["RefSettings"];
             cost_group?: components["schemas"]["CostGroup"] | null;
         };
-        /** EnergyIDProductionSettings */
+        /**
+         * EnergyIDProductionSettings
+         * @description Production of a meter, from an EnergyID record.
+         */
         "EnergyIDProductionSettings-Input": {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -1706,7 +1782,10 @@ export interface components {
             /** Record Id */
             record_id: string;
         };
-        /** EnergyIDProductionSettings */
+        /**
+         * EnergyIDProductionSettings
+         * @description Production of a meter, from an EnergyID record.
+         */
         "EnergyIDProductionSettings-Output": {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -1719,7 +1798,10 @@ export interface components {
             /** Record Id */
             record_id: string;
         };
-        /** EntsoeDayAheadTariffSourceSettings */
+        /**
+         * EntsoeDayAheadTariffSourceSettings
+         * @description Day-ahead electricity prices of a bidding zone, from ENTSO-E.
+         */
         "EntsoeDayAheadTariffSourceSettings-Input": {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -1732,7 +1814,10 @@ export interface components {
             /** Country Code */
             country_code?: string | null;
         };
-        /** EntsoeDayAheadTariffSourceSettings */
+        /**
+         * EntsoeDayAheadTariffSourceSettings
+         * @description Day-ahead electricity prices of a bidding zone, from ENTSO-E.
+         */
         "EntsoeDayAheadTariffSourceSettings-Output": {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -1778,35 +1863,57 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
-        /** IndexAdder */
+        /**
+         * IndexAdder
+         * @description An index price multiplied by a scalar.
+         */
         IndexAdder: {
-            /** Index */
+            /**
+             * Index
+             * Format: index-name
+             * @description Name of the index to follow, e.g. a day-ahead price.
+             */
             index: string;
-            /** Scalar */
+            /**
+             * Scalar
+             * @description Factor applied to the index value.
+             */
             scalar: number;
         };
-        /** IndexFormula */
+        /**
+         * IndexFormula
+         * @description A price per unit: a constant plus any number of scaled index prices.
+         */
         IndexFormula: {
             /**
              * Capacity Based
+             * @description Apply the formula to the peak capacity (MW) instead of the consumed energy (MWh).
              * @default false
              */
             capacity_based?: boolean;
             /**
              * Kind
+             * @description Selects this formula type.
              * @default index
              * @constant
              */
             kind?: "index";
             /**
              * Constant Cost
+             * @description Fixed price per unit, e.g. €/MWh.
              * @default 0
              */
             constant_cost?: number;
-            /** Variable Costs */
+            /**
+             * Variable Costs
+             * @description Scaled index prices added to the constant cost.
+             */
             variable_costs?: components["schemas"]["IndexAdder"][];
         };
-        /** JSONFormatSettings */
+        /**
+         * JSONFormatSettings
+         * @description Timeseries format for JSON.
+         */
         JSONFormatSettings: {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -1814,7 +1921,10 @@ export interface components {
              */
             type: "json";
         };
-        /** KiwattFormatSettings */
+        /**
+         * KiwattFormatSettings
+         * @description Timeseries format for Kiwatt.
+         */
         KiwattFormatSettings: {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -1830,53 +1940,67 @@ export interface components {
         };
         /**
          * MaximumFormula
-         * @description A formula returns the maximum formula result of multiple formulas in a given period.
+         * @description The most expensive of several formulas, per period.
          */
         "MaximumFormula-Input": {
             /**
              * Capacity Based
+             * @description Apply the formula to the peak capacity (MW) instead of the consumed energy (MWh).
              * @default false
              */
             capacity_based?: boolean;
             /**
+             * Period
+             * Format: duration
+             * @description Period over which the results of the formulas are compared.
+             * @example PT15M
+             * @example P1M
+             */
+            period: string;
+            /**
              * Kind
+             * @description Selects this formula type.
              * @default maximum
              * @constant
              */
             kind?: "maximum";
             /**
-             * Period
-             * @example PT15M
-             * @example P1M
+             * Maximum
+             * @description Formulas to compare.
              */
-            period: string;
-            /** Maximum */
-            maximum?: (components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["ScheduledFormulas-Input"] | components["schemas"]["TieredFormula-Input"] | components["schemas"]["MinimumFormula-Input"] | components["schemas"]["MaximumFormula-Input"] | components["schemas"]["MeterTypeFormula-Input"])[];
+            maximum?: (components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["UnitPeriodicFormula"] | components["schemas"]["ScheduledFormulas-Input"] | components["schemas"]["TieredFormula-Input"] | components["schemas"]["MinimumFormula-Input"] | components["schemas"]["MaximumFormula-Input"] | components["schemas"]["MeterTypeFormula-Input"])[];
         };
         /**
          * MaximumFormula
-         * @description A formula returns the maximum formula result of multiple formulas in a given period.
+         * @description The most expensive of several formulas, per period.
          */
         "MaximumFormula-Output": {
             /**
              * Capacity Based
+             * @description Apply the formula to the peak capacity (MW) instead of the consumed energy (MWh).
              * @default false
              */
             capacity_based?: boolean;
             /**
+             * Period
+             * Format: duration
+             * @description Period over which the results of the formulas are compared.
+             * @example PT15M
+             * @example P1M
+             */
+            period: string;
+            /**
              * Kind
+             * @description Selects this formula type.
              * @default maximum
              * @constant
              */
             kind?: "maximum";
             /**
-             * Period
-             * @example PT15M
-             * @example P1M
+             * Maximum
+             * @description Formulas to compare.
              */
-            period: string;
-            /** Maximum */
-            maximum?: (components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["ScheduledFormulas-Output"] | components["schemas"]["TieredFormula-Output"] | components["schemas"]["MinimumFormula-Output"] | components["schemas"]["MaximumFormula-Output"] | components["schemas"]["MeterTypeFormula-Output"])[];
+            maximum?: (components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["UnitPeriodicFormula"] | components["schemas"]["ScheduledFormulas-Output"] | components["schemas"]["TieredFormula-Output"] | components["schemas"]["MinimumFormula-Output"] | components["schemas"]["MaximumFormula-Output"] | components["schemas"]["MeterTypeFormula-Output"])[];
         };
         /**
          * Me
@@ -1907,7 +2031,10 @@ export interface components {
             /** Addresses */
             addresses?: components["schemas"]["Address"][];
         };
-        /** MemberSourceResourceSettings */
+        /**
+         * MemberSourceResourceSettings
+         * @description A source of members, built once and shared by every reference to it.
+         */
         MemberSourceResourceSettings: {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -1927,7 +2054,10 @@ export interface components {
             /** Value */
             value: components["schemas"]["DemoMembersSourceSettings"] | components["schemas"]["RefSettings"];
         };
-        /** MembersModuleSettings */
+        /**
+         * MembersModuleSettings
+         * @description Module for member-related functionalities
+         */
         MembersModuleSettings: {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -1955,100 +2085,125 @@ export interface components {
         };
         /**
          * MeterType
+         * @description The kind of meter, as some tariffs differ per meter type.
          * @enum {string}
          */
         MeterType: "single_rate" | "night_only";
         /**
          * MeterTypeFormula
-         * @description Formula that applies a different formula based on the meter type.
+         * @description A different formula per meter type.
          */
         "MeterTypeFormula-Input": {
             /**
              * Capacity Based
+             * @description Apply the formula to the peak capacity (MW) instead of the consumed energy (MWh).
              * @default false
              */
             capacity_based?: boolean;
             /**
              * Kind
+             * @description Selects this formula type.
              * @default meter_type
              * @constant
              */
             kind?: "meter_type";
-            /** By Meter Type */
+            /**
+             * By Meter Type
+             * @description Formula per meter type; `default` applies to meter types without their own entry.
+             */
             by_meter_type?: {
-                [key: string]: components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["ScheduledFormulas-Input"] | components["schemas"]["TieredFormula-Input"] | components["schemas"]["MinimumFormula-Input"] | components["schemas"]["MaximumFormula-Input"] | components["schemas"]["MeterTypeFormula-Input"];
+                [key: string]: components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["UnitPeriodicFormula"] | components["schemas"]["ScheduledFormulas-Input"] | components["schemas"]["TieredFormula-Input"] | components["schemas"]["MinimumFormula-Input"] | components["schemas"]["MaximumFormula-Input"] | components["schemas"]["MeterTypeFormula-Input"];
             };
         };
         /**
          * MeterTypeFormula
-         * @description Formula that applies a different formula based on the meter type.
+         * @description A different formula per meter type.
          */
         "MeterTypeFormula-Output": {
             /**
              * Capacity Based
+             * @description Apply the formula to the peak capacity (MW) instead of the consumed energy (MWh).
              * @default false
              */
             capacity_based?: boolean;
             /**
              * Kind
+             * @description Selects this formula type.
              * @default meter_type
              * @constant
              */
             kind?: "meter_type";
-            /** By Meter Type */
+            /**
+             * By Meter Type
+             * @description Formula per meter type; `default` applies to meter types without their own entry.
+             */
             by_meter_type?: {
-                [key: string]: components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["ScheduledFormulas-Output"] | components["schemas"]["TieredFormula-Output"] | components["schemas"]["MinimumFormula-Output"] | components["schemas"]["MaximumFormula-Output"] | components["schemas"]["MeterTypeFormula-Output"];
+                [key: string]: components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["UnitPeriodicFormula"] | components["schemas"]["ScheduledFormulas-Output"] | components["schemas"]["TieredFormula-Output"] | components["schemas"]["MinimumFormula-Output"] | components["schemas"]["MaximumFormula-Output"] | components["schemas"]["MeterTypeFormula-Output"];
             };
         };
         /**
          * MinimumFormula
-         * @description A formula returns the minimum formula result of multiple formulas in a given period.
+         * @description The cheapest of several formulas, per period.
          */
         "MinimumFormula-Input": {
             /**
              * Capacity Based
+             * @description Apply the formula to the peak capacity (MW) instead of the consumed energy (MWh).
              * @default false
              */
             capacity_based?: boolean;
             /**
+             * Period
+             * Format: duration
+             * @description Period over which the results of the formulas are compared.
+             * @example PT15M
+             * @example P1M
+             */
+            period: string;
+            /**
              * Kind
+             * @description Selects this formula type.
              * @default minimum
              * @constant
              */
             kind?: "minimum";
             /**
-             * Period
-             * @example PT15M
-             * @example P1M
+             * Minimum
+             * @description Formulas to compare.
              */
-            period: string;
-            /** Minimum */
-            minimum?: (components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["ScheduledFormulas-Input"] | components["schemas"]["TieredFormula-Input"] | components["schemas"]["MinimumFormula-Input"] | components["schemas"]["MaximumFormula-Input"] | components["schemas"]["MeterTypeFormula-Input"])[];
+            minimum?: (components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["UnitPeriodicFormula"] | components["schemas"]["ScheduledFormulas-Input"] | components["schemas"]["TieredFormula-Input"] | components["schemas"]["MinimumFormula-Input"] | components["schemas"]["MaximumFormula-Input"] | components["schemas"]["MeterTypeFormula-Input"])[];
         };
         /**
          * MinimumFormula
-         * @description A formula returns the minimum formula result of multiple formulas in a given period.
+         * @description The cheapest of several formulas, per period.
          */
         "MinimumFormula-Output": {
             /**
              * Capacity Based
+             * @description Apply the formula to the peak capacity (MW) instead of the consumed energy (MWh).
              * @default false
              */
             capacity_based?: boolean;
             /**
+             * Period
+             * Format: duration
+             * @description Period over which the results of the formulas are compared.
+             * @example PT15M
+             * @example P1M
+             */
+            period: string;
+            /**
              * Kind
+             * @description Selects this formula type.
              * @default minimum
              * @constant
              */
             kind?: "minimum";
             /**
-             * Period
-             * @example PT15M
-             * @example P1M
+             * Minimum
+             * @description Formulas to compare.
              */
-            period: string;
-            /** Minimum */
-            minimum?: (components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["ScheduledFormulas-Output"] | components["schemas"]["TieredFormula-Output"] | components["schemas"]["MinimumFormula-Output"] | components["schemas"]["MaximumFormula-Output"] | components["schemas"]["MeterTypeFormula-Output"])[];
+            minimum?: (components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["UnitPeriodicFormula"] | components["schemas"]["ScheduledFormulas-Output"] | components["schemas"]["TieredFormula-Output"] | components["schemas"]["MinimumFormula-Output"] | components["schemas"]["MaximumFormula-Output"] | components["schemas"]["MeterTypeFormula-Output"])[];
         };
         /** NamedIdentifier */
         NamedIdentifier: {
@@ -2063,26 +2218,36 @@ export interface components {
              */
             id: string;
         };
-        /** PeriodicFormula */
+        /**
+         * PeriodicFormula
+         * @description A fixed amount charged every period, independent of usage.
+         */
         PeriodicFormula: {
             /**
              * Capacity Based
+             * @description Apply the formula to the peak capacity (MW) instead of the consumed energy (MWh).
              * @default false
              */
             capacity_based?: boolean;
             /**
              * Kind
+             * @description Selects this formula type.
              * @default periodic
              * @constant
              */
             kind?: "periodic";
             /**
              * Period
+             * Format: duration
+             * @description How often the amount is charged.
              * @example PT15M
              * @example P1M
              */
             period: string;
-            /** Constant Cost */
+            /**
+             * Constant Cost
+             * @description Amount charged per period, e.g. €/month.
+             */
             constant_cost: number;
         };
         /**
@@ -2093,7 +2258,10 @@ export interface components {
             action: components["schemas"]["Action"];
             subject: components["schemas"]["Subject"];
         };
-        /** ProductionModuleSettings */
+        /**
+         * ProductionModuleSettings
+         * @description Module providing production data as time series.
+         */
         "ProductionModuleSettings-Input": {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -2124,7 +2292,10 @@ export interface components {
              */
             formats?: (components["schemas"]["JSONFormatSettings"] | components["schemas"]["CSVFormatSettings"])[] | null;
         };
-        /** ProductionModuleSettings */
+        /**
+         * ProductionModuleSettings
+         * @description Module providing production data as time series.
+         */
         "ProductionModuleSettings-Output": {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -2178,60 +2349,96 @@ export interface components {
          * @enum {string}
          */
         Role: "community_admin";
-        /** ScheduledFormula */
+        /**
+         * ScheduledFormula
+         * @description A formula that only applies during the given time windows.
+         */
         "ScheduledFormula-Input": {
             /**
              * Capacity Based
+             * @description Apply the formula to the peak capacity (MW) instead of the consumed energy (MWh).
              * @default false
              */
             capacity_based?: boolean;
-            /** When */
+            /**
+             * When
+             * @description Time windows in which the formula applies; always when empty.
+             */
             when?: components["schemas"]["WhenClause"][] | null;
-            /** Formula */
-            formula: components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["ScheduledFormulas-Input"] | components["schemas"]["TieredFormula-Input"] | components["schemas"]["MinimumFormula-Input"] | components["schemas"]["MaximumFormula-Input"] | components["schemas"]["MeterTypeFormula-Input"];
+            /**
+             * Formula
+             * @description Formula to apply within the time windows.
+             */
+            formula: components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["UnitPeriodicFormula"] | components["schemas"]["ScheduledFormulas-Input"] | components["schemas"]["TieredFormula-Input"] | components["schemas"]["MinimumFormula-Input"] | components["schemas"]["MaximumFormula-Input"] | components["schemas"]["MeterTypeFormula-Input"];
         };
-        /** ScheduledFormula */
+        /**
+         * ScheduledFormula
+         * @description A formula that only applies during the given time windows.
+         */
         "ScheduledFormula-Output": {
             /**
              * Capacity Based
+             * @description Apply the formula to the peak capacity (MW) instead of the consumed energy (MWh).
              * @default false
              */
             capacity_based?: boolean;
-            /** When */
+            /**
+             * When
+             * @description Time windows in which the formula applies; always when empty.
+             */
             when?: components["schemas"]["WhenClause"][] | null;
-            /** Formula */
-            formula: components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["ScheduledFormulas-Output"] | components["schemas"]["TieredFormula-Output"] | components["schemas"]["MinimumFormula-Output"] | components["schemas"]["MaximumFormula-Output"] | components["schemas"]["MeterTypeFormula-Output"];
+            /**
+             * Formula
+             * @description Formula to apply within the time windows.
+             */
+            formula: components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["UnitPeriodicFormula"] | components["schemas"]["ScheduledFormulas-Output"] | components["schemas"]["TieredFormula-Output"] | components["schemas"]["MinimumFormula-Output"] | components["schemas"]["MaximumFormula-Output"] | components["schemas"]["MeterTypeFormula-Output"];
         };
-        /** ScheduledFormulas */
+        /**
+         * ScheduledFormulas
+         * @description Different formulas depending on the time of day or day of the week.
+         */
         "ScheduledFormulas-Input": {
             /**
              * Capacity Based
+             * @description Apply the formula to the peak capacity (MW) instead of the consumed energy (MWh).
              * @default false
              */
             capacity_based?: boolean;
             /**
              * Kind
+             * @description Selects this formula type.
              * @default scheduled
              * @constant
              */
             kind?: "scheduled";
-            /** Schedule */
+            /**
+             * Schedule
+             * @description Scheduled formulas; at each moment, the first one whose time windows match applies.
+             */
             schedule?: components["schemas"]["ScheduledFormula-Input"][];
         };
-        /** ScheduledFormulas */
+        /**
+         * ScheduledFormulas
+         * @description Different formulas depending on the time of day or day of the week.
+         */
         "ScheduledFormulas-Output": {
             /**
              * Capacity Based
+             * @description Apply the formula to the peak capacity (MW) instead of the consumed energy (MWh).
              * @default false
              */
             capacity_based?: boolean;
             /**
              * Kind
+             * @description Selects this formula type.
              * @default scheduled
              * @constant
              */
             kind?: "scheduled";
-            /** Schedule */
+            /**
+             * Schedule
+             * @description Scheduled formulas; at each moment, the first one whose time windows match applies.
+             */
             schedule?: components["schemas"]["ScheduledFormula-Output"][];
         };
         /**
@@ -2278,7 +2485,10 @@ export interface components {
              */
             name: string;
         };
-        /** SimultaneityModuleSettings */
+        /**
+         * SimultaneityModuleSettings
+         * @description Module providing the simultaneity of consumption and production as time series.
+         */
         "SimultaneityModuleSettings-Input": {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -2309,7 +2519,10 @@ export interface components {
              */
             formats?: (components["schemas"]["JSONFormatSettings"] | components["schemas"]["CSVFormatSettings"])[] | null;
         };
-        /** SimultaneityModuleSettings */
+        /**
+         * SimultaneityModuleSettings
+         * @description Module providing the simultaneity of consumption and production as time series.
+         */
         "SimultaneityModuleSettings-Output": {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -2340,7 +2553,10 @@ export interface components {
              */
             formats?: (components["schemas"]["JSONFormatSettings"] | components["schemas"]["CSVFormatSettings"])[] | null;
         };
-        /** SimultaneitySourceSettings */
+        /**
+         * SimultaneitySourceSettings
+         * @description Consumption as a percentage of production per timestamp, over sources of net volumes.
+         */
         "SimultaneitySourceSettings-Input": {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -2352,7 +2568,10 @@ export interface components {
             /** Sources */
             sources: ((components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["DemoNetVolumeSourceSettings-Input"]) | components["schemas"]["RefSettings"])[];
         };
-        /** SimultaneitySourceSettings */
+        /**
+         * SimultaneitySourceSettings
+         * @description Consumption as a percentage of production per timestamp, over sources of net volumes.
+         */
         "SimultaneitySourceSettings-Output": {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -2364,7 +2583,10 @@ export interface components {
             /** Sources */
             sources: ((components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["DemoNetVolumeSourceSettings-Output"]) | components["schemas"]["RefSettings"])[];
         };
-        /** SourceResourceSettings */
+        /**
+         * SourceResourceSettings
+         * @description A timeseries source, built once and shared by every reference to it.
+         */
         "SourceResourceSettings-Input": {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -2384,7 +2606,10 @@ export interface components {
             /** Value */
             value: (components["schemas"]["DirectiveSourceSettings-Input"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Input"] | components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["DemoBoundarySourceSettings-Input"] | components["schemas"]["DemoNetVolumeSourceSettings-Input"] | components["schemas"]["DemoPriceSourceSettings-Input"] | components["schemas"]["DemoProductionSourceSettings-Input"] | components["schemas"]["DemoRatioSourceSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"]) | components["schemas"]["RefSettings"];
         };
-        /** SourceResourceSettings */
+        /**
+         * SourceResourceSettings
+         * @description A timeseries source, built once and shared by every reference to it.
+         */
         "SourceResourceSettings-Output": {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -2410,11 +2635,20 @@ export interface components {
          * @enum {string}
          */
         Subject: "community" | "modules" | "resources" | "secrets" | "tokens" | "grants" | "allowed_types";
-        /** Tariff */
+        /**
+         * Tariff
+         * @description A tariff over time, as a list of versions.
+         */
         "Tariff-Input": components["schemas"]["TariffVersion-Input"][];
-        /** Tariff */
+        /**
+         * Tariff
+         * @description A tariff over time, as a list of versions.
+         */
         "Tariff-Output": components["schemas"]["TariffVersion-Output"][];
-        /** TariffModuleSettings */
+        /**
+         * TariffModuleSettings
+         * @description Module providing tariff data as time series.
+         */
         "TariffModuleSettings-Input": {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -2445,7 +2679,10 @@ export interface components {
              */
             formats?: (components["schemas"]["JSONFormatSettings"] | components["schemas"]["CSVFormatSettings"] | components["schemas"]["KiwattFormatSettings"])[] | null;
         };
-        /** TariffModuleSettings */
+        /**
+         * TariffModuleSettings
+         * @description Module providing tariff data as time series.
+         */
         "TariffModuleSettings-Output": {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -2476,7 +2713,10 @@ export interface components {
              */
             formats?: (components["schemas"]["JSONFormatSettings"] | components["schemas"]["CSVFormatSettings"] | components["schemas"]["KiwattFormatSettings"])[] | null;
         };
-        /** TariffResourceSettings */
+        /**
+         * TariffResourceSettings
+         * @description An energy cost tariff.
+         */
         "TariffResourceSettings-Input": {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -2496,7 +2736,10 @@ export interface components {
             /** @description Energy cost tariff instance */
             value: components["schemas"]["Tariff-Input"];
         };
-        /** TariffResourceSettings */
+        /**
+         * TariffResourceSettings
+         * @description An energy cost tariff.
+         */
         "TariffResourceSettings-Output": {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -2516,118 +2759,196 @@ export interface components {
             /** @description Energy cost tariff instance */
             value: components["schemas"]["Tariff-Output"];
         };
-        /** TariffVersion */
+        /**
+         * TariffVersion
+         * @description Tariff formulas that apply from a start date until the next version starts.
+         */
         "TariffVersion-Input": {
             /**
              * Start
              * Format: date-time
+             * @description Moment from which this version applies.
              */
             start: string;
-            /** End */
-            end?: string | null;
-            /** Injection */
+            /**
+             * Injection
+             * @description Costs for energy fed into the grid, per cost type.
+             */
             injection?: {
-                [key: string]: components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["ScheduledFormulas-Input"] | components["schemas"]["TieredFormula-Input"] | components["schemas"]["MinimumFormula-Input"] | components["schemas"]["MaximumFormula-Input"] | components["schemas"]["MeterTypeFormula-Input"];
+                [key: string]: components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["UnitPeriodicFormula"] | components["schemas"]["ScheduledFormulas-Input"] | components["schemas"]["TieredFormula-Input"] | components["schemas"]["MinimumFormula-Input"] | components["schemas"]["MaximumFormula-Input"] | components["schemas"]["MeterTypeFormula-Input"];
             };
-            /** Consumption */
+            /**
+             * Consumption
+             * @description Costs for energy taken from the grid, per cost type.
+             */
             consumption?: {
-                [key: string]: components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["ScheduledFormulas-Input"] | components["schemas"]["TieredFormula-Input"] | components["schemas"]["MinimumFormula-Input"] | components["schemas"]["MaximumFormula-Input"] | components["schemas"]["MeterTypeFormula-Input"];
+                [key: string]: components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["UnitPeriodicFormula"] | components["schemas"]["ScheduledFormulas-Input"] | components["schemas"]["TieredFormula-Input"] | components["schemas"]["MinimumFormula-Input"] | components["schemas"]["MaximumFormula-Input"] | components["schemas"]["MeterTypeFormula-Input"];
             };
-            /** Capacity */
+            /**
+             * Capacity
+             * @description Costs based on peak capacity, per cost type.
+             */
             capacity?: {
-                [key: string]: components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["ScheduledFormulas-Input"] | components["schemas"]["TieredFormula-Input"] | components["schemas"]["MinimumFormula-Input"] | components["schemas"]["MaximumFormula-Input"] | components["schemas"]["MeterTypeFormula-Input"];
+                [key: string]: components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["UnitPeriodicFormula"] | components["schemas"]["ScheduledFormulas-Input"] | components["schemas"]["TieredFormula-Input"] | components["schemas"]["MinimumFormula-Input"] | components["schemas"]["MaximumFormula-Input"] | components["schemas"]["MeterTypeFormula-Input"];
             };
-            /** Fixed */
+            /**
+             * Fixed
+             * @description Fixed costs per period, per cost type.
+             */
             fixed?: {
-                [key: string]: components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["ScheduledFormulas-Input"] | components["schemas"]["TieredFormula-Input"] | components["schemas"]["MinimumFormula-Input"] | components["schemas"]["MaximumFormula-Input"] | components["schemas"]["MeterTypeFormula-Input"];
+                [key: string]: components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["UnitPeriodicFormula"] | components["schemas"]["ScheduledFormulas-Input"] | components["schemas"]["TieredFormula-Input"] | components["schemas"]["MinimumFormula-Input"] | components["schemas"]["MaximumFormula-Input"] | components["schemas"]["MeterTypeFormula-Input"];
             };
         };
-        /** TariffVersion */
+        /**
+         * TariffVersion
+         * @description Tariff formulas that apply from a start date until the next version starts.
+         */
         "TariffVersion-Output": {
             /**
              * Start
              * Format: date-time
+             * @description Moment from which this version applies.
              */
             start: string;
-            /** End */
-            end?: string | null;
-            /** Injection */
+            /**
+             * Injection
+             * @description Costs for energy fed into the grid, per cost type.
+             */
             injection?: {
-                [key: string]: components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["ScheduledFormulas-Output"] | components["schemas"]["TieredFormula-Output"] | components["schemas"]["MinimumFormula-Output"] | components["schemas"]["MaximumFormula-Output"] | components["schemas"]["MeterTypeFormula-Output"];
+                [key: string]: components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["UnitPeriodicFormula"] | components["schemas"]["ScheduledFormulas-Output"] | components["schemas"]["TieredFormula-Output"] | components["schemas"]["MinimumFormula-Output"] | components["schemas"]["MaximumFormula-Output"] | components["schemas"]["MeterTypeFormula-Output"];
             };
-            /** Consumption */
+            /**
+             * Consumption
+             * @description Costs for energy taken from the grid, per cost type.
+             */
             consumption?: {
-                [key: string]: components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["ScheduledFormulas-Output"] | components["schemas"]["TieredFormula-Output"] | components["schemas"]["MinimumFormula-Output"] | components["schemas"]["MaximumFormula-Output"] | components["schemas"]["MeterTypeFormula-Output"];
+                [key: string]: components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["UnitPeriodicFormula"] | components["schemas"]["ScheduledFormulas-Output"] | components["schemas"]["TieredFormula-Output"] | components["schemas"]["MinimumFormula-Output"] | components["schemas"]["MaximumFormula-Output"] | components["schemas"]["MeterTypeFormula-Output"];
             };
-            /** Capacity */
+            /**
+             * Capacity
+             * @description Costs based on peak capacity, per cost type.
+             */
             capacity?: {
-                [key: string]: components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["ScheduledFormulas-Output"] | components["schemas"]["TieredFormula-Output"] | components["schemas"]["MinimumFormula-Output"] | components["schemas"]["MaximumFormula-Output"] | components["schemas"]["MeterTypeFormula-Output"];
+                [key: string]: components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["UnitPeriodicFormula"] | components["schemas"]["ScheduledFormulas-Output"] | components["schemas"]["TieredFormula-Output"] | components["schemas"]["MinimumFormula-Output"] | components["schemas"]["MaximumFormula-Output"] | components["schemas"]["MeterTypeFormula-Output"];
             };
-            /** Fixed */
+            /**
+             * Fixed
+             * @description Fixed costs per period, per cost type.
+             */
             fixed?: {
-                [key: string]: components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["ScheduledFormulas-Output"] | components["schemas"]["TieredFormula-Output"] | components["schemas"]["MinimumFormula-Output"] | components["schemas"]["MaximumFormula-Output"] | components["schemas"]["MeterTypeFormula-Output"];
+                [key: string]: components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["UnitPeriodicFormula"] | components["schemas"]["ScheduledFormulas-Output"] | components["schemas"]["TieredFormula-Output"] | components["schemas"]["MinimumFormula-Output"] | components["schemas"]["MaximumFormula-Output"] | components["schemas"]["MeterTypeFormula-Output"];
             };
         };
-        /** TierBand */
+        /**
+         * TierBand
+         * @description A usage range and the formula that prices it.
+         */
         "TierBand-Input": {
-            /** Up To */
+            /**
+             * Up To
+             * @description Upper bound of this band (e.g. MWh per band period); empty for the last, unbounded band.
+             */
             up_to?: number | null;
-            /** Formula */
-            formula: components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["ScheduledFormulas-Input"] | components["schemas"]["TieredFormula-Input"] | components["schemas"]["MinimumFormula-Input"] | components["schemas"]["MaximumFormula-Input"] | components["schemas"]["MeterTypeFormula-Input"];
+            /**
+             * Formula
+             * @description Formula used for usage in this band.
+             */
+            formula: components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["UnitPeriodicFormula"] | components["schemas"]["ScheduledFormulas-Input"] | components["schemas"]["TieredFormula-Input"] | components["schemas"]["MinimumFormula-Input"] | components["schemas"]["MaximumFormula-Input"] | components["schemas"]["MeterTypeFormula-Input"];
         };
-        /** TierBand */
+        /**
+         * TierBand
+         * @description A usage range and the formula that prices it.
+         */
         "TierBand-Output": {
-            /** Up To */
+            /**
+             * Up To
+             * @description Upper bound of this band (e.g. MWh per band period); empty for the last, unbounded band.
+             */
             up_to?: number | null;
-            /** Formula */
-            formula: components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["ScheduledFormulas-Output"] | components["schemas"]["TieredFormula-Output"] | components["schemas"]["MinimumFormula-Output"] | components["schemas"]["MaximumFormula-Output"] | components["schemas"]["MeterTypeFormula-Output"];
+            /**
+             * Formula
+             * @description Formula used for usage in this band.
+             */
+            formula: components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["UnitPeriodicFormula"] | components["schemas"]["ScheduledFormulas-Output"] | components["schemas"]["TieredFormula-Output"] | components["schemas"]["MinimumFormula-Output"] | components["schemas"]["MaximumFormula-Output"] | components["schemas"]["MeterTypeFormula-Output"];
         };
-        /** TieredFormula */
+        /**
+         * TieredFormula
+         * @description Different formulas depending on how much is used.
+         */
         "TieredFormula-Input": {
             /**
              * Capacity Based
+             * @description Apply the formula to the peak capacity (MW) instead of the consumed energy (MWh).
              * @default false
              */
             capacity_based?: boolean;
             /**
              * Kind
+             * @description Selects this formula type.
              * @default tiered
              * @constant
              */
             kind?: "tiered";
-            /** Bands */
+            /**
+             * Bands
+             * @description Bands in increasing order of their upper bound.
+             */
             bands?: components["schemas"]["TierBand-Input"][];
-            /** Band Period */
+            /**
+             * Band Period
+             * @description Period over which usage is totalled to pick bands; when empty, each measurement stands alone.
+             */
             band_period?: string | null;
-            /** @default progressive */
+            /**
+             * @description Progressive splits usage over the bands; banded prices all usage with the single matching band.
+             * @default progressive
+             */
             mode?: components["schemas"]["TieringMode"];
         };
-        /** TieredFormula */
+        /**
+         * TieredFormula
+         * @description Different formulas depending on how much is used.
+         */
         "TieredFormula-Output": {
             /**
              * Capacity Based
+             * @description Apply the formula to the peak capacity (MW) instead of the consumed energy (MWh).
              * @default false
              */
             capacity_based?: boolean;
             /**
              * Kind
+             * @description Selects this formula type.
              * @default tiered
              * @constant
              */
             kind?: "tiered";
-            /** Bands */
+            /**
+             * Bands
+             * @description Bands in increasing order of their upper bound.
+             */
             bands?: components["schemas"]["TierBand-Output"][];
-            /** Band Period */
+            /**
+             * Band Period
+             * @description Period over which usage is totalled to pick bands; when empty, each measurement stands alone.
+             */
             band_period?: string | null;
-            /** @default progressive */
+            /**
+             * @description Progressive splits usage over the bands; banded prices all usage with the single matching band.
+             * @default progressive
+             */
             mode?: components["schemas"]["TieringMode"];
         };
         /**
          * TieringMode
+         * @description How usage is split over the tier bands.
          * @enum {string}
          */
         TieringMode: "banded" | "progressive";
-        /** TimeseriesModuleSettings */
+        /**
+         * TimeseriesModuleSettings
+         * @description Module providing timeseries data.
+         */
         "TimeseriesModuleSettings-Input": {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -2658,7 +2979,10 @@ export interface components {
              */
             formats?: (components["schemas"]["JSONFormatSettings"] | components["schemas"]["CSVFormatSettings"])[] | null;
         };
-        /** TimeseriesModuleSettings */
+        /**
+         * TimeseriesModuleSettings
+         * @description Module providing timeseries data.
+         */
         "TimeseriesModuleSettings-Output": {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -2755,6 +3079,38 @@ export interface components {
              */
             description: string;
         };
+        /**
+         * UnitPeriodicFormula
+         * @description A price per unit per period, e.g. €/MW/year.
+         */
+        UnitPeriodicFormula: {
+            /**
+             * Capacity Based
+             * @description Apply the formula to the peak capacity (MW) instead of the consumed energy (MWh).
+             * @default false
+             */
+            capacity_based?: boolean;
+            /**
+             * Kind
+             * @description Selects this formula type.
+             * @default unit_periodic
+             * @constant
+             */
+            kind?: "unit_periodic";
+            /**
+             * Period
+             * Format: duration
+             * @description Period the price is expressed in.
+             * @example PT15M
+             * @example P1M
+             */
+            period: string;
+            /**
+             * Constant Cost
+             * @description Price per unit per period.
+             */
+            constant_cost: number;
+        };
         /** ValidationError */
         ValidationError: {
             /** Location */
@@ -2768,17 +3124,27 @@ export interface components {
             /** Context */
             ctx?: Record<string, never>;
         };
-        /** WhenClause */
+        /**
+         * WhenClause
+         * @description A daily time window on selected days of the week.
+         */
         WhenClause: {
-            /** Days */
+            /**
+             * Days
+             * @description Days on which the window applies; all days when not set.
+             */
             days?: components["schemas"]["DayOfWeek"][];
             /**
              * Start
              * Format: time
+             * @description Start of the window (inclusive).
              * @default 00:00:00
              */
             start?: string;
-            /** End */
+            /**
+             * End
+             * @description End of the window (exclusive); empty for midnight.
+             */
             end?: string | null;
         };
     };
