@@ -1,6 +1,13 @@
-// Ships the logs of every container on this server to Loki, labelled with the environment and the compose service.
+// Ships the logs of this compose project's containers to Loki, labelled with the environment, the compose service and
+// each record's level.
 discovery.docker "containers" {
   host = "unix:///var/run/docker.sock"
+
+  // Only Cofy's own containers (`name` in `docker-compose.yml`): whatever else runs on the server isn't ours to ship.
+  filter {
+    name   = "label"
+    values = ["com.docker.compose.project=cofy"]
+  }
 }
 
 discovery.relabel "containers" {
@@ -16,7 +23,45 @@ loki.source.docker "containers" {
   host          = "unix:///var/run/docker.sock"
   targets       = discovery.docker.containers.targets
   relabel_rules = discovery.relabel.containers.rules
-  forward_to    = [loki.write.default.receiver]
+  forward_to    = [loki.process.containers.receiver]
+}
+
+// Every record starts with its time - the apps' (`logging.yaml`) as text, Caddy's as JSON, Alloy's own as logfmt - so a
+// line that doesn't, such as a traceback's, continues the record before it.
+loki.process "containers" {
+  forward_to = [loki.write.default.receiver]
+
+  stage.multiline {
+    firstline     = `^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}|\{|ts=)`
+    max_wait_time = "3s"
+  }
+
+  stage.regex {
+    expression = `^\d{4}-\d{2}-\d{2} \S+ (?P<level>[A-Z]+) `
+  }
+
+  stage.regex {
+    expression = `^\{"level":"(?P<level>\w+)"`
+  }
+
+  stage.regex {
+    expression = `^ts=\S+ level=(?P<level>\w+)`
+  }
+
+  // An exception nothing handles is printed as a bare traceback, and stops the process. Its lines can't be told from
+  // those of a logged exception's traceback, so they stay apart, the first one marked as the error.
+  stage.regex {
+    expression = `^(?P<traceback>Traceback) `
+  }
+
+  stage.template {
+    source   = "level"
+    template = `{{ if .traceback }}error{{ else }}{{ ToLower .Value }}{{ end }}`
+  }
+
+  stage.labels {
+    values = { level = "" }
+  }
 }
 
 loki.write "default" {

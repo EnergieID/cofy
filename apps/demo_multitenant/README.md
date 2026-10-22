@@ -81,7 +81,8 @@ configs do; the runner image only reads `/communities`. Both are mounted in from
 the demo's own `.data/management` and `.data/communities`. The images bring no data of their own
 and never seed or rewrite what is mounted there. Each runs plain uvicorn, which reads its options
 from `UVICORN_*` variables: they listen on `UVICORN_PORT` (`8080` by default), and the runner
-takes the path prefix a proxy strips in `UVICORN_ROOT_PATH`. Both honor a `VERSION` build arg for
+takes the path prefix a proxy strips in `UVICORN_ROOT_PATH`. Both log as `logging.yaml` says (`UVICORN_LOG_CONFIG`):
+every record to stderr, starting with its time, level and logger. Both honor a `VERSION` build arg for
 `APP_VERSION`. `/data/access/users.yaml` is the file to edit to change who the system admins are.
 
 ## Production deploy
@@ -95,8 +96,9 @@ the server,
 read-only - behind `caddy` (`Caddyfile`) for TLS. Caddy sends `/communities/<slug>/...` to the runner and everything
 else to the management API. Neither has a published port at all, so the only way in from outside is through Caddy's
 automatic Let's Encrypt HTTPS on 80/443. `caddy_data`/`caddy_config` (the issued certificate and Caddy's own state) are
-named volumes, so a redeploy doesn't force reissuing the certificate. `alloy` ships every container's logs to Loki
-(`config.alloy`), labelled with the environment and the compose service.
+named volumes, so a redeploy doesn't force reissuing the certificate. `alloy` ships the logs of the `cofy` project's
+containers to Loki (`config.alloy`), each record whole - a traceback with the line it belongs to - and labelled with
+the environment, the compose service and its level.
 
 Both workflows deploy through `.github/workflows/deploy-to-server.yml`, logging in as `deploy`, whose key can run
 nothing but `cofy-deploy`. That deploys a branch or tag only if the server's `COFY_DEPLOY_REFS` allows it: it reads

@@ -1,6 +1,9 @@
 # Deployed to a server by `cofy-deploy` (see `cloud-init.yaml`), with the server's own settings in the `.env` next to
 # it - `.env.example` lists them. `app` and `runner` have no published port - they're only reachable from `caddy` (and
 # each other) over the compose network, so the only way in from outside is through Caddy's TLS-terminated 80/443.
+# `config.alloy` ships the logs of this project's containers only, so it is named here rather than after the directory.
+name: cofy
+
 services:
   app:
     image: ghcr.io/energieid/cofy-api/management:${COFY_VERSION:-latest}
