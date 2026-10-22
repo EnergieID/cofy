@@ -26,10 +26,16 @@ class ModulesRouter:
         self._register_routes()
 
     def _register_routes(self) -> None:
-        self.router.add_api_route("", self.all, methods=["GET"], rule=Policy.all)
-        self.router.add_api_route("/{module_type}/{name}", self.get, methods=["GET"], rule=Policy.get)
-        self.router.add_api_route("", self.create, methods=["POST"], rule=Policy.create, status_code=201)
-        self.router.add_api_route("/{module_type}/{name}", self.put, methods=["PUT"], rule=Policy.put)
+        self.router.add_api_route("", self.all, methods=["GET"], rule=Policy.all, response_model_exclude_unset=True)
+        self.router.add_api_route(
+            "/{module_type}/{name}", self.get, methods=["GET"], rule=Policy.get, response_model_exclude_unset=True
+        )
+        self.router.add_api_route(
+            "", self.create, methods=["POST"], rule=Policy.create, status_code=201, response_model_exclude_unset=True
+        )
+        self.router.add_api_route(
+            "/{module_type}/{name}", self.put, methods=["PUT"], rule=Policy.put, response_model_exclude_unset=True
+        )
         self.router.add_api_route(
             "/{module_type}/{name}", self.delete, methods=["DELETE"], rule=Policy.delete, status_code=204
         )

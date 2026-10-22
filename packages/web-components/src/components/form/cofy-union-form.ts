@@ -17,16 +17,17 @@ import type { FieldRegistry } from "./field-registry.js";
 import { defaultFieldRegistry } from "./field-registry.js";
 import { CofyFormField } from "./form-field.js";
 import { isNever } from "./schema/never.js";
-import { isRecord } from "./schema/ref.js";
+import { deref, isRecord } from "./schema/ref.js";
 import { seedFromSchema } from "./schema/defaults.js";
 import {
+  constTagsOf,
   discriminatorOf,
   matchBranch,
   schemaTypeName,
   unionBranches,
   type Discriminator,
 } from "./schema/resolve.js";
-import { titleCase } from "./schema/summary.js";
+import { fieldDescription, titleCase } from "./schema/summary.js";
 
 /**
  * A `oneOf`/multi-branch `anyOf` field: its own details, a branch picker inside it,
@@ -81,7 +82,7 @@ export class CofyUnionForm extends CofyFormField {
               .value=${this.value}
               ?required=${this.required}
               .issues=${this.issues}
-              .hide=${discriminator ? [discriminator.propertyName] : []}
+              .hide=${discriminator ? [discriminator.propertyName] : constTagsOf(branches, this.root)}
               bare
             ></cofy-any-form>`}
       </div>
@@ -104,9 +105,8 @@ export class CofyUnionForm extends CofyFormField {
   private renderDiscriminated(discriminator: Discriminator): TemplateResult {
     const tag = isRecord(this.value) ? this.value[discriminator.propertyName] : undefined;
     // A tag whose branch nothing is valid against is not one to offer.
-    const options = Object.entries(discriminator.mapping)
-      .filter(([, ref]) => !isNever({ $ref: ref }, this.root))
-      .map(([option]) => option);
+    const options = Object.entries(discriminator.mapping).filter(([, ref]) => !isNever({ $ref: ref }, this.root));
+    const tags = options.map(([option]) => option);
 
     return html`
       <wa-select
@@ -115,16 +115,23 @@ export class CofyUnionForm extends CofyFormField {
         .value=${typeof tag === "string" ? tag : ""}
         lang=${this.i18n?.resolvedLanguage ?? "en"}
         ?required=${this.required}
-        ?disabled=${this.onlyChoice(options, typeof tag === "string" ? tag : undefined)}
+        ?disabled=${this.onlyChoice(tags, typeof tag === "string" ? tag : undefined)}
         @change=${(event: Event): void => this.chooseTag(event, discriminator)}
       >
         ${repeat(
           options,
-          (option) => option,
-          (option) => html`<wa-option value=${option}>${titleCase(option)}</wa-option>`,
+          ([option]) => option,
+          ([option, ref]) =>
+            html`<wa-option value=${option}>${this.optionLabel(titleCase(option), { $ref: ref })}</wa-option>`,
         )}
       </wa-select>
     `;
+  }
+
+  /** An option's *name*, followed by what its *branch* says it is, as the module type picker shows a type. */
+  private optionLabel(name: string, branch: JsonSchema): string {
+    const description = fieldDescription(deref(branch, this.root));
+    return description === "" ? name : `${name} — ${description}`;
   }
   
   /**
@@ -160,7 +167,7 @@ export class CofyUnionForm extends CofyFormField {
           branches,
           (branch, index) => this.optionValue(branch, index),
           (branch, index) => html`<wa-option value=${this.optionValue(branch, index)}
-            >${titleCase(schemaTypeName(branch) ?? String(index + 1))}</wa-option
+            >${this.optionLabel(titleCase(schemaTypeName(branch) ?? String(index + 1)), branch)}</wa-option
           >`,
         )}
       </wa-select>

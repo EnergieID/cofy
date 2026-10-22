@@ -123,6 +123,20 @@ def test_get_never_leaks_the_stored_secret(client: TestClient, tmp_data: Path):
     assert "secret-key" not in r.text
 
 
+def test_get_leaves_out_what_was_never_set(client: TestClient):
+    """Defaults the stored module doesn't set itself stay out of the response, so a form shows what was configured."""
+    r = client.get("/management/communities/test/modules/tariff/spot")
+    assert r.json() == {
+        "type": "tariff",
+        "name": "spot",
+        "source": {
+            "type": "entsoe_day_ahead",
+            "api_key": {"type": "secret", "name": "entsoe_key"},
+            "country_code": "BE",
+        },
+    }
+
+
 def test_get_unknown_module_returns_404(client: TestClient):
     r = client.get("/management/communities/test/modules/tariff/missing")
     assert r.status_code == 404
@@ -240,6 +254,25 @@ def test_put_persists_an_enum_setting(client: TestClient, tmp_data: Path):
 
     spot = next(m for m in _read_modules(tmp_data) if m["name"] == "spot")
     assert spot["source"]["cost_group"] == "injection"
+
+
+def test_put_stores_only_what_was_set(client: TestClient, tmp_data: Path):
+    """A tariff's defaults - empty cost groups, a formula's flags - are neither written nor sent back."""
+    payload = {
+        "type": "tariff",
+        "name": "spot",
+        "source": {
+            "type": "energy_cost",
+            "tariff": [
+                {"start": "2026-01-01T00:00:00Z", "consumption": {"total": {"kind": "index", "constant_cost": 2.0}}}
+            ],
+        },
+    }
+    r = client.put("/management/communities/test/modules/tariff/spot", json=payload)
+    assert r.status_code == 200, r.text
+    assert r.json() == payload
+
+    assert _read_modules(tmp_data) == [{"type": "billing", "name": "default"}, payload]
 
 
 def test_put_unknown_module_returns_404(client: TestClient):
