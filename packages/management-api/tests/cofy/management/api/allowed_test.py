@@ -257,6 +257,18 @@ def test_a_disallowed_source_type_cant_be_given_inline(client: TestClient):
     assert "'entsoe_day_ahead' is not allowed for community 'test'" in r.json()["detail"]
 
 
+def test_a_disallowed_member_source_type_cant_be_given_inline_or_held_by_a_resource(client: TestClient):
+    disallow(client, "member_source", "demo_members")
+    demo = {"type": "demo_members"}
+
+    module = client.post(f"{COMMUNITY}/modules", json={"type": "members", "name": "inline", "source": demo})
+    resource = client.post(f"{COMMUNITY}/resources", json={"type": "member_source", "name": "new", "value": demo})
+
+    assert module.status_code == 422
+    assert "'demo_members' is not allowed for community 'test'" in module.json()["detail"]
+    assert resource.status_code == 422
+
+
 def test_a_disallowed_source_type_cant_be_held_by_a_resource(client: TestClient):
     disallow(client, "source", "entsoe_day_ahead")
 
@@ -278,9 +290,9 @@ def test_the_source_kind_is_configurable_while_one_of_its_types_is(client: TestC
         if entry["group"] == "source" and entry["type"] != "entsoe_day_ahead":
             disallow(client, "source", entry["type"])
 
-    assert types(client, f"{COMMUNITY}/catalog/resources") == ["source", "tariff"]
+    assert types(client, f"{COMMUNITY}/catalog/resources") == ["member_source", "source", "tariff"]
     disallow(client, "source", "entsoe_day_ahead")
-    assert types(client, f"{COMMUNITY}/catalog/resources") == ["tariff"]
+    assert types(client, f"{COMMUNITY}/catalog/resources") == ["member_source", "tariff"]
 
 
 def test_the_schema_accepts_none_of_the_source_types_a_community_may_not_use(client: TestClient):

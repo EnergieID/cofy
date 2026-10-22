@@ -39,6 +39,36 @@ modules:
   type: tariff
 - name: default
   type: billing
+- description: Generated day-ahead prices.
+  name: demo
+  source:
+    noise: 0.1
+    type: demo_price
+  type: tariff
+- description: Generated solar production.
+  name: demo
+  source:
+    noise: 0.2
+    type: demo_production
+  type: production
+- description: Generated simultaneity.
+  name: demo
+  source:
+    noise: 0.1
+    type: demo_ratio
+  type: simultaneity
+- description: A directive following generated prices, between boundaries that change during the day.
+  name: demo
+  source:
+    boundary_source: { type: demo_boundary }
+    signal_source: { type: demo_price, noise: 0.1 }
+    type: dynamic_boundary_directive
+  type: directive
+- description: Example members.
+  name: demo
+  source:
+    type: demo_members
+  type: members
 title: demo
 type: cofy_api
 secrets:

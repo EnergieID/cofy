@@ -78,6 +78,17 @@ def test_a_tariff_resource_fills_every_tariff_referencing_it():
     assert type(tariff).__name__ == "Tariff"
 
 
+def test_a_member_source_resource_is_shared_by_every_members_module_referencing_it():
+    cofy = create(
+        config(
+            [module("members", "a", ref("members")), module("members", "b", ref("members"))],
+            [{"type": "member_source", "name": "members", "value": {"type": "demo_members"}}],
+        )
+    )
+
+    assert module_named(cofy, "a").source is module_named(cofy, "b").source
+
+
 def test_a_reference_accepts_a_resource_holding_any_member_of_its_family():
     """A directive takes any numeric source, so a resource holding prices fits it."""
     create(
@@ -105,12 +116,17 @@ def test_a_reference_accepts_a_resource_holding_any_member_of_its_family():
                     },
                 }
             ],
-            "'wind' holds a energyid_production source, where one of energy_cost, entsoe_day_ahead is expected",
+            "'wind' holds a energyid_production source, where one of demo_price, energy_cost, entsoe_day_ahead is expected",
         ),
         (
             [module("tariff", "prices", ref("dynamic"))],
             [{"type": "tariff", "name": "dynamic", "value": TARIFF}],
             "is a tariff",
+        ),
+        (
+            [module("members", "members", ref("prices"))],
+            [{"type": "source", "name": "prices", "value": entsoe()}],
+            "is a source",
         ),
         (
             [],
@@ -134,7 +150,7 @@ def test_a_reference_accepts_a_resource_holding_any_member_of_its_family():
             "cycle: a -> b -> a",
         ),
     ],
-    ids=["unknown", "wrong_family", "wrong_kind", "duplicate_name", "cycle"],
+    ids=["unknown", "wrong_family", "wrong_kind", "wrong_kind_for_members", "duplicate_name", "cycle"],
 )
 def test_references_that_dont_fit_a_resource_are_rejected(modules, resources, message):
     finalize()
@@ -168,7 +184,7 @@ def test_a_reference_tells_which_kinds_of_resource_it_accepts():
 
     assert tariff["properties"]["source"]["x-referable"] == {
         "kind": "source",
-        "types": ["energy_cost", "entsoe_day_ahead"],
+        "types": ["demo_price", "energy_cost", "entsoe_day_ahead"],
     }
     numeric = directive["$defs"]["DirectiveSourceSettings"]["properties"]["source"]["x-referable"]
     assert numeric["kind"] == "source"
@@ -208,5 +224,5 @@ def test_a_referable_field_stays_one_after_a_type_registers_late():
     value, ref = source["oneOf"]
 
     assert source["x-referable"]["kind"] == "source"
-    assert set(value["discriminator"]["mapping"]) == {"energy_cost", "entsoe_day_ahead"}
+    assert set(value["discriminator"]["mapping"]) == {"demo_price", "energy_cost", "entsoe_day_ahead"}
     assert ref == {"$ref": "#/$defs/RefSettings"}

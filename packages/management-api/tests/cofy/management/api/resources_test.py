@@ -141,7 +141,7 @@ def test_allowed_resources_lists_every_kind_with_its_schema(client: TestClient):
 
     assert r.status_code == 200
     kinds = {entry["type"]: entry for entry in r.json()}
-    assert {"tariff", "source"} == set(kinds)
+    assert {"tariff", "source", "member_source"} == set(kinds)
     assert kinds["source"]["description"] == "A timeseries source, built once and shared by every reference to it."
     value, _ref = kinds["source"]["schema"]["properties"]["value"]["oneOf"]
     assert "entsoe_day_ahead" in value["discriminator"]["mapping"]

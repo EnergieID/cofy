@@ -100,7 +100,8 @@ being able to see at least one; anyone else is refused, as for a community they 
 
 System admins restrict which types each community may use. A type belongs to a group: a module type (`module`), a
 kind of resource holding one type of value (`resource`, such as `tariff`), or a member of the family a kind of
-resource holds (named after that kind: `source`, such as `entsoe_day_ahead`). Each type is available by default or
+resource holds (named after that kind: `source`, such as `entsoe_day_ahead`, or `member_source`, such as
+`demo_members`). Each type is available by default or
 not, and its exceptions are the communities for which the opposite holds; a type that isn't listed is available
 everywhere. They are kept in `access/allowed.yaml` in the data directory, apart from the community configs, as they
 are not the community's to change:

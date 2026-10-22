@@ -11,6 +11,8 @@ from pathlib import Path
 
 import pytest
 import yaml
+from cofy.integrations.demo import DemoMembersSourceSettings
+from cofy.modules.members import Member
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -154,6 +156,18 @@ def test_create_new_module(client: TestClient, tmp_data: Path):
     # Verify the file was updated
     saved = _read_modules(tmp_data)
     assert any(m["type"] == "billing" and m["name"] == "extra" for m in saved)
+
+
+def test_create_persists_the_defaults_the_schema_offers(client: TestClient):
+    """As the console starts a new module from them, including a field that is `null` by default."""
+    members = DemoMembersSourceSettings.model_json_schema()["properties"]["members"]["default"]
+    payload = {"type": "members", "name": "demo", "source": {"type": "demo_members", "members": members}}
+
+    r = client.post("/management/communities/test/modules", json=payload)
+
+    assert r.status_code == 201, r.text
+    stored = client.get("/management/communities/test/modules/members/demo").json()["source"]["members"]
+    assert [Member.model_validate(member) for member in stored] == [Member.model_validate(member) for member in members]
 
 
 def test_create_duplicate_module_returns_409(client: TestClient):

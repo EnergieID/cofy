@@ -263,6 +263,8 @@ form:
   time: Time
   utcOffset: Offset from UTC
   utcOffsetSign: Ahead of or behind UTC
+  identifierName: Name
+  identifierId: ID
   durationUnit: Unit
   durationUnits:
     seconds: seconds
