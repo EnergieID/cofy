@@ -292,6 +292,12 @@ billing = [
 debug = [
     { name = "yappi" },
 ]
+demo = [
+    { name = "energy-cost" },
+    { name = "isodate" },
+    { name = "narwhals" },
+    { name = "polars" },
+]
 directive = [
     { name = "isodate" },
     { name = "narwhals" },
@@ -352,12 +358,13 @@ requires-dist = [
     { name = "cofy-api", extras = ["simultaneity"], marker = "extra == 'acc'" },
     { name = "cofy-api", extras = ["tariff"], marker = "extra == 'energy-cost'" },
     { name = "cofy-api", extras = ["tariff"], marker = "extra == 'entsoe'" },
+    { name = "cofy-api", extras = ["tariff", "production", "directive", "simultaneity", "members"], marker = "extra == 'demo'" },
     { name = "cofy-api", extras = ["timeseries"], marker = "extra == 'billing'" },
     { name = "cofy-api", extras = ["timeseries"], marker = "extra == 'directive'" },
     { name = "cofy-api", extras = ["timeseries"], marker = "extra == 'production'" },
     { name = "cofy-api", extras = ["timeseries"], marker = "extra == 'simultaneity'" },
     { name = "cofy-api", extras = ["timeseries"], marker = "extra == 'tariff'" },
-    { name = "cofy-api", extras = ["timeseries", "tariff", "members", "production", "directive", "simultaneity", "billing", "entsoe", "energy-cost", "energyid", "acc", "debug"], marker = "extra == 'all'" },
+    { name = "cofy-api", extras = ["timeseries", "tariff", "members", "production", "directive", "simultaneity", "billing", "entsoe", "energy-cost", "energyid", "acc", "demo", "debug"], marker = "extra == 'all'" },
     { name = "energy-cost", marker = "extra == 'billing'", specifier = ">=0.7.0" },
     { name = "energy-cost", marker = "extra == 'energy-cost'", specifier = "==0.7.0" },
     { name = "energy-cost", marker = "extra == 'members'", specifier = "==0.7.0" },
@@ -372,6 +379,7 @@ requires-dist = [
     { name = "pandas", marker = "extra == 'energy-cost'", specifier = ">=3.0.0" },
     { name = "pandas", marker = "extra == 'entsoe'", specifier = ">=3.0.0" },
     { name = "polars", marker = "extra == 'acc'", specifier = ">=1.38.1" },
+    { name = "polars", marker = "extra == 'demo'", specifier = ">=1.38.1" },
     { name = "polars", marker = "extra == 'energyid'", specifier = ">=1.38.1" },
     { name = "pydantic", specifier = ">=2.0.0" },
     { name = "pydantic-core", specifier = ">=2.0.0" },
@@ -380,7 +388,7 @@ requires-dist = [
     { name = "starlette", specifier = ">=0.41.0" },
     { name = "yappi", marker = "extra == 'debug'", specifier = ">=1.7.6" },
 ]
-provides-extras = ["timeseries", "tariff", "billing", "production", "members", "directive", "simultaneity", "entsoe", "energy-cost", "energyid", "acc", "debug", "all"]
+provides-extras = ["timeseries", "tariff", "billing", "production", "members", "directive", "simultaneity", "entsoe", "energy-cost", "energyid", "acc", "demo", "debug", "all"]
 
 [package.metadata.requires-dev]
 dev = [

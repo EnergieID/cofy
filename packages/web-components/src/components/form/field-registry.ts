@@ -14,6 +14,7 @@ import { CofyDictForm } from "./cofy-dict-form.js";
 import { CofyDurationForm } from "./cofy-duration-form.js";
 import { CofyEnumForm } from "./cofy-enum-form.js";
 import { CofyListForm } from "./cofy-list-form.js";
+import { CofyNamedIdentifierForm } from "./cofy-named-identifier-form.js";
 import { CofyNeverForm } from "./cofy-never-form.js";
 import { CofyNumberForm } from "./cofy-number-form.js";
 import { CofyObjectForm } from "./cofy-object-form.js";
@@ -155,6 +156,14 @@ export const defaultFieldMappers: readonly FieldMapper[] = [
     kind: "input",
     // Ahead of the object mapper: a reference to a secret is an object too, but only its name is chosen.
     matches: (node: JsonSchema): boolean => node["x-secret"] === true,
+    summarize: (value: unknown): string | undefined => (isRecord(value) ? primitiveText(value["name"]) : undefined),
+  },
+  {
+    tag: "cofy-named-identifier-form",
+    component: CofyNamedIdentifierForm,
+    kind: "input",
+    // Ahead of the object mapper: an entry of a list is an object too, but is shown by its name.
+    matches: (node: JsonSchema): boolean => node["x-named-identifier"] === true,
     summarize: (value: unknown): string | undefined => (isRecord(value) ? primitiveText(value["name"]) : undefined),
   },
   {

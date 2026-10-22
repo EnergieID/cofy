@@ -461,6 +461,7 @@ export interface components {
             credentials: components["schemas"]["SecretRef"];
             /**
              * Base Url
+             * @description The address of the ACC service.
              * @default https://connection-usage-service-prd-730943142752.europe-west1.run.app
              */
             base_url?: string;
@@ -479,6 +480,7 @@ export interface components {
             credentials: components["schemas"]["SecretRef"];
             /**
              * Base Url
+             * @description The address of the ACC service.
              * @default https://connection-usage-service-prd-730943142752.europe-west1.run.app
              */
             base_url?: string;
@@ -489,6 +491,11 @@ export interface components {
          * @enum {string}
          */
         Action: "read" | "write";
+        /** Address */
+        Address: {
+            /** Contracts */
+            contracts?: components["schemas"]["Contract"][];
+        };
         /**
          * AllowedBody
          * @description Whether a community may use a type.
@@ -541,26 +548,6 @@ export interface components {
              * @description A short description of the module instance. If not provided, the module type description will be used.
              */
             description?: string | null;
-        };
-        /** BoundarySourceSettings */
-        "BoundarySourceSettings-Input": {
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            type: "boundary_source";
-            /** @description Cache what this source fetches, if set. */
-            cache?: components["schemas"]["CacheSettings-Input"] | null;
-        };
-        /** BoundarySourceSettings */
-        "BoundarySourceSettings-Output": {
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            type: "boundary_source";
-            /** @description Cache what this source fetches, if set. */
-            cache?: components["schemas"]["CacheSettings-Output"] | null;
         };
         /** CSVFormatSettings */
         CSVFormatSettings: {
@@ -795,6 +782,39 @@ export interface components {
             description: string;
         };
         /**
+         * ConnectionType
+         * @enum {string}
+         */
+        ConnectionType: "electricity" | "gas";
+        /** Contract */
+        Contract: {
+            /**
+             * Ean
+             * @description European Article Number
+             */
+            ean: string;
+            customer_type: components["schemas"]["CustomerType"];
+            connection_type: components["schemas"]["ConnectionType"];
+            supplier: components["schemas"]["NamedIdentifier"];
+            product: components["schemas"]["NamedIdentifier"];
+            distributor: components["schemas"]["NamedIdentifier"];
+            region: components["schemas"]["NamedIdentifier"];
+            /**
+             * Start Date
+             * Format: date-time
+             */
+            start_date: string;
+            /** End Date */
+            end_date?: string | null;
+            /** Last Invoice Date */
+            last_invoice_date?: string | null;
+            /**
+             * Is Green
+             * @description Indicates if the contract guarantees green energy
+             */
+            is_green: boolean;
+        };
+        /**
          * CostGroup
          * @enum {string}
          */
@@ -817,10 +837,674 @@ export interface components {
             key: string;
         };
         /**
+         * CustomerType
+         * @enum {string}
+         */
+        CustomerType: "residential" | "non_residential" | "protected";
+        /**
          * DayOfWeek
          * @enum {string}
          */
         DayOfWeek: "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
+        /** DemoBoundarySourceSettings */
+        "DemoBoundarySourceSettings-Input": {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "demo_boundary";
+            /** @description Cache what this source fetches, if set. */
+            cache?: components["schemas"]["CacheSettings-Input"] | null;
+            /**
+             * Pattern
+             * @description The values, spread evenly over each period.
+             * @default [
+             *       [
+             *         60,
+             *         75,
+             *         90,
+             *         110
+             *       ],
+             *       [
+             *         80,
+             *         100,
+             *         120,
+             *         140
+             *       ],
+             *       [
+             *         40,
+             *         55,
+             *         70,
+             *         90
+             *       ],
+             *       [
+             *         90,
+             *         110,
+             *         130,
+             *         150
+             *       ]
+             *     ]
+             */
+            pattern?: [
+                number,
+                number,
+                number,
+                number
+            ][];
+            /**
+             * Period
+             * Format: duration
+             * @description How long it takes the pattern to repeat.
+             * @default P1D
+             * @example PT15M
+             * @example P1D
+             */
+            period?: string;
+        };
+        /** DemoBoundarySourceSettings */
+        "DemoBoundarySourceSettings-Output": {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "demo_boundary";
+            /** @description Cache what this source fetches, if set. */
+            cache?: components["schemas"]["CacheSettings-Output"] | null;
+            /**
+             * Pattern
+             * @description The values, spread evenly over each period.
+             * @default [
+             *       [
+             *         60,
+             *         75,
+             *         90,
+             *         110
+             *       ],
+             *       [
+             *         80,
+             *         100,
+             *         120,
+             *         140
+             *       ],
+             *       [
+             *         40,
+             *         55,
+             *         70,
+             *         90
+             *       ],
+             *       [
+             *         90,
+             *         110,
+             *         130,
+             *         150
+             *       ]
+             *     ]
+             */
+            pattern?: [
+                number,
+                number,
+                number,
+                number
+            ][];
+            /**
+             * Period
+             * @description How long it takes the pattern to repeat.
+             * @default P1D
+             * @example PT15M
+             * @example P1D
+             */
+            period?: string;
+        };
+        /** DemoMembersSourceSettings */
+        DemoMembersSourceSettings: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "demo_members";
+            /**
+             * Members
+             * @description The members.
+             * @default [
+             *       {
+             *         "id": "M001",
+             *         "activation_code": "ACT-M001",
+             *         "addresses": [
+             *           {
+             *             "contracts": [
+             *               {
+             *                 "connection_type": "electricity",
+             *                 "customer_type": "residential",
+             *                 "distributor": {
+             *                   "id": "fluvius_antwerpen",
+             *                   "name": "Fluvius Antwerpen"
+             *                 },
+             *                 "ean": "541448820059478667",
+             *                 "is_green": false,
+             *                 "product": {
+             *                   "id": "variable",
+             *                   "name": "Variable"
+             *                 },
+             *                 "region": {
+             *                   "id": "be_flanders",
+             *                   "name": "Flanders"
+             *                 },
+             *                 "start_date": "2012-01-21T00:00:00+01:00",
+             *                 "supplier": {
+             *                   "id": "eb",
+             *                   "name": "Energie Belgie"
+             *                 }
+             *               },
+             *               {
+             *                 "connection_type": "gas",
+             *                 "customer_type": "residential",
+             *                 "distributor": {
+             *                   "id": "fluvius_kempen",
+             *                   "name": "Fluvius Kempen"
+             *                 },
+             *                 "ean": "541100000002",
+             *                 "end_date": "2017-12-13T00:00:00+01:00",
+             *                 "is_green": false,
+             *                 "last_invoice_date": "2017-11-01T00:00:00+01:00",
+             *                 "product": {
+             *                   "id": "basic",
+             *                   "name": "EB Basic Gas"
+             *                 },
+             *                 "region": {
+             *                   "id": "be_flanders",
+             *                   "name": "Flanders"
+             *                 },
+             *                 "start_date": "2012-01-21T00:00:00+01:00",
+             *                 "supplier": {
+             *                   "id": "eb",
+             *                   "name": "Energie Belgie"
+             *                 }
+             *               }
+             *             ]
+             *           }
+             *         ]
+             *       },
+             *       {
+             *         "id": "M002",
+             *         "activation_code": "ACT-M002",
+             *         "addresses": [
+             *           {
+             *             "contracts": [
+             *               {
+             *                 "connection_type": "electricity",
+             *                 "customer_type": "non_residential",
+             *                 "distributor": {
+             *                   "id": "fluvius_west",
+             *                   "name": "Fluvius West"
+             *                 },
+             *                 "ean": "542700000001",
+             *                 "is_green": true,
+             *                 "product": {
+             *                   "id": "fixed",
+             *                   "name": "Fixed"
+             *                 },
+             *                 "region": {
+             *                   "id": "be_flanders",
+             *                   "name": "Flanders"
+             *                 },
+             *                 "start_date": "2025-02-15T00:00:00+01:00",
+             *                 "supplier": {
+             *                   "id": "eb",
+             *                   "name": "Energie Belgie"
+             *                 }
+             *               }
+             *             ]
+             *           }
+             *         ]
+             *       }
+             *     ]
+             */
+            members?: components["schemas"]["Member"][];
+        };
+        /** DemoNetVolumeSourceSettings */
+        "DemoNetVolumeSourceSettings-Input": {
+            /**
+             * Period
+             * Format: duration
+             * @description How long it takes the pattern to repeat.
+             * @default P1D
+             * @example PT15M
+             * @example P1D
+             */
+            period?: string;
+            /**
+             * Noise
+             * @description Random variation of each value, as a fraction of it.
+             * @default 0
+             */
+            noise?: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "demo_net_volume";
+            /** @description Cache what this source fetches, if set. */
+            cache?: components["schemas"]["CacheSettings-Input"] | null;
+            /**
+             * Pattern
+             * @description The values, spread evenly over each period.
+             * @default [
+             *       0.4,
+             *       0.3,
+             *       0.3,
+             *       0.3,
+             *       0.3,
+             *       0.4,
+             *       0.6,
+             *       0.5,
+             *       -0.2,
+             *       -0.8,
+             *       -1.4,
+             *       -1.7,
+             *       -1.8,
+             *       -1.6,
+             *       -1.2,
+             *       -0.6,
+             *       0.1,
+             *       0.8,
+             *       1.2,
+             *       1.1,
+             *       0.9,
+             *       0.7,
+             *       0.6,
+             *       0.5
+             *     ]
+             */
+            pattern?: number[];
+        };
+        /** DemoNetVolumeSourceSettings */
+        "DemoNetVolumeSourceSettings-Output": {
+            /**
+             * Period
+             * @description How long it takes the pattern to repeat.
+             * @default P1D
+             * @example PT15M
+             * @example P1D
+             */
+            period?: string;
+            /**
+             * Noise
+             * @description Random variation of each value, as a fraction of it.
+             * @default 0
+             */
+            noise?: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "demo_net_volume";
+            /** @description Cache what this source fetches, if set. */
+            cache?: components["schemas"]["CacheSettings-Output"] | null;
+            /**
+             * Pattern
+             * @description The values, spread evenly over each period.
+             * @default [
+             *       0.4,
+             *       0.3,
+             *       0.3,
+             *       0.3,
+             *       0.3,
+             *       0.4,
+             *       0.6,
+             *       0.5,
+             *       -0.2,
+             *       -0.8,
+             *       -1.4,
+             *       -1.7,
+             *       -1.8,
+             *       -1.6,
+             *       -1.2,
+             *       -0.6,
+             *       0.1,
+             *       0.8,
+             *       1.2,
+             *       1.1,
+             *       0.9,
+             *       0.7,
+             *       0.6,
+             *       0.5
+             *     ]
+             */
+            pattern?: number[];
+        };
+        /** DemoPriceSourceSettings */
+        "DemoPriceSourceSettings-Input": {
+            /**
+             * Period
+             * Format: duration
+             * @description How long it takes the pattern to repeat.
+             * @default P1D
+             * @example PT15M
+             * @example P1D
+             */
+            period?: string;
+            /**
+             * Noise
+             * @description Random variation of each value, as a fraction of it.
+             * @default 0
+             */
+            noise?: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "demo_price";
+            /** @description Cache what this source fetches, if set. */
+            cache?: components["schemas"]["CacheSettings-Input"] | null;
+            /**
+             * Pattern
+             * @description The values, spread evenly over each period.
+             * @default [
+             *       85,
+             *       80,
+             *       76,
+             *       74,
+             *       75,
+             *       82,
+             *       98,
+             *       118,
+             *       115,
+             *       95,
+             *       72,
+             *       55,
+             *       45,
+             *       42,
+             *       50,
+             *       68,
+             *       92,
+             *       125,
+             *       140,
+             *       128,
+             *       110,
+             *       98,
+             *       92,
+             *       88
+             *     ]
+             */
+            pattern?: number[];
+        };
+        /** DemoPriceSourceSettings */
+        "DemoPriceSourceSettings-Output": {
+            /**
+             * Period
+             * @description How long it takes the pattern to repeat.
+             * @default P1D
+             * @example PT15M
+             * @example P1D
+             */
+            period?: string;
+            /**
+             * Noise
+             * @description Random variation of each value, as a fraction of it.
+             * @default 0
+             */
+            noise?: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "demo_price";
+            /** @description Cache what this source fetches, if set. */
+            cache?: components["schemas"]["CacheSettings-Output"] | null;
+            /**
+             * Pattern
+             * @description The values, spread evenly over each period.
+             * @default [
+             *       85,
+             *       80,
+             *       76,
+             *       74,
+             *       75,
+             *       82,
+             *       98,
+             *       118,
+             *       115,
+             *       95,
+             *       72,
+             *       55,
+             *       45,
+             *       42,
+             *       50,
+             *       68,
+             *       92,
+             *       125,
+             *       140,
+             *       128,
+             *       110,
+             *       98,
+             *       92,
+             *       88
+             *     ]
+             */
+            pattern?: number[];
+        };
+        /** DemoProductionSourceSettings */
+        "DemoProductionSourceSettings-Input": {
+            /**
+             * Period
+             * Format: duration
+             * @description How long it takes the pattern to repeat.
+             * @default P1D
+             * @example PT15M
+             * @example P1D
+             */
+            period?: string;
+            /**
+             * Noise
+             * @description Random variation of each value, as a fraction of it.
+             * @default 0
+             */
+            noise?: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "demo_production";
+            /** @description Cache what this source fetches, if set. */
+            cache?: components["schemas"]["CacheSettings-Input"] | null;
+            /**
+             * Pattern
+             * @description The values, spread evenly over each period.
+             * @default [
+             *       0,
+             *       0,
+             *       0,
+             *       0,
+             *       0,
+             *       0.1,
+             *       0.4,
+             *       0.9,
+             *       1.5,
+             *       2.1,
+             *       2.6,
+             *       2.9,
+             *       3,
+             *       2.8,
+             *       2.4,
+             *       1.8,
+             *       1.1,
+             *       0.5,
+             *       0.1,
+             *       0,
+             *       0,
+             *       0,
+             *       0,
+             *       0
+             *     ]
+             */
+            pattern?: number[];
+        };
+        /** DemoProductionSourceSettings */
+        "DemoProductionSourceSettings-Output": {
+            /**
+             * Period
+             * @description How long it takes the pattern to repeat.
+             * @default P1D
+             * @example PT15M
+             * @example P1D
+             */
+            period?: string;
+            /**
+             * Noise
+             * @description Random variation of each value, as a fraction of it.
+             * @default 0
+             */
+            noise?: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "demo_production";
+            /** @description Cache what this source fetches, if set. */
+            cache?: components["schemas"]["CacheSettings-Output"] | null;
+            /**
+             * Pattern
+             * @description The values, spread evenly over each period.
+             * @default [
+             *       0,
+             *       0,
+             *       0,
+             *       0,
+             *       0,
+             *       0.1,
+             *       0.4,
+             *       0.9,
+             *       1.5,
+             *       2.1,
+             *       2.6,
+             *       2.9,
+             *       3,
+             *       2.8,
+             *       2.4,
+             *       1.8,
+             *       1.1,
+             *       0.5,
+             *       0.1,
+             *       0,
+             *       0,
+             *       0,
+             *       0,
+             *       0
+             *     ]
+             */
+            pattern?: number[];
+        };
+        /** DemoRatioSourceSettings */
+        "DemoRatioSourceSettings-Input": {
+            /**
+             * Period
+             * Format: duration
+             * @description How long it takes the pattern to repeat.
+             * @default P1D
+             * @example PT15M
+             * @example P1D
+             */
+            period?: string;
+            /**
+             * Noise
+             * @description Random variation of each value, as a fraction of it.
+             * @default 0
+             */
+            noise?: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "demo_ratio";
+            /** @description Cache what this source fetches, if set. */
+            cache?: components["schemas"]["CacheSettings-Input"] | null;
+            /**
+             * Pattern
+             * @description The values, spread evenly over each period.
+             * @default [
+             *       180,
+             *       175,
+             *       170,
+             *       170,
+             *       170,
+             *       160,
+             *       140,
+             *       120,
+             *       100,
+             *       85,
+             *       70,
+             *       60,
+             *       55,
+             *       58,
+             *       65,
+             *       80,
+             *       100,
+             *       125,
+             *       150,
+             *       170,
+             *       180,
+             *       185,
+             *       185,
+             *       180
+             *     ]
+             */
+            pattern?: number[];
+        };
+        /** DemoRatioSourceSettings */
+        "DemoRatioSourceSettings-Output": {
+            /**
+             * Period
+             * @description How long it takes the pattern to repeat.
+             * @default P1D
+             * @example PT15M
+             * @example P1D
+             */
+            period?: string;
+            /**
+             * Noise
+             * @description Random variation of each value, as a fraction of it.
+             * @default 0
+             */
+            noise?: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "demo_ratio";
+            /** @description Cache what this source fetches, if set. */
+            cache?: components["schemas"]["CacheSettings-Output"] | null;
+            /**
+             * Pattern
+             * @description The values, spread evenly over each period.
+             * @default [
+             *       180,
+             *       175,
+             *       170,
+             *       170,
+             *       170,
+             *       160,
+             *       140,
+             *       120,
+             *       100,
+             *       85,
+             *       70,
+             *       60,
+             *       55,
+             *       58,
+             *       65,
+             *       80,
+             *       100,
+             *       125,
+             *       150,
+             *       170,
+             *       180,
+             *       185,
+             *       185,
+             *       180
+             *     ]
+             */
+            pattern?: number[];
+        };
         /** DirectiveFormatSettings */
         DirectiveFormatSettings: {
             /**
@@ -854,7 +1538,10 @@ export interface components {
             description?: string | null;
             /** Source */
             source: (components["schemas"]["DirectiveSourceSettings-Input"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Input"]) | components["schemas"]["RefSettings"];
-            /** Formats */
+            /**
+             * Formats
+             * @description The formats the data is offered in. Defaults to the directive format.
+             */
             formats?: (components["schemas"]["JSONFormatSettings"] | components["schemas"]["CSVFormatSettings"] | components["schemas"]["DirectiveFormatSettings"])[] | null;
         };
         /** DirectiveModuleSettings */
@@ -882,7 +1569,10 @@ export interface components {
             description?: string | null;
             /** Source */
             source: (components["schemas"]["DirectiveSourceSettings-Output"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Output"]) | components["schemas"]["RefSettings"];
-            /** Formats */
+            /**
+             * Formats
+             * @description The formats the data is offered in. Defaults to the directive format.
+             */
             formats?: (components["schemas"]["JSONFormatSettings"] | components["schemas"]["CSVFormatSettings"] | components["schemas"]["DirectiveFormatSettings"])[] | null;
         };
         /** DirectiveSourceSettings */
@@ -895,7 +1585,7 @@ export interface components {
             /** @description Cache what this source fetches, if set. */
             cache?: components["schemas"]["CacheSettings-Input"] | null;
             /** Source */
-            source: (components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"]) | components["schemas"]["RefSettings"];
+            source: (components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["DemoNetVolumeSourceSettings-Input"] | components["schemas"]["DemoPriceSourceSettings-Input"] | components["schemas"]["DemoProductionSourceSettings-Input"] | components["schemas"]["DemoRatioSourceSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"]) | components["schemas"]["RefSettings"];
             /** Boundaries */
             boundaries: [
                 number,
@@ -919,7 +1609,7 @@ export interface components {
             /** @description Cache what this source fetches, if set. */
             cache?: components["schemas"]["CacheSettings-Output"] | null;
             /** Source */
-            source: (components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"]) | components["schemas"]["RefSettings"];
+            source: (components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["DemoNetVolumeSourceSettings-Output"] | components["schemas"]["DemoPriceSourceSettings-Output"] | components["schemas"]["DemoProductionSourceSettings-Output"] | components["schemas"]["DemoRatioSourceSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"]) | components["schemas"]["RefSettings"];
             /** Boundaries */
             boundaries: [
                 number,
@@ -943,9 +1633,9 @@ export interface components {
             /** @description Cache what this source fetches, if set. */
             cache?: components["schemas"]["CacheSettings-Input"] | null;
             /** Signal Source */
-            signal_source: (components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"]) | components["schemas"]["RefSettings"];
+            signal_source: (components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["DemoNetVolumeSourceSettings-Input"] | components["schemas"]["DemoPriceSourceSettings-Input"] | components["schemas"]["DemoProductionSourceSettings-Input"] | components["schemas"]["DemoRatioSourceSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"]) | components["schemas"]["RefSettings"];
             /** Boundary Source */
-            boundary_source: components["schemas"]["BoundarySourceSettings-Input"] | components["schemas"]["RefSettings"];
+            boundary_source: components["schemas"]["DemoBoundarySourceSettings-Input"] | components["schemas"]["RefSettings"];
             /**
              * Reverse
              * @default false
@@ -962,9 +1652,9 @@ export interface components {
             /** @description Cache what this source fetches, if set. */
             cache?: components["schemas"]["CacheSettings-Output"] | null;
             /** Signal Source */
-            signal_source: (components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"]) | components["schemas"]["RefSettings"];
+            signal_source: (components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["DemoNetVolumeSourceSettings-Output"] | components["schemas"]["DemoPriceSourceSettings-Output"] | components["schemas"]["DemoProductionSourceSettings-Output"] | components["schemas"]["DemoRatioSourceSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"]) | components["schemas"]["RefSettings"];
             /** Boundary Source */
-            boundary_source: components["schemas"]["BoundarySourceSettings-Output"] | components["schemas"]["RefSettings"];
+            boundary_source: components["schemas"]["DemoBoundarySourceSettings-Output"] | components["schemas"]["RefSettings"];
             /**
              * Reverse
              * @default false
@@ -1133,6 +1823,7 @@ export interface components {
             type: "kiwatt";
             /**
              * Source
+             * @description The source named in the data sent to Kiwatt.
              * @default Cofy-API-Demo
              */
             source?: string;
@@ -1204,13 +1895,37 @@ export interface components {
              */
             permissions: components["schemas"]["CommunityPermissions"][];
         };
-        /** MemberSourceSettings */
-        MemberSourceSettings: {
+        /** Member */
+        Member: {
+            /** Id */
+            id: string;
+            /**
+             * Activation Code
+             * @description Activation code used to verify membership
+             */
+            activation_code?: string | null;
+            /** Addresses */
+            addresses?: components["schemas"]["Address"][];
+        };
+        /** MemberSourceResourceSettings */
+        MemberSourceResourceSettings: {
             /**
              * @description discriminator enum property added by openapi-typescript
              * @enum {string}
              */
-            type: "member";
+            type: "member_source";
+            /**
+             * Name
+             * @description The machine name of the resource, by which it is referenced. No spaces, no special characters.
+             */
+            name: string;
+            /**
+             * Description
+             * @description A short description of the resource.
+             */
+            description?: string | null;
+            /** Value */
+            value: components["schemas"]["DemoMembersSourceSettings"] | components["schemas"]["RefSettings"];
         };
         /** MembersModuleSettings */
         MembersModuleSettings: {
@@ -1236,7 +1951,7 @@ export interface components {
              */
             description?: string | null;
             /** Source */
-            source: components["schemas"]["MemberSourceSettings"];
+            source: components["schemas"]["DemoMembersSourceSettings"] | components["schemas"]["RefSettings"];
         };
         /**
          * MeterType
@@ -1335,6 +2050,19 @@ export interface components {
             /** Minimum */
             minimum?: (components["schemas"]["IndexFormula"] | components["schemas"]["PeriodicFormula"] | components["schemas"]["ScheduledFormulas-Output"] | components["schemas"]["TieredFormula-Output"] | components["schemas"]["MinimumFormula-Output"] | components["schemas"]["MaximumFormula-Output"] | components["schemas"]["MeterTypeFormula-Output"])[];
         };
+        /** NamedIdentifier */
+        NamedIdentifier: {
+            /**
+             * Name
+             * @description Human-readable name
+             */
+            name: string;
+            /**
+             * Id
+             * @description Unique identifier
+             */
+            id: string;
+        };
         /** PeriodicFormula */
         PeriodicFormula: {
             /**
@@ -1389,8 +2117,11 @@ export interface components {
              */
             description?: string | null;
             /** Source */
-            source: components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["RefSettings"];
-            /** Formats */
+            source: (components["schemas"]["DemoProductionSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"]) | components["schemas"]["RefSettings"];
+            /**
+             * Formats
+             * @description The formats the data is offered in. Defaults to JSON and CSV.
+             */
             formats?: (components["schemas"]["JSONFormatSettings"] | components["schemas"]["CSVFormatSettings"])[] | null;
         };
         /** ProductionModuleSettings */
@@ -1417,8 +2148,11 @@ export interface components {
              */
             description?: string | null;
             /** Source */
-            source: components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["RefSettings"];
-            /** Formats */
+            source: (components["schemas"]["DemoProductionSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"]) | components["schemas"]["RefSettings"];
+            /**
+             * Formats
+             * @description The formats the data is offered in. Defaults to JSON and CSV.
+             */
             formats?: (components["schemas"]["JSONFormatSettings"] | components["schemas"]["CSVFormatSettings"])[] | null;
         };
         /**
@@ -1568,8 +2302,11 @@ export interface components {
              */
             description?: string | null;
             /** Source */
-            source: components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["RefSettings"];
-            /** Formats */
+            source: (components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["DemoRatioSourceSettings-Input"]) | components["schemas"]["RefSettings"];
+            /**
+             * Formats
+             * @description The formats the data is offered in. Defaults to JSON and CSV.
+             */
             formats?: (components["schemas"]["JSONFormatSettings"] | components["schemas"]["CSVFormatSettings"])[] | null;
         };
         /** SimultaneityModuleSettings */
@@ -1596,8 +2333,11 @@ export interface components {
              */
             description?: string | null;
             /** Source */
-            source: components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["RefSettings"];
-            /** Formats */
+            source: (components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["DemoRatioSourceSettings-Output"]) | components["schemas"]["RefSettings"];
+            /**
+             * Formats
+             * @description The formats the data is offered in. Defaults to JSON and CSV.
+             */
             formats?: (components["schemas"]["JSONFormatSettings"] | components["schemas"]["CSVFormatSettings"])[] | null;
         };
         /** SimultaneitySourceSettings */
@@ -1610,7 +2350,7 @@ export interface components {
             /** @description Cache what this source fetches, if set. */
             cache?: components["schemas"]["CacheSettings-Input"] | null;
             /** Sources */
-            sources: (components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["RefSettings"])[];
+            sources: ((components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["DemoNetVolumeSourceSettings-Input"]) | components["schemas"]["RefSettings"])[];
         };
         /** SimultaneitySourceSettings */
         "SimultaneitySourceSettings-Output": {
@@ -1622,7 +2362,7 @@ export interface components {
             /** @description Cache what this source fetches, if set. */
             cache?: components["schemas"]["CacheSettings-Output"] | null;
             /** Sources */
-            sources: (components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["RefSettings"])[];
+            sources: ((components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["DemoNetVolumeSourceSettings-Output"]) | components["schemas"]["RefSettings"])[];
         };
         /** SourceResourceSettings */
         "SourceResourceSettings-Input": {
@@ -1642,7 +2382,7 @@ export interface components {
              */
             description?: string | null;
             /** Value */
-            value: (components["schemas"]["DirectiveSourceSettings-Input"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Input"] | components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"]) | components["schemas"]["RefSettings"];
+            value: (components["schemas"]["DirectiveSourceSettings-Input"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Input"] | components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["DemoBoundarySourceSettings-Input"] | components["schemas"]["DemoNetVolumeSourceSettings-Input"] | components["schemas"]["DemoPriceSourceSettings-Input"] | components["schemas"]["DemoProductionSourceSettings-Input"] | components["schemas"]["DemoRatioSourceSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"]) | components["schemas"]["RefSettings"];
         };
         /** SourceResourceSettings */
         "SourceResourceSettings-Output": {
@@ -1662,7 +2402,7 @@ export interface components {
              */
             description?: string | null;
             /** Value */
-            value: (components["schemas"]["DirectiveSourceSettings-Output"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Output"] | components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"]) | components["schemas"]["RefSettings"];
+            value: (components["schemas"]["DirectiveSourceSettings-Output"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Output"] | components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["DemoBoundarySourceSettings-Output"] | components["schemas"]["DemoNetVolumeSourceSettings-Output"] | components["schemas"]["DemoPriceSourceSettings-Output"] | components["schemas"]["DemoProductionSourceSettings-Output"] | components["schemas"]["DemoRatioSourceSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"]) | components["schemas"]["RefSettings"];
         };
         /**
          * Subject
@@ -1698,8 +2438,11 @@ export interface components {
              */
             description?: string | null;
             /** Source */
-            source: (components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"]) | components["schemas"]["RefSettings"];
-            /** Formats */
+            source: (components["schemas"]["DemoPriceSourceSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"]) | components["schemas"]["RefSettings"];
+            /**
+             * Formats
+             * @description The formats the data is offered in. Defaults to JSON and CSV.
+             */
             formats?: (components["schemas"]["JSONFormatSettings"] | components["schemas"]["CSVFormatSettings"] | components["schemas"]["KiwattFormatSettings"])[] | null;
         };
         /** TariffModuleSettings */
@@ -1726,8 +2469,11 @@ export interface components {
              */
             description?: string | null;
             /** Source */
-            source: (components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"]) | components["schemas"]["RefSettings"];
-            /** Formats */
+            source: (components["schemas"]["DemoPriceSourceSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"]) | components["schemas"]["RefSettings"];
+            /**
+             * Formats
+             * @description The formats the data is offered in. Defaults to JSON and CSV.
+             */
             formats?: (components["schemas"]["JSONFormatSettings"] | components["schemas"]["CSVFormatSettings"] | components["schemas"]["KiwattFormatSettings"])[] | null;
         };
         /** TariffResourceSettings */
@@ -1905,8 +2651,11 @@ export interface components {
              */
             description?: string | null;
             /** Source */
-            source: (components["schemas"]["DirectiveSourceSettings-Input"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Input"] | components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"]) | components["schemas"]["RefSettings"];
-            /** Formats */
+            source: (components["schemas"]["DirectiveSourceSettings-Input"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Input"] | components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["DemoBoundarySourceSettings-Input"] | components["schemas"]["DemoNetVolumeSourceSettings-Input"] | components["schemas"]["DemoPriceSourceSettings-Input"] | components["schemas"]["DemoProductionSourceSettings-Input"] | components["schemas"]["DemoRatioSourceSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"]) | components["schemas"]["RefSettings"];
+            /**
+             * Formats
+             * @description The formats the data is offered in. Defaults to JSON and CSV.
+             */
             formats?: (components["schemas"]["JSONFormatSettings"] | components["schemas"]["CSVFormatSettings"])[] | null;
         };
         /** TimeseriesModuleSettings */
@@ -1933,8 +2682,11 @@ export interface components {
              */
             description?: string | null;
             /** Source */
-            source: (components["schemas"]["DirectiveSourceSettings-Output"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Output"] | components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"]) | components["schemas"]["RefSettings"];
-            /** Formats */
+            source: (components["schemas"]["DirectiveSourceSettings-Output"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Output"] | components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["DemoBoundarySourceSettings-Output"] | components["schemas"]["DemoNetVolumeSourceSettings-Output"] | components["schemas"]["DemoPriceSourceSettings-Output"] | components["schemas"]["DemoProductionSourceSettings-Output"] | components["schemas"]["DemoRatioSourceSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"]) | components["schemas"]["RefSettings"];
+            /**
+             * Formats
+             * @description The formats the data is offered in. Defaults to JSON and CSV.
+             */
             formats?: (components["schemas"]["JSONFormatSettings"] | components["schemas"]["CSVFormatSettings"])[] | null;
         };
         /**
@@ -2653,7 +3405,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": (components["schemas"]["SourceResourceSettings-Output"] | components["schemas"]["TariffResourceSettings-Output"])[];
+                    "application/json": (components["schemas"]["SourceResourceSettings-Output"] | components["schemas"]["MemberSourceResourceSettings"] | components["schemas"]["TariffResourceSettings-Output"])[];
                 };
             };
             /** @description Validation Error */
@@ -2678,7 +3430,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SourceResourceSettings-Input"] | components["schemas"]["TariffResourceSettings-Input"];
+                "application/json": components["schemas"]["SourceResourceSettings-Input"] | components["schemas"]["MemberSourceResourceSettings"] | components["schemas"]["TariffResourceSettings-Input"];
             };
         };
         responses: {
@@ -2688,7 +3440,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SourceResourceSettings-Output"] | components["schemas"]["TariffResourceSettings-Output"];
+                    "application/json": components["schemas"]["SourceResourceSettings-Output"] | components["schemas"]["MemberSourceResourceSettings"] | components["schemas"]["TariffResourceSettings-Output"];
                 };
             };
             /** @description Validation Error */
@@ -2720,7 +3472,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SourceResourceSettings-Output"] | components["schemas"]["TariffResourceSettings-Output"];
+                    "application/json": components["schemas"]["SourceResourceSettings-Output"] | components["schemas"]["MemberSourceResourceSettings"] | components["schemas"]["TariffResourceSettings-Output"];
                 };
             };
             /** @description Validation Error */
@@ -2746,7 +3498,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SourceResourceSettings-Input"] | components["schemas"]["TariffResourceSettings-Input"];
+                "application/json": components["schemas"]["SourceResourceSettings-Input"] | components["schemas"]["MemberSourceResourceSettings"] | components["schemas"]["TariffResourceSettings-Input"];
             };
         };
         responses: {
@@ -2756,7 +3508,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SourceResourceSettings-Output"] | components["schemas"]["TariffResourceSettings-Output"];
+                    "application/json": components["schemas"]["SourceResourceSettings-Output"] | components["schemas"]["MemberSourceResourceSettings"] | components["schemas"]["TariffResourceSettings-Output"];
                 };
             };
             /** @description Validation Error */

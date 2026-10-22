@@ -37,6 +37,11 @@ resources:
       # caches in chunks of a day, for 1 hour: ENTSO-E's own max_age
       cache: {}
 
+  # Example members, shared by every members module referencing them.
+  - type: member_source
+    name: demo_members
+    value: { type: demo_members }
+
 modules:
   - type: tariff
     name: entsoe
@@ -121,3 +126,43 @@ modules:
               max_age: PT15M
     formats:
       - type: directive
+
+  # Generated data, to try the modules without any credentials. Each demo source has realistic defaults, or give
+  # your own `pattern` of values to repeat each `period` (a day by default), randomly varied by a fraction `noise`.
+  - type: tariff
+    name: demo
+    description: Generated day-ahead prices.
+    source: { type: demo_price, noise: 0.1 }
+
+  - type: production
+    name: demo
+    description: Generated solar production.
+    source: { type: demo_production, noise: 0.2 }
+
+  - type: simultaneity
+    name: demo
+    description: Generated simultaneity.
+    source: { type: demo_ratio, noise: 0.1 }
+
+  - type: directive
+    name: demo
+    description: A directive following generated prices, between boundaries that change during the day.
+    source:
+      type: dynamic_boundary_directive
+      signal_source: { type: demo_price, noise: 0.1 }
+      boundary_source: { type: demo_boundary }
+    formats:
+      - type: directive
+
+  - type: members
+    name: demo
+    description: Example members.
+    source: { type: resource, name: demo_members }
+
+  - type: directive
+    name: fixed
+    description: A directive over a fixed pattern of prices, low at night and high during the day.
+    source:
+      type: directive
+      boundaries: [40, 60, 80, 100]
+      source: { type: demo_price, pattern: [30, 30, 50, 70, 90, 110, 90, 50] }

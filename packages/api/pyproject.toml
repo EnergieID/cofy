@@ -64,10 +64,14 @@ acc = [
     "polars>=1.38.1",
     "requests>=2.32.0",
 ]
+demo = [
+    "cofy-api[tariff,production,directive,simultaneity,members]",
+    "polars>=1.38.1",
+]
 debug = [
     "yappi>=1.7.6",
 ]
-all = ["cofy-api[timeseries,tariff,members,production,directive,simultaneity,billing,entsoe,energy-cost,energyid,acc,debug]"]
+all = ["cofy-api[timeseries,tariff,members,production,directive,simultaneity,billing,entsoe,energy-cost,energyid,acc,demo,debug]"]
 
 [project.urls]
 Source = "https://github.com/EnergieID/cofy-api"

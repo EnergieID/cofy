@@ -96,9 +96,9 @@ def test_invalid_combinations_are_rejected(data):
 
 
 def test_a_module_only_offers_the_sources_of_its_family():
-    assert source_branches("tariff") == {"entsoe_day_ahead", "energy_cost"}
-    assert source_branches("production") == {"energyid_production"}
-    assert source_branches("simultaneity") == {"simultaneity"}
+    assert source_branches("tariff") == {"entsoe_day_ahead", "energy_cost", "demo_price"}
+    assert source_branches("production") == {"energyid_production", "demo_production"}
+    assert source_branches("simultaneity") == {"simultaneity", "demo_ratio"}
     assert source_branches("directive") == {"directive", "dynamic_boundary_directive"}
 
 
@@ -110,8 +110,8 @@ def test_a_cached_source_is_still_a_member_of_its_family():
     assert source.cache is not None
 
 
-def test_the_boundary_family_has_nothing_to_offer_yet():
-    assert BoundarySourceSettings.registry() == {}
+def test_the_boundary_family_only_offers_generated_boundaries():
+    assert set(BoundarySourceSettings.registry()) == {"demo_boundary"}
 
 
 def test_the_root_family_holds_every_source():

@@ -1,5 +1,31 @@
+member_source:
+  demo_members:
+    default: false
+    exceptions:
+    - demo
 module:
   directive:
+    default: false
+    exceptions:
+    - demo
+source:
+  demo_boundary:
+    default: false
+    exceptions:
+    - demo
+  demo_net_volume:
+    default: false
+    exceptions:
+    - demo
+  demo_price:
+    default: false
+    exceptions:
+    - demo
+  demo_production:
+    default: false
+    exceptions:
+    - demo
+  demo_ratio:
     default: false
     exceptions:
     - demo

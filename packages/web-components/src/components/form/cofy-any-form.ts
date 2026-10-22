@@ -30,8 +30,10 @@ const YAML_TAG = "cofy-yaml-form";
  * to draw its own, or to hand it to the field it wraps. While `bare`, an ancestor already drew the
  * label and shows the issues, so the shell keeps only the actions.
  *
- * The one place a field's label/description are read off its schema, resolved past its own
- * `$ref` - the same node every mounted tag gets as its own `.schema`.
+ * The one place a field's label/description are read off its schema. The label comes from the field's own schema, before
+ * its `$ref` is resolved: a model's title is its class name, not the field's, so a field typed by a model - which pydantic
+ * gives no title of its own - is named after its property instead. Its own description goes first too, as pydantic puts
+ * it beside the `$ref`, with the model's as a fallback.
  */
 @customElement("cofy-any-form")
 export class CofyAnyForm extends CofyFormField {
@@ -60,8 +62,8 @@ export class CofyAnyForm extends CofyFormField {
 
   public override render(): TemplateResult {
     const node = deref(this.schema, this.root);
-    const label = this.label || fieldLabel(node, this.pointer);
-    const description = this.description || fieldDescription(node);
+    const label = this.label || fieldLabel(this.schema, this.pointer);
+    const description = this.description || fieldDescription(this.schema) || fieldDescription(node);
 
     const match = this.fieldRegistry.getFirstMatch(node, this.root);
     const asYaml = match?.asYaml ?? "never";

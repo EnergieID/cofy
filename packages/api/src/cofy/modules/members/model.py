@@ -4,7 +4,7 @@ from typing import Annotated
 
 import energy_cost as ec
 from energy_cost.data import ConnectionType, CustomerType
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class MeterType(StrEnum):
@@ -13,6 +13,9 @@ class MeterType(StrEnum):
 
 
 class NamedIdentifier(BaseModel):
+    # An entry of a list, such as a supplier or a region: its id is what is used, its name what is shown.
+    model_config = ConfigDict(json_schema_extra={"x-named-identifier": True})
+
     name: Annotated[str, Field(..., description="Human-readable name")]
     id: Annotated[str, Field(..., description="Unique identifier")]
 
@@ -26,8 +29,8 @@ class Contract(BaseModel):
     distributor: NamedIdentifier
     region: NamedIdentifier
     start_date: datetime
-    end_date: datetime | None
-    last_invoice_date: datetime | None
+    end_date: datetime | None = None
+    last_invoice_date: datetime | None = None
     is_green: Annotated[bool, Field(..., description="Indicates if the contract guarantees green energy")]
 
 

@@ -7,12 +7,14 @@ from isodate import Duration
 
 from cofy.api import CofyAPI, TokenAuth, TokenInfo
 from cofy.integrations.energy_cost import EnergyCostTariffSource
+from cofy.integrations.demo import DemoBoundarySource, DemoPriceSource, DemoProductionSource, DemoRatioSource
 from cofy.integrations.energyid import EnergyIDProduction
 from cofy.integrations.entsoe import EntsoeDayAheadTariffSource
 from cofy.modules.billing.module import BillingModule
-from cofy.modules.directive import DirectiveModule, DirectiveSource
+from cofy.modules.directive import DirectiveModule, DirectiveSource, DynamicBoundaryDirectiveSource
 from cofy.modules.members import MembersFileSource, MembersModule
 from cofy.modules.production import ProductionModule
+from cofy.modules.simultaneity import SimultaneityModule
 from cofy.modules.tariff import KiwattFormat, TariffModule
 from cofy.modules.timeseries import CacheSettings
 from demo_cofy_api.members.load_from_csv import example_load_members_from_file
@@ -107,6 +109,23 @@ directive = DirectiveModule(
     description="A directive module based on the entsoe day-ahead prices, with custom boundaries.",
 )
 cofy.register_module(directive)
+
+## Generated data, to try the modules without any credentials
+demo_prices = DemoPriceSource(noise=0.1)
+cofy.register_module(TariffModule(source=demo_prices, name="demo", description="Generated day-ahead prices."))
+cofy.register_module(
+    ProductionModule(source=DemoProductionSource(noise=0.2), name="demo", description="Generated solar production.")
+)
+cofy.register_module(
+    SimultaneityModule(source=DemoRatioSource(noise=0.1), name="demo", description="Generated simultaneity.")
+)
+cofy.register_module(
+    DirectiveModule(
+        source=DynamicBoundaryDirectiveSource(signal_source=demo_prices, boundary_source=DemoBoundarySource()),
+        name="demo",
+        description="A directive following generated prices, between boundaries that change during the day.",
+    )
+)
 
 
 app = cofy

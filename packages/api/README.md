@@ -23,7 +23,7 @@ pip install "cofy-api[tariff,entsoe]"
 
 | Module extras | Integration extras |
 |---|---|
-| `tariff`, `production`, `simultaneity`, `directive`, `billing`, `members` | `entsoe`, `energy-cost`, `energyid`, `acc` |
+| `tariff`, `production`, `simultaneity`, `directive`, `billing`, `members` | `entsoe`, `energy-cost`, `energyid`, `acc`, `demo` |
 
 ## Quick start
 
