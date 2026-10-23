@@ -102,7 +102,9 @@ write_files:
       for file in docker-compose.yml Caddyfile config.alloy; do
         curl -fsSL -o "$file.new" "https://raw.githubusercontent.com/$repo/$sha/$app/$file"
       done
+      changed=()
       for file in docker-compose.yml Caddyfile config.alloy; do
+        cmp -s "$file.new" "$file" || changed+=("$file")
         mv "$file.new" "$file"
       done
 
@@ -117,6 +119,10 @@ write_files:
       docker image prune -af
       docker compose pull
       docker compose up -d --remove-orphans
+      # A container keeps the config file it started with, and `up` only recreates one whose service changed, so one
+      # whose config file changed restarts to read it.
+      if [[ " ${changed[*]} " == *" Caddyfile "* ]]; then docker compose restart caddy; fi
+      if [[ " ${changed[*]} " == *" config.alloy "* ]]; then docker compose restart alloy; fi
       docker image prune -af
 
 runcmd:
