@@ -1,5 +1,6 @@
 // Ships the logs of this compose project's containers to Loki, labelled with the environment, the compose service and
-// each record's level.
+// each record's level; and the metrics of the host, of those containers and of probing the public URLs to Prometheus,
+// labelled with the environment.
 discovery.docker "containers" {
   host = "unix:///var/run/docker.sock"
 
@@ -71,6 +72,104 @@ loki.write "default" {
     basic_auth {
       username = sys.env("LOKI_USERNAME")
       password = sys.env("LOKI_PASSWORD")
+    }
+  }
+
+  external_labels = {
+    app         = "cofy",
+    environment = sys.env("COFY_ENVIRONMENT"),
+  }
+}
+
+// The host's CPU, memory, disks and load, read from its /proc, /sys and / (`docker-compose.yml`).
+prometheus.exporter.unix "host" {
+  procfs_path = "/host/proc"
+  sysfs_path  = "/host/sys"
+  rootfs_path = "/host/root"
+}
+
+prometheus.scrape "host" {
+  targets    = prometheus.exporter.unix.host.targets
+  forward_to = [prometheus.relabel.server.receiver]
+}
+
+// The CPU, memory and start time of each of the compose services' processes, read from the host's /proc, and named
+// after their service.
+prometheus.exporter.process "services" {
+  procfs_path = "/host/proc"
+
+  matcher {
+    name    = "app"
+    cmdline = [`cofy\.management\.main:app`]
+  }
+
+  matcher {
+    name    = "runner"
+    cmdline = [`cofy\.runner\.main:app`]
+  }
+
+  matcher {
+    name = "caddy"
+    comm = ["caddy"]
+  }
+
+  matcher {
+    name = "alloy"
+    comm = ["alloy"]
+  }
+}
+
+prometheus.scrape "services" {
+  targets    = prometheus.exporter.process.services.targets
+  forward_to = [prometheus.relabel.server.receiver]
+}
+
+// Whether the console and the communities' APIs answer at the public URL, through DNS, TLS and Caddy as anyone would
+// reach them. The runner has no route of its own, so its 404 is how it answers at /communities/ - Caddy answers 502
+// when it doesn't.
+prometheus.exporter.blackbox "checks" {
+  config = `{
+    modules: {
+      console: { prober: http, timeout: 10s },
+      communities: { prober: http, timeout: 10s, http: { valid_status_codes: [404] } },
+    },
+  }`
+
+  target {
+    name    = "console"
+    address = "https://" + sys.env("COFY_DOMAIN") + "/"
+    module  = "console"
+  }
+
+  target {
+    name    = "communities"
+    address = "https://" + sys.env("COFY_DOMAIN") + "/communities/"
+    module  = "communities"
+  }
+}
+
+prometheus.scrape "checks" {
+  targets    = prometheus.exporter.blackbox.checks.targets
+  forward_to = [prometheus.relabel.server.receiver]
+}
+
+// Every metric's `instance` is the server's domain, rather than Alloy's container, which is another with every deploy.
+prometheus.relabel "server" {
+  forward_to = [prometheus.remote_write.default.receiver]
+
+  rule {
+    target_label = "instance"
+    replacement  = sys.env("COFY_DOMAIN")
+  }
+}
+
+prometheus.remote_write "default" {
+  endpoint {
+    url = sys.env("PROMETHEUS_URL")
+
+    basic_auth {
+      username = sys.env("PROMETHEUS_USERNAME")
+      password = sys.env("PROMETHEUS_PASSWORD")
     }
   }
 

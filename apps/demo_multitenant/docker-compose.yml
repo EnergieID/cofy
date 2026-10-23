@@ -56,21 +56,31 @@ services:
       - app
       - runner
 
-  # Ships every container's logs to Loki (`config.alloy`). The Docker socket gives it what is running, and their logs;
-  # mounted read-only or not, it is full access to Docker, so nothing but this pinned image gets it.
+  # Ships every container's logs to Loki and the host's and containers' metrics to Prometheus (`config.alloy`). The
+  # Docker socket gives it what is running, and their logs; mounted read-only or not, it is full access to Docker, so
+  # nothing but this pinned image gets it. The host's /proc, /sys, / and /run/udev/data give its CPU, memory and disks,
+  # and its processes' - read-only, and no more than the socket already grants.
   alloy:
     image: grafana/alloy:v1.10.0
     container_name: cofy-alloy
     restart: unless-stopped
     command: run --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
     environment:
+      COFY_DOMAIN: ${COFY_DOMAIN:?}
       COFY_ENVIRONMENT: ${COFY_ENVIRONMENT:?}
       LOKI_URL: ${LOKI_URL:?}
       LOKI_USERNAME: ${LOKI_USERNAME:-}
       LOKI_PASSWORD: ${LOKI_PASSWORD:-}
+      PROMETHEUS_URL: ${PROMETHEUS_URL:?}
+      PROMETHEUS_USERNAME: ${PROMETHEUS_USERNAME:-}
+      PROMETHEUS_PASSWORD: ${PROMETHEUS_PASSWORD:-}
     volumes:
       - ./config.alloy:/etc/alloy/config.alloy:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host/root:ro,rslave
+      - /run/udev/data:/run/udev/data:ro
       - alloy_data:/var/lib/alloy/data
 
 volumes:
