@@ -98,7 +98,8 @@ else to the management API. Neither has a published port at all, so the only way
 automatic Let's Encrypt HTTPS on 80/443. `caddy_data`/`caddy_config` (the issued certificate and Caddy's own state) are
 named volumes, so a redeploy doesn't force reissuing the certificate. `alloy` ships the logs of the `cofy` project's
 containers to Loki (`config.alloy`), each record whole - a traceback with the line it belongs to - and labelled with
-the environment, the compose service and its level.
+the environment, the compose service and its level - and the server's metrics to Prometheus, as
+[Monitoring](#monitoring) describes.
 
 Both workflows deploy through `.github/workflows/deploy-to-server.yml`, logging in as `deploy`, whose key can run
 nothing but `cofy-deploy`. That deploys a branch or tag only if the server's `COFY_DEPLOY_REFS` allows it: it reads
@@ -118,3 +119,20 @@ This is how EnergyID runs its own hosted instance, not generally reachable image
 `docker-compose.yml` as committed here only works for EnergyID's own deploy. To deploy your own
 copy the same way, build and push the images to a registry you control, and point
 `docker-compose.yml` and `cofy-deploy` at those and your repository instead.
+
+## Monitoring
+
+EnergyID's Grafana, at `logs.energyid.eu`, shows how the servers are doing and alerts when they aren't; its
+dashboards and alert rules live there, in the Cofy folder. From each server, `alloy` sends:
+
+- to Loki, every container's logs, Caddy's included: it logs every request (`Caddyfile`), with its status and how long
+  it took, but not its headers or the `token` in its query;
+- to Prometheus, every minute, the host's CPU, memory and disks, the CPU, memory and start time of each service's
+  processes, and whether the console (`/`) and the communities' APIs (`/communities/`) answer at the public URL.
+
+Each server's `/opt/cofy/.env` says where they go: `LOKI_URL` and `PROMETHEUS_URL`
+(`https://logs.energyid.eu/cofy/<environment>/loki/api/v1/push` and `.../prometheus/api/v1/write`), with the
+environment's credential in `LOKI_USERNAME` and `LOKI_PASSWORD`, and again in `PROMETHEUS_USERNAME` and
+`PROMETHEUS_PASSWORD`. Without them, the deploy fails.
+
+The `cofy-logs` skill (`.claude/skills/cofy-logs/`) lets Claude Code search these logs and metrics while debugging.
