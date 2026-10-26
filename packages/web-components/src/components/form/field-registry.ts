@@ -11,6 +11,7 @@ import { CofyBooleanForm } from "./cofy-boolean-form.js";
 import { CofyConstForm } from "./cofy-const-form.js";
 import { CofyDateTimeForm } from "./cofy-date-time-form.js";
 import { CofyDictForm } from "./cofy-dict-form.js";
+import { CofyDirectiveBoundariesForm } from "./cofy-directive-boundaries-form.js";
 import { CofyDurationForm } from "./cofy-duration-form.js";
 import { CofyEnumForm } from "./cofy-enum-form.js";
 import { CofyListForm } from "./cofy-list-form.js";
@@ -118,6 +119,14 @@ export const defaultFieldMappers: readonly FieldMapper[] = [
     matches: (node: JsonSchema): boolean => referableOf(node) !== undefined,
     summarize: (value: unknown, node: JsonSchema): string | undefined =>
       isRefValue(value) ? primitiveText(value.name) : tagSummary(value, node),
+  },
+  {
+    tag: "cofy-directive-boundaries-form",
+    component: CofyDirectiveBoundariesForm,
+    kind: "input",
+    // Ahead of the list mappers: the boundaries are an array too, but read with the steps between them.
+    matches: (node: JsonSchema): boolean => node["x-directive-boundaries"] === true,
+    summarize: (value: unknown): string | undefined => (Array.isArray(value) ? value.join(" | ") : undefined),
   },
   {
     tag: "cofy-list-form",

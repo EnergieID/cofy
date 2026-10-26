@@ -1,3 +1,4 @@
+import { provide } from "@lit/context";
 import { css, html, nothing } from "lit";
 import type { TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
@@ -11,6 +12,7 @@ import "../form/cofy-field-shell.js";
 import "../form/cofy-any-form.js";
 
 import { CofyElement } from "../../cofy-element.js";
+import { formValueContext } from "../../context.js";
 import { toYaml } from "../../yaml.js";
 import type { YamlEditorChange } from "../editor/cofy-yaml-editor.js";
 import { seedFromSchema } from "../form/schema/defaults.js";
@@ -55,7 +57,9 @@ export class CofyModuleForm extends CofyElement {
   ];
 
   @property({ attribute: false }) public catalog: readonly CatalogEntry[] = [];
-  @property({ attribute: false }) public value: unknown;
+  @provide({ context: formValueContext })
+  @property({ attribute: false })
+  public value: unknown;
   @property({ attribute: false }) public issues: readonly ValidationIssue[] = [];
   @property({ type: Boolean }) public locked = false;
   @property({ type: String }) public mode: ModuleFormMode = "form";

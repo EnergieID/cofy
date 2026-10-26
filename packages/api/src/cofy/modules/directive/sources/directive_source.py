@@ -17,9 +17,16 @@ if TYPE_CHECKING:
 class DirectiveSourceSettings(DirectiveSeriesSourceSettings):
     type: Literal["directive"] = "directive"
     # Unresolved until cofy.api.finalize() publishes the discriminated unions.
-    source: "AnyNumericSourceSettings"
-    boundaries: tuple[float, float, float, float]
-    reverse: bool = Field(default=False)
+    source: "AnyNumericSourceSettings" = Field(description="The numbers to turn into directive steps.")
+    # Edited in the console between the steps they separate, read the way `reverse` says.
+    boundaries: tuple[float, float, float, float] = Field(
+        description="The four ascending boundaries between the steps;",
+        json_schema_extra={"x-directive-boundaries": True},
+    )
+    reverse: bool = Field(
+        default=False,
+        description="When false, higher values mean more positive directives. When true, higher values mean more negative steps.",
+    )
 
 
 class DirectiveSource(DirectiveSeriesSource, settings=DirectiveSourceSettings):

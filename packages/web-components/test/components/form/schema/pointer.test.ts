@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { parsePointer, pointerFor, setAtPointer } from "../../../../src/components/form/schema/pointer.js";
+import { getAtPointer, parentPointer, parsePointer, pointerFor, setAtPointer } from "../../../../src/components/form/schema/pointer.js";
 
 describe("parsePointer", () => {
   it("splits a pointer into its segments", () => {
@@ -92,5 +92,34 @@ describe("setAtPointer", () => {
     const next = setAtPointer(doc, "/mydict/007/value", "new");
 
     expect(next).toEqual({ mydict: { "007": { value: "new" }, other: { value: "kept" } } });
+  });
+});
+
+describe("parentPointer", () => {
+  it("drops the last segment", () => {
+    expect(parentPointer("/source/boundaries")).toBe("/source");
+    expect(parentPointer("/boundaries")).toBe("");
+  });
+
+  it("is the root pointer itself for the root pointer", () => {
+    expect(parentPointer("")).toBe("");
+  });
+});
+
+describe("getAtPointer", () => {
+  const doc = { source: { reverse: true }, formats: [{ type: "json" }] };
+
+  it("reads a nested value, through objects and arrays", () => {
+    expect(getAtPointer(doc, "/source/reverse")).toBe(true);
+    expect(getAtPointer(doc, "/formats/0/type")).toBe("json");
+  });
+
+  it("is the whole document at the root pointer", () => {
+    expect(getAtPointer(doc, "")).toBe(doc);
+  });
+
+  it("is undefined where the path is not there", () => {
+    expect(getAtPointer(doc, "/missing/reverse")).toBeUndefined();
+    expect(getAtPointer(undefined, "/source")).toBeUndefined();
   });
 });

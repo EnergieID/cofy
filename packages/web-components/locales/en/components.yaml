@@ -265,6 +265,7 @@ form:
   utcOffsetSign: Ahead of or behind UTC
   identifierName: Name
   identifierId: ID
+  directiveBoundary: "Boundary between {{lower}} and {{upper}}"
   durationUnit: Unit
   durationUnits:
     seconds: seconds
