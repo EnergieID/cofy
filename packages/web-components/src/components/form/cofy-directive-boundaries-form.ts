@@ -4,6 +4,7 @@ import type { TemplateResult } from "lit";
 import { customElement } from "lit/decorators.js";
 
 import "@awesome.me/webawesome/dist/components/input/input.js";
+import "@awesome.me/webawesome/dist/components/tag/tag.js";
 
 import { formValueContext } from "../../context.js";
 import { utilityStyles } from "../../theme/utility-styles.js";
@@ -16,6 +17,9 @@ const STEPS = ["--", "-", "0", "+", "++"] as const;
  * The four ascending boundaries between directive steps, shown between the steps they separate: `-- ≤ b0 < - ≤ b1 < 0
  * ≤ b2 < + ≤ b3 < ++`, as a value on a boundary belongs to the step below it. While the `reverse` beside it is set, the
  * steps run the other way: `++ ≤ b0 < + ≤ b1 < 0 ≤ b2 < - ≤ b3 < --`.
+ *
+ * Each step is a filled tag in its own palette hue - red, yellow, gray, light and dark green - the outer steps in the hue's
+ * core color, the inner ones in a light tint of it, or a dark one in dark mode.
  *
  * Wraps between its steps, so every line starts with one.
  */
@@ -31,10 +35,36 @@ export class CofyDirectiveBoundariesForm extends CofyFormField {
         white-space: nowrap;
       }
 
-      .sign {
-        min-inline-size: 2ch;
+      wa-tag {
+        justify-content: center;
+        min-inline-size: 2.25em;
+        padding-inline: 0.5em;
         font-weight: var(--wa-font-weight-semibold);
-        text-align: center;
+      }
+
+      wa-tag[data-step="--"] {
+        --wa-color-fill-quiet: light-dark(var(--wa-color-red-90), var(--wa-color-red-20));
+        --wa-color-on-quiet: light-dark(var(--wa-color-red-30), var(--wa-color-red-70));
+      }
+
+      wa-tag[data-step="-"] {
+        --wa-color-fill-quiet: light-dark(var(--wa-color-yellow-90), var(--wa-color-yellow-20));
+        --wa-color-on-quiet: light-dark(var(--wa-color-yellow-30), var(--wa-color-yellow-70));
+      }
+
+      wa-tag[data-step="0"] {
+        --wa-color-fill-quiet: light-dark(var(--wa-color-gray-90), var(--wa-color-gray-20));
+        --wa-color-on-quiet: light-dark(var(--wa-color-gray-30), var(--wa-color-gray-70));
+      }
+
+      wa-tag[data-step="+"] {
+        --wa-color-fill-quiet: light-dark(var(--wa-color-green-90), var(--wa-color-green-20));
+        --wa-color-on-quiet: light-dark(var(--wa-color-green-30), var(--wa-color-green-70));
+      }
+
+      wa-tag[data-step="++"] {
+        --wa-color-fill-quiet: light-dark(var(--wa-color-green-70), var(--wa-color-green-40));
+        --wa-color-on-quiet: light-dark(var(--wa-color-green-10), var(--wa-color-green-90));
       }
 
       wa-input {
@@ -73,7 +103,7 @@ export class CofyDirectiveBoundariesForm extends CofyFormField {
           ${boundaries.map(
             (boundary, index) => html`
               <div class="step">
-                <span class="sign">${steps[index]}</span>
+                ${this.renderStep(steps[index]!)}
                 <span>≤</span>
                 <wa-input
                   class="wa-visually-hidden-label"
@@ -88,7 +118,7 @@ export class CofyDirectiveBoundariesForm extends CofyFormField {
               </div>
             `,
           )}
-          <span class="sign">${steps[steps.length - 1]}</span>
+          ${this.renderStep(steps[steps.length - 1]!)}
         </div>
         ${itemIssues.length === 0
           ? nothing
@@ -97,6 +127,10 @@ export class CofyDirectiveBoundariesForm extends CofyFormField {
             </ul>`}
       </div>
     `;
+  }
+
+  private renderStep(step: string): TemplateResult {
+    return html`<wa-tag data-step=${step} appearance="filled">${step}</wa-tag>`;
   }
 
   private onInput(event: Event, index: number): void {

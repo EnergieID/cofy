@@ -69,7 +69,7 @@ function boundariesForm(form: CofyModuleForm): CofyDirectiveBoundariesForm {
 /** The row as it reads, its inputs shown as their value in brackets. */
 function row(form: CofyModuleForm): string {
   const cluster = boundariesForm(form).shadowRoot!.querySelector(".wa-cluster")!;
-  return Array.from(cluster.querySelectorAll("span, wa-input"))
+  return Array.from(cluster.querySelectorAll("wa-tag, span, wa-input"))
     .map((part) => (part.tagName === "WA-INPUT" ? `[${(part as NumberInput).value}]` : part.textContent.trim()))
     .join(" ");
 }
