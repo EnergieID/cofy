@@ -30,6 +30,8 @@ import type { ModuleFormMode } from "./cofy-module-form.js";
  * the toggle in this component's own heading, or because the type is one this build's catalog
  * has never seen (an installed third-party module, say), in which case there is no schema to
  * generate a form from and YAML is the only option.
+ *
+ * Reports `module-updated` once a save is stored.
  */
 @customElement("cofy-module-editor")
 export class CofyModuleEditor extends CofyElement {
@@ -187,6 +189,13 @@ export class CofyModuleEditor extends CofyElement {
       this.draft = new ModuleDraft(saved);
       this.saved = true;
       this.check(this.draft);
+      this.dispatchEvent(
+        new CustomEvent("module-updated", {
+          detail: { slug: this.slug, id: { type: saved.type, name: saved.name } },
+          bubbles: true,
+          composed: true,
+        }),
+      );
     } catch (error) {
       this.saveError = error as ProblemError;
     }

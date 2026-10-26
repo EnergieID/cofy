@@ -28,7 +28,11 @@ export class CofyResourcePage extends CofyPage {
   }
 
   protected override content(): TemplateResult {
-    return html`<cofy-resource-editor .slug=${this.slug} .name=${this.name}></cofy-resource-editor>`;
+    return html`<cofy-resource-editor
+      .slug=${this.slug}
+      .name=${this.name}
+      @resource-updated=${(): void => this.routes.navigate("resources", { slug: this.slug })}
+    ></cofy-resource-editor>`;
   }
 }
 

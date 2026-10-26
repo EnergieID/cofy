@@ -35,12 +35,7 @@ export class CofyNewModulePage extends CofyPage {
       <section>
         <cofy-module-create
           .slug=${this.slug}
-          @module-created=${(event: CustomEvent<{ slug: string; id: { type: string; name: string } }>): void =>
-            this.routes.navigate("module", {
-              slug: event.detail.slug,
-              type: event.detail.id.type,
-              name: event.detail.id.name,
-            })}
+          @module-created=${(): void => this.routes.navigate("modules", { slug: this.slug })}
           @create-cancelled=${(): void => this.routes.navigate("modules", { slug: this.slug })}
         ></cofy-module-create>
       </section>

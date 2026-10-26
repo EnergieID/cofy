@@ -76,6 +76,19 @@ describe("cofy-resource-editor", () => {
     ]);
   });
 
+  it("reports the stored resource once saved", async () => {
+    const element = await mount();
+    const updates: unknown[] = [];
+    element.addEventListener("resource-updated", (event) => updates.push((event as CustomEvent).detail));
+
+    edit(element, { ...stored, description: "ENTSO-E" });
+    await element.updateComplete;
+    saveButton(element).dispatchEvent(new MouseEvent("click"));
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    expect(updates).toEqual([{ slug: "test", name: "day_ahead" }]);
+  });
+
   it("blocks save when the edit renames the resource", async () => {
     const element = await mount();
 

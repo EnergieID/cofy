@@ -15,13 +15,13 @@ const stored: ModuleSettings = {
 const catalog = [{ type: "tariff", description: "Tariff", schema: { type: "object" } }];
 
 function stubApi(moduleCatalog: unknown = catalog): ApiClient {
-  const fetchStub = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+  const fetchStub = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const request = input instanceof Request ? input : new Request(input, init);
     const path = new URL(request.url).pathname;
-    const body = path.endsWith("/catalog/modules") ? moduleCatalog : [stored];
-    return Promise.resolve(
-      new Response(JSON.stringify(body), { status: 200, headers: { "content-type": "application/json" } }),
-    );
+    // A save echoes back what was sent, as the server stores it.
+    const body: unknown =
+      request.method === "PUT" ? await request.json() : path.endsWith("/catalog/modules") ? moduleCatalog : [stored];
+    return new Response(JSON.stringify(body), { status: 200, headers: { "content-type": "application/json" } });
   };
   return new ApiClient({ fetch: fetchStub, baseUrl: "http://localhost" });
 }
@@ -128,6 +128,19 @@ describe("cofy-module-editor", () => {
 
     expect(footerButtons(element)[0]!.hasAttribute("disabled")).toBe(false);
     expect(footerButtons(element)[1]!.hasAttribute("disabled")).toBe(false);
+  });
+
+  it("reports the stored module once saved", async () => {
+    const element = await mount();
+    const updates: unknown[] = [];
+    element.addEventListener("module-updated", (event) => updates.push((event as CustomEvent).detail));
+
+    edit(element, { ...stored, display_name: "Spot prices" });
+    await element.updateComplete;
+    footerButtons(element)[0]!.dispatchEvent(new MouseEvent("click"));
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    expect(updates).toEqual([{ slug: "test", id: { type: "tariff", name: "spot" } }]);
   });
 
   it("blocks save when the edit changes the module's identity", async () => {
