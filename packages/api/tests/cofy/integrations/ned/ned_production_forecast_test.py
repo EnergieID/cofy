@@ -145,6 +145,7 @@ def test_source_can_be_created_from_settings():
         {"region": "Antwerpen", "type": "solar", "peak_power": 100},
         {"region": "Utrecht", "type": "biogas", "peak_power": 100},
         {"region": "Utrecht", "type": "solar", "peak_power": 0},
+        {"region": "Flevoland", "type": "wind_offshore", "peak_power": 100},
     ],
 )
 def test_settings_reject_invalid_installations(installation):

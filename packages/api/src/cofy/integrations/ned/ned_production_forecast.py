@@ -1,11 +1,11 @@
 import asyncio
 import datetime as dt
-from typing import Literal
+from typing import Literal, Self
 
 import httpx
 import polars as pl
 from isodate import strftime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from cofy.api import Secret
 from cofy.modules.timeseries import CacheSettings, ISODuration, NumericSource, NumericSourceSettings, Timeseries
@@ -53,6 +53,8 @@ POINTS: dict[str, int] = {
     "Offshore": 14,
 }
 TYPES: dict[str, int] = {"wind": 1, "solar": 2, "wind_offshore": 17}
+# NED only forecasts offshore wind for these, and answers others with a 403 about the subscription level
+OFFSHORE_REGIONS = ("Nederland", "Offshore")
 GRANULARITIES: dict[str, int] = {"PT15M": 4, "PT1H": 5}
 FORECAST = 1
 PROVIDING = 1
@@ -63,6 +65,12 @@ class NedInstallation(BaseModel):
     region: NedRegion = Field(description="The region whose forecast the installation follows.")
     type: NedProductionType = Field(description="The kind of production.")
     peak_power: float = Field(gt=0, description="The peak power of the installation, in kW.")
+
+    @model_validator(mode="after")
+    def _check_offshore_region(self) -> Self:
+        if self.type == "wind_offshore" and self.region not in OFFSHORE_REGIONS:
+            raise ValueError(f"NED only forecasts offshore wind for {' and '.join(OFFSHORE_REGIONS)}")
+        return self
 
 
 class NedProductionForecastSourceSettings(NumericSourceSettings):
