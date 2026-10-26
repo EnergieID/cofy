@@ -75,8 +75,11 @@ class NedInstallation(BaseModel):
 
 class NedProductionForecastSourceSettings(NumericSourceSettings):
     type: Literal["ned_production_forecast"] = "ned_production_forecast"
-    api_key: Secret
-    installations: list[NedInstallation] = Field(min_length=1)
+    api_key: Secret = Field(description="A Nationaal Energie Dashboard API key.")
+    installations: list[NedInstallation] = Field(
+        min_length=1,
+        description="The installations whose forecast production is summed, each scaled to its peak power.",
+    )
 
 
 class NedProductionForecastSource(NumericSource, settings=NedProductionForecastSourceSettings):

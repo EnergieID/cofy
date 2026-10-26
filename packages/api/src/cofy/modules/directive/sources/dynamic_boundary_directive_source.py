@@ -20,9 +20,16 @@ BOUNDARY_COLUMNS = ("b0", "b1", "b2", "b3")
 
 class DynamicBoundaryDirectiveSourceSettings(DirectiveSeriesSourceSettings):
     type: Literal["dynamic_boundary_directive"] = "dynamic_boundary_directive"
-    signal_source: "AnyNumericSourceSettings"
-    boundary_source: "AnyBoundarySourceSettings"
-    reverse: bool = Field(default=False)
+    signal_source: "AnyNumericSourceSettings" = Field(
+        description="The values to turn into directive steps, e.g. a price or a forecast."
+    )
+    boundary_source: "AnyBoundarySourceSettings" = Field(
+        description="The four values, in ascending order, above which the directive moves up a step, at each moment."
+    )
+    reverse: bool = Field(
+        default=False,
+        description="Turn higher values into lower steps instead, e.g. for a price, where a high one should mean using less.",
+    )
 
 
 class DynamicBoundaryDirectiveSource(DirectiveSeriesSource, settings=DynamicBoundaryDirectiveSourceSettings):

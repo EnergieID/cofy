@@ -65,7 +65,7 @@ def test_each_entry_exposes_type_description_and_schema(catalog: list[dict]):
 
 
 def test_description_comes_from_the_module_class(catalog: list[dict]):
-    assert _by_type(catalog, "tariff")["description"] == "Module providing tariff data as time series."
+    assert _by_type(catalog, "tariff")["description"] == "Serves energy prices as a time series."
 
 
 # ── schema shape the frontend depends on ──────────────────────────────────

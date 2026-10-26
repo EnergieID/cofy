@@ -23,10 +23,12 @@ ACC_TIMEOUT = 30
 
 class AccForecastSettings(NetVolumeSourceSettings):
     type: Literal["acc_forecast"] = "acc_forecast"
-    ean: str
-    credentials: Secret
+    ean: str = Field(description="The EAN code of the connection to forecast.")
+    credentials: Secret = Field(description="The service account key, in JSON, that ACC provided.")
     base_url: str = Field(
-        ACC_BASE_URL, description="The address of the ACC service.", json_schema_extra={"x-advanced": True}
+        ACC_BASE_URL,
+        description="The address of ACC's Connection Usage Service. Only change it to use another environment.",
+        json_schema_extra={"x-advanced": True},
     )
 
 

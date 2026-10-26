@@ -26,7 +26,7 @@ S = TypeVar("S", bound=TimeseriesSource)
 class TimeseriesModuleSettings(ModuleSettings):
     type: Literal["timeseries"] = "timeseries"
     # Unresolved until cofy.api.finalize() publishes the discriminated unions - see there.
-    source: "AnyTimeseriesSourceSettings"
+    source: "AnyTimeseriesSourceSettings" = Field(description="Where the data comes from.")
     formats: "list[AnyGenericTimeseriesFormatSettings] | None" = Field(
         None,
         description="The formats the data is offered in. Defaults to JSON and CSV.",
@@ -36,7 +36,7 @@ class TimeseriesModuleSettings(ModuleSettings):
 
 class TimeseriesModule(Module, Generic[S], settings=TimeseriesModuleSettings):
     type: str = "timeseries"
-    type_description: str = "Module providing timeseries data."
+    type_description: str = "Serves any time series."
     source: S
     formats: list[TimeseriesFormat]
 

@@ -5,7 +5,7 @@ from typing import Literal
 import polars as pl
 import requests
 from isodate import strftime
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from cofy.api import Secret
 from cofy.modules.production import ProductionSource, ProductionSourceSettings
@@ -14,8 +14,8 @@ from cofy.modules.timeseries import CacheSettings, ISODuration, Timeseries
 
 class EnergyIDProductionSettings(ProductionSourceSettings):
     type: Literal["energyid_production"] = "energyid_production"
-    api_key: Secret
-    record_id: str
+    api_key: Secret = Field(description="An EnergyID API key with access to the record.")
+    record_id: str = Field(description="The ID of the EnergyID record whose production to serve.")
 
 
 class EnergyIDDataPoint(BaseModel):

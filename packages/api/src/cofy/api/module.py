@@ -12,16 +12,16 @@ class ModuleSettings(BaseSettingsModel):
     type: Literal["module"] = "module"
     name: str = Field(
         "default",
-        description="The machine name of the module instance. No spaces, no special characters. Use it to differentiate between multiple instances/implementations of the same module type.",
-        pattern=r"^[a-zA-Z0-9_-]+$",
+        description="Part of the module's URL, so letters, digits, - and _ only. Must differ between modules of the same type.",
+        pattern=r"^[a-z0-9_-]+$",
     )
     display_name: str | None = Field(
         None,
-        description="The human-readable name of the module instance. If not provided, the machine name will be used.",
+        description="The name shown to API users. Defaults to the name.",
     )
     description: str | None = Field(
         None,
-        description="A short description of the module instance. If not provided, the module type description will be used.",
+        description="What this module offers, shown to API users. Defaults to a description of the module type.",
     )
 
 

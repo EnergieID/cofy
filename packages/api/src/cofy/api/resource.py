@@ -10,10 +10,10 @@ from .from_settings_mixin import BaseSettingsModel, FromSettingsMixin
 class ResourceSettings(BaseSettingsModel):
     type: Literal["resource"] = "resource"
     name: str = Field(
-        description="The machine name of the resource, by which it is referenced. No spaces, no special characters.",
-        pattern=r"^[a-zA-Z0-9_-]+$",
+        description="The name other settings refer to this resource by; letters, digits, - and _ only.",
+        pattern=r"^[a-z0-9_-]+$",
     )
-    description: str | None = Field(None, description="A short description of the resource.")
+    description: str | None = Field(None, description="What this resource is, shown when picking it elsewhere.")
 
     @classmethod
     def held_types(cls) -> "dict[str, type[BaseModel]]":

@@ -1,5 +1,7 @@
 from typing import TYPE_CHECKING, Literal
 
+from pydantic import Field
+
 from cofy.modules.timeseries import TimeseriesModule
 from cofy.modules.timeseries.module import TimeseriesModuleSettings
 
@@ -12,9 +14,9 @@ if TYPE_CHECKING:
 
 class ProductionModuleSettings(TimeseriesModuleSettings):
     type: Literal["production"] = "production"
-    source: "AnyProductionSourceSettings"
+    source: "AnyProductionSourceSettings" = Field(description="Where the production data comes from.")
 
 
 class ProductionModule(TimeseriesModule[ProductionSource], settings=ProductionModuleSettings):
     type: str = "production"
-    type_description: str = "Module providing production data as time series."
+    type_description: str = "Serves energy production as a time series."

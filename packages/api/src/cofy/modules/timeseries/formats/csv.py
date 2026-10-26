@@ -12,7 +12,7 @@ class CSVFormatSettings(TimeseriesFormatSettings):
 
 
 class CSVFormat(GenericTimeseriesFormat, settings=CSVFormatSettings):
-    """Timeseries format for CSV."""
+    """The data as CSV, a row per timestamp."""
 
     name = "csv"
 

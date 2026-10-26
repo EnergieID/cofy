@@ -8,7 +8,7 @@ from energy_cost import Tariff
 
 class TariffResourceSettings(ResourceSettings):
     type: Literal["tariff"] = "tariff"
-    value: Tariff = Field(description="Energy cost tariff instance")
+    value: Tariff = Field(description="The tariff's versions over time, each with the formulas for its costs.")
 
 
 class TariffResource(Resource, settings=TariffResourceSettings):
