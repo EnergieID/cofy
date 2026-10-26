@@ -19,6 +19,20 @@ export function pointerFor(parent: string, segment: PointerSegment): string {
   return `${parent}/${escaped}`;
 }
 
+/** The pointer to whatever holds the value at *pointer* - itself for the root pointer, which nothing holds. */
+export function parentPointer(pointer: string): string {
+  return pointer.slice(0, Math.max(pointer.lastIndexOf("/"), 0));
+}
+
+/** The value at *pointer* in *doc*, or `undefined` where the path is not there. */
+export function getAtPointer(doc: unknown, pointer: string): unknown {
+  return parsePointer(pointer).reduce<unknown>(
+    (current, segment) =>
+      Array.isArray(current) || isRecord(current) ? (current as Record<string | number, unknown>)[segment] : undefined,
+    doc,
+  );
+}
+
 /**
  * A new value equal to *doc* except the value at *pointer* is *value*.
  *

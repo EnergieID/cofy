@@ -34,3 +34,9 @@ export const themeStateContext = createContext<ThemeState>(Symbol("cofy-theme-st
  * mappers ahead of the built-ins for just its subtree.
  */
 export const fieldRegistryContext = createContext<FieldRegistry>(Symbol("cofy-field-registry"));
+
+/**
+ * The whole document a form edits, provided by `cofy-module-form`, for a field whose rendering depends on another field's
+ * value - it already knows its own pointer to find that one from.
+ */
+export const formValueContext = createContext<unknown>(Symbol("cofy-form-value"));
