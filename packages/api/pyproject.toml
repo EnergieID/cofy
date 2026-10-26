@@ -69,6 +69,11 @@ elia = [
     "httpx>=0.28.0",
     "polars>=1.38.1",
 ]
+ned = [
+    "cofy-api[timeseries]",
+    "httpx>=0.28.0",
+    "polars>=1.38.1",
+]
 demo = [
     "cofy-api[tariff,production,directive,simultaneity,members]",
     "polars>=1.38.1",
@@ -76,7 +81,7 @@ demo = [
 debug = [
     "yappi>=1.7.6",
 ]
-all = ["cofy-api[timeseries,tariff,members,production,directive,simultaneity,billing,entsoe,energy-cost,energyid,acc,elia,demo,debug]"]
+all = ["cofy-api[timeseries,tariff,members,production,directive,simultaneity,billing,entsoe,energy-cost,energyid,acc,elia,ned,demo,debug]"]
 
 [project.urls]
 Source = "https://github.com/EnergieID/cofy-api"
