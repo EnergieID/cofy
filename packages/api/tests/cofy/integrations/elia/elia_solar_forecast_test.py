@@ -60,9 +60,10 @@ def test_build_frame_empty():
 
 @pytest.mark.asyncio
 async def test_fetch_merges_datasets_preferring_near_real_time():
+    start = dt.datetime(2026, 11, 2, 10, tzinfo=dt.UTC)
     responses = {
-        "ods087": [record("2026-06-21T10:15:00+00:00", 500.0), record("2026-06-21T10:30:00+00:00", 600.0)],
-        "ods032": [record("2026-06-21T10:00:00+00:00", 400.0), record("2026-06-21T10:15:00+00:00", 1.0)],
+        "ods210": [record("2026-11-02T10:15:00+00:00", 500.0), record("2026-11-02T10:30:00+00:00", 600.0)],
+        "ods209": [record("2026-11-02T10:00:00+00:00", 400.0), record("2026-11-02T10:15:00+00:00", 1.0)],
     }
     requests: list[httpx.Request] = []
 
@@ -72,13 +73,38 @@ async def test_fetch_merges_datasets_preferring_near_real_time():
         return httpx.Response(200, json=responses[dataset])
 
     with elia(handler):
-        timeseries = await EliaSolarForecastSource(region="Antwerp").fetch_timeseries(
-            START, START + dt.timedelta(hours=1), QUARTER_HOUR
+        timeseries = await EliaSolarForecastSource(region="Antwerpen").fetch_timeseries(
+            start, start + dt.timedelta(hours=1), QUARTER_HOUR
         )
 
     assert timeseries.frame["value"].to_list() == [40.0, 50.0, 60.0]
     assert timeseries.metadata["unit"] == "%"
-    assert all('region="Antwerp"' in r.url.params["where"] for r in requests)
+    assert len(requests) == 2
+    assert all('region="Antwerpen" and gridconnectiontype="Total"' in r.url.params["where"] for r in requests)
+
+
+@pytest.mark.asyncio
+async def test_fetch_includes_legacy_dataset_before_its_end():
+    start = dt.datetime(2026, 10, 25, 22, 45, tzinfo=dt.UTC)
+    responses = {
+        "ods210": [],
+        "ods209": [record("2026-10-25T23:00:00+00:00", 200.0)],
+        "ods032": [record("2026-10-25T22:45:00+00:00", 100.0)],
+    }
+    requests: dict[str, httpx.Request] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        dataset = request.url.path.split("/")[-3]
+        requests[dataset] = request
+        return httpx.Response(200, json=responses[dataset])
+
+    with elia(handler):
+        timeseries = await EliaSolarForecastSource(region="Antwerpen").fetch_timeseries(
+            start, start + 2 * QUARTER_HOUR, QUARTER_HOUR
+        )
+
+    assert timeseries.frame["value"].to_list() == [10.0, 20.0]
+    assert requests["ods032"].url.params["where"].startswith('region="Antwerp" and datetime')
 
 
 @pytest.mark.asyncio
@@ -94,22 +120,27 @@ async def test_fetch_rejects_unsupported_resolution():
 
 
 def test_source_can_be_created_from_settings():
-    source = TimeseriesSource.create({"type": "elia_solar_forecast", "region": "Flanders"})
+    source = TimeseriesSource.create({"type": "elia_solar_forecast", "region": "WestVlaanderen"})
 
     assert isinstance(source, EliaSolarForecastSource)
-    assert source.region == "Flanders"
+    assert source.region == "WestVlaanderen"
 
 
 def test_settings_reject_unknown_region():
     with pytest.raises(ValidationError):
-        TimeseriesSource.create({"type": "elia_solar_forecast", "region": '" or region="Flanders'})
+        TimeseriesSource.create({"type": "elia_solar_forecast", "region": '" or region="Antwerpen'})
+
+
+def test_settings_reject_legacy_region_name():
+    with pytest.raises(ValidationError):
+        TimeseriesSource.create({"type": "elia_solar_forecast", "region": "Antwerp"})
 
 
 def test_directive_source_takes_it_from_settings():
     source = TimeseriesSource.create(
         {
             "type": "directive",
-            "source": {"type": "elia_solar_forecast", "region": "Antwerp"},
+            "source": {"type": "elia_solar_forecast", "region": "Antwerpen"},
             "boundaries": [0, 3, 12, 40],
         }
     )

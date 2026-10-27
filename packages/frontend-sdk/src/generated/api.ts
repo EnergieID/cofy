@@ -1811,7 +1811,7 @@ export interface components {
              * @default Belgium
              * @enum {string}
              */
-            region?: "Belgium" | "Flanders" | "Wallonia" | "Brussels" | "Antwerp" | "East-Flanders" | "Flemish-Brabant" | "Limburg" | "West-Flanders" | "Hainaut" | "Liège" | "Luxembourg" | "Namur" | "Walloon-Brabant";
+            region?: "Belgium" | "Brussel" | "Antwerpen" | "OostVlaanderen" | "VlaamsBrabant" | "Limburg" | "WestVlaanderen" | "Hainaut" | "Liege" | "Luxembourg" | "Namur" | "BrabantWallon";
         };
         /**
          * EliaSolarForecastSourceSettings
@@ -1831,7 +1831,7 @@ export interface components {
              * @default Belgium
              * @enum {string}
              */
-            region?: "Belgium" | "Flanders" | "Wallonia" | "Brussels" | "Antwerp" | "East-Flanders" | "Flemish-Brabant" | "Limburg" | "West-Flanders" | "Hainaut" | "Liège" | "Luxembourg" | "Namur" | "Walloon-Brabant";
+            region?: "Belgium" | "Brussel" | "Antwerpen" | "OostVlaanderen" | "VlaamsBrabant" | "Limburg" | "WestVlaanderen" | "Hainaut" | "Liege" | "Luxembourg" | "Namur" | "BrabantWallon";
         };
         /**
          * EnergyCostTariffSourceSettings

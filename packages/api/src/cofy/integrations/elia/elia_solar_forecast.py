@@ -11,7 +11,21 @@ from cofy.modules.timeseries import CacheSettings, ISODuration, NumericSource, N
 
 ELIA_BASE_URL = "https://opendata.elia.be/api/explore/v2.1/catalog/datasets"
 # Near-real-time dataset (today up to a week ahead) first, so it wins over the historical one on overlap.
-DATASETS = ("ods087", "ods032")
+DATASETS = ("ods210", "ods209")
+# The total of the PV connected to the distribution and the transmission grid
+GRID_CONNECTION_TYPE = "Total"
+# Elia's discontinued historical dataset, up to where ods209 starts, with its own region names
+LEGACY_DATASET = "ods032"
+LEGACY_END = dt.datetime(2026, 10, 25, 23, tzinfo=dt.UTC)
+LEGACY_REGIONS = {
+    "Brussel": "Brussels",
+    "Antwerpen": "Antwerp",
+    "OostVlaanderen": "East-Flanders",
+    "VlaamsBrabant": "Flemish-Brabant",
+    "WestVlaanderen": "West-Flanders",
+    "Liege": "Liège",
+    "BrabantWallon": "Walloon-Brabant",
+}
 NATIVE_RESOLUTION = dt.timedelta(minutes=15)
 # seconds; without one a hanging Elia blocks the request, and the cache lock held for it, indefinitely
 ELIA_TIMEOUT = 30
@@ -20,19 +34,17 @@ SCHEMA = pl.Schema({"timestamp": pl.Datetime(time_zone="UTC"), "value": pl.Float
 
 EliaRegion = Literal[
     "Belgium",
-    "Flanders",
-    "Wallonia",
-    "Brussels",
-    "Antwerp",
-    "East-Flanders",
-    "Flemish-Brabant",
+    "Brussel",
+    "Antwerpen",
+    "OostVlaanderen",
+    "VlaamsBrabant",
     "Limburg",
-    "West-Flanders",
+    "WestVlaanderen",
     "Hainaut",
-    "Liège",
+    "Liege",
     "Luxembourg",
     "Namur",
-    "Walloon-Brabant",
+    "BrabantWallon",
 ]
 
 
@@ -51,7 +63,7 @@ class EliaSolarForecastSource(NumericSource, settings=EliaSolarForecastSourceSet
         """Elia's most recent solar production forecast, as % of the monitored PV capacity.
 
         Args:
-            region: The Elia region: Belgium, a region like "Flanders", or a province like "Antwerp".
+            region: The Elia region: Belgium, Brussel, or a province like "Antwerpen".
             cache: Cache what this source fetches, see `TimeseriesSource`.
         """
         super().__init__(cache=cache)
@@ -71,8 +83,15 @@ class EliaSolarForecastSource(NumericSource, settings=EliaSolarForecastSourceSet
                 f"Supported resolutions are: {', '.join(self.SUPPORTED_RESOLUTIONS)}"
             )
 
+        region = f'region="{self.region}" and gridconnectiontype="{GRID_CONNECTION_TYPE}"'
+        queries = [(dataset, region) for dataset in DATASETS]
+        if start < LEGACY_END:
+            queries.append((LEGACY_DATASET, f'region="{LEGACY_REGIONS.get(self.region, self.region)}"'))
+
         async with httpx.AsyncClient(base_url=ELIA_BASE_URL, timeout=ELIA_TIMEOUT) as client:
-            responses = await asyncio.gather(*(self._fetch_dataset(client, d, start, end) for d in DATASETS))
+            responses = await asyncio.gather(
+                *(self._fetch_dataset(client, d, where, start, end) for d, where in queries)
+            )
 
         records = [record for response in responses for record in response]
         return Timeseries(
@@ -81,12 +100,12 @@ class EliaSolarForecastSource(NumericSource, settings=EliaSolarForecastSourceSet
         )
 
     async def _fetch_dataset(
-        self, client: httpx.AsyncClient, dataset: str, start: dt.datetime, end: dt.datetime
+        self, client: httpx.AsyncClient, dataset: str, where: str, start: dt.datetime, end: dt.datetime
     ) -> list[dict]:
         response = await client.get(
             f"/{dataset}/exports/json",
             params={
-                "where": f'region="{self.region}" and datetime>="{start.isoformat()}" and datetime<"{end.isoformat()}"',
+                "where": f'{where} and datetime>="{start.isoformat()}" and datetime<"{end.isoformat()}"',
                 "select": "datetime,mostrecentforecast,monitoredcapacity",
                 "order_by": "datetime",
             },
