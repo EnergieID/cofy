@@ -31,7 +31,11 @@ export class CofyModulePage extends CofyPage {
   }
 
   protected override content(): TemplateResult {
-    return html`<cofy-module-editor .slug=${this.slug} .moduleId=${this.moduleId}></cofy-module-editor>`;
+    return html`<cofy-module-editor
+      .slug=${this.slug}
+      .moduleId=${this.moduleId}
+      @module-updated=${(): void => this.routes.navigate("modules", { slug: this.slug })}
+    ></cofy-module-editor>`;
   }
 }
 

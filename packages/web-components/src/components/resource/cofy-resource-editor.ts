@@ -22,7 +22,11 @@ import "../layout/cofy-heading.js";
 import "../module/cofy-module-form.js";
 import type { ModuleFormMode } from "../module/cofy-module-form.js";
 
-/** Edits one resource, checked against its kind's schema as you type, like `cofy-module-editor`. */
+/**
+ * Edits one resource, checked against its kind's schema as you type, like `cofy-module-editor`.
+ *
+ * Reports `resource-updated` once a save is stored.
+ */
 @customElement("cofy-resource-editor")
 export class CofyResourceEditor extends CofyElement {
   public static override styles = [
@@ -180,6 +184,13 @@ export class CofyResourceEditor extends CofyElement {
       this.draft = new ResourceDraft(saved);
       this.saved = true;
       this.check(this.draft);
+      this.dispatchEvent(
+        new CustomEvent("resource-updated", {
+          detail: { slug: this.slug, name: saved.name },
+          bubbles: true,
+          composed: true,
+        }),
+      );
     } catch (error) {
       this.saveError = error as ProblemError;
     }
