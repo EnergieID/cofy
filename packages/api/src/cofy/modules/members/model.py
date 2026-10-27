@@ -16,22 +16,28 @@ class NamedIdentifier(BaseModel):
     # An entry of a list, such as a supplier or a region: its id is what is used, its name what is shown.
     model_config = ConfigDict(json_schema_extra={"x-named-identifier": True})
 
-    name: Annotated[str, Field(..., description="Human-readable name")]
-    id: Annotated[str, Field(..., description="Unique identifier")]
+    name: Annotated[str, Field(..., description="The name shown.")]
+    id: Annotated[str, Field(..., description="The identifier, as known to the energy cost catalog.")]
 
 
 class Contract(BaseModel):
-    ean: Annotated[str, Field(..., description="European Article Number")]
+    """An energy contract of a grid connection."""
+
+    ean: Annotated[str, Field(..., description="The EAN code of the connection.")]
     customer_type: CustomerType
     connection_type: ConnectionType
-    supplier: NamedIdentifier
-    product: NamedIdentifier
-    distributor: NamedIdentifier
-    region: NamedIdentifier
-    start_date: datetime
-    end_date: datetime | None = None
-    last_invoice_date: datetime | None = None
-    is_green: Annotated[bool, Field(..., description="Indicates if the contract guarantees green energy")]
+    supplier: Annotated[NamedIdentifier, Field(..., description="The energy supplier.")]
+    product: Annotated[NamedIdentifier, Field(..., description="The supplier's product the contract is for.")]
+    distributor: Annotated[
+        NamedIdentifier, Field(..., description="The distribution system operator of the connection.")
+    ]
+    region: Annotated[NamedIdentifier, Field(..., description="The region the connection is in.")]
+    start_date: Annotated[datetime, Field(..., description="When the contract starts.")]
+    end_date: Annotated[datetime | None, Field(None, description="When the contract ends; empty while it runs.")] = None
+    last_invoice_date: Annotated[datetime | None, Field(None, description="When the contract was last invoiced.")] = (
+        None
+    )
+    is_green: Annotated[bool, Field(..., description="Whether the contract guarantees green energy.")]
 
 
 def _build_product_key(supplier_id: str, product_id: str, meter_type: MeterType | None = None) -> str:
@@ -74,13 +80,19 @@ class ECContractResponse(BaseModel):
 
 
 class Address(BaseModel):
-    contracts: list[Contract] = Field(default_factory=list)
+    """An address of a member."""
+
+    contracts: list[Contract] = Field(default_factory=list, description="The energy contracts at this address.")
 
 
 class Member(BaseModel):
-    id: str
-    activation_code: Annotated[str | None, Field(None, description="Activation code used to verify membership")] = None
-    addresses: list[Address] = Field(default_factory=list)
+    """A member of the community."""
+
+    id: str = Field(description="The member's identifier.")
+    activation_code: Annotated[
+        str | None, Field(None, description="The code a member enters to prove their membership.")
+    ] = None
+    addresses: list[Address] = Field(default_factory=list, description="The member's addresses, with their contracts.")
 
     def get_contract_history_for_ean(self, ean: str, meter_type: MeterType | None = None) -> list[ec.Contract] | None:
         contracts = [contract for address in self.addresses for contract in address.contracts if contract.ean == ean]

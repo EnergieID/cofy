@@ -1,5 +1,7 @@
 from typing import TYPE_CHECKING, Literal
 
+from pydantic import Field
+
 from cofy.modules.timeseries import TimeseriesModule
 from cofy.modules.timeseries.module import TimeseriesModuleSettings
 
@@ -12,9 +14,9 @@ if TYPE_CHECKING:
 
 class SimultaneityModuleSettings(TimeseriesModuleSettings):
     type: Literal["simultaneity"] = "simultaneity"
-    source: "AnyRatioSourceSettings"
+    source: "AnyRatioSourceSettings" = Field(description="Where the simultaneity comes from.")
 
 
 class SimultaneityModule(TimeseriesModule[RatioSource], settings=SimultaneityModuleSettings):
     type: str = "simultaneity"
-    type_description: str = "Module providing the simultaneity of consumption and production as time series."
+    type_description: str = "Serves how much of the production is consumed at the same time, as a time series."

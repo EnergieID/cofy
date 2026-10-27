@@ -63,4 +63,4 @@ class JSONFormat(
     Generic[DataType, MetadataType],
     settings=JSONFormatSettings,
 ):
-    """Timeseries format for JSON."""
+    """The data as JSON, with its unit and resolution alongside."""

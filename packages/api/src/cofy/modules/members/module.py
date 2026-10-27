@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, Any, Literal
 
 from energy_cost import Contract
 from fastapi import HTTPException
+from pydantic import Field
 
 from cofy.api import Module, ModuleSettings
 
@@ -15,12 +16,14 @@ if TYPE_CHECKING:
 
 class MembersModuleSettings(ModuleSettings):
     type: Literal["members"] = "members"
-    source: "AnyMemberSourceSettings"
+    source: "AnyMemberSourceSettings" = Field(description="Where the members come from.")
 
 
 class MembersModule(Module, settings=MembersModuleSettings):
     type: str = "members"
-    type_description: str = "Module for member-related functionalities"
+    type_description: str = (
+        "Lists the members of the community, verifies their activation codes and serves their contract history."
+    )
 
     def __init__(self, *, source: MemberSource, **kwargs):
         self.source: MemberSource = source

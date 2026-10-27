@@ -457,14 +457,18 @@ export interface components {
              * @enum {string}
              */
             type: "acc_forecast";
-            /** @description Cache what this source fetches, if set. */
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
             cache?: components["schemas"]["CacheSettings-Input"] | null;
-            /** Ean */
+            /**
+             * Ean
+             * @description The EAN code of the connection to forecast.
+             */
             ean: string;
+            /** @description The service account key, in JSON, that ACC provided. */
             credentials: components["schemas"]["SecretRef"];
             /**
              * Base Url
-             * @description The address of the ACC service.
+             * @description The address of ACC's Connection Usage Service. Only change it to use another environment.
              * @default https://connection-usage-service-prd-730943142752.europe-west1.run.app
              */
             base_url?: string;
@@ -479,14 +483,18 @@ export interface components {
              * @enum {string}
              */
             type: "acc_forecast";
-            /** @description Cache what this source fetches, if set. */
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
             cache?: components["schemas"]["CacheSettings-Output"] | null;
-            /** Ean */
+            /**
+             * Ean
+             * @description The EAN code of the connection to forecast.
+             */
             ean: string;
+            /** @description The service account key, in JSON, that ACC provided. */
             credentials: components["schemas"]["SecretRef"];
             /**
              * Base Url
-             * @description The address of the ACC service.
+             * @description The address of ACC's Connection Usage Service. Only change it to use another environment.
              * @default https://connection-usage-service-prd-730943142752.europe-west1.run.app
              */
             base_url?: string;
@@ -497,9 +505,15 @@ export interface components {
          * @enum {string}
          */
         Action: "read" | "write";
-        /** Address */
+        /**
+         * Address
+         * @description An address of a member.
+         */
         Address: {
-            /** Contracts */
+            /**
+             * Contracts
+             * @description The energy contracts at this address.
+             */
             contracts?: components["schemas"]["Contract"][];
         };
         /**
@@ -533,7 +547,7 @@ export interface components {
         };
         /**
          * BillingModuleSettings
-         * @description Module that computes energy costs based on meter data and contract information.
+         * @description Computes energy costs from meter data and contract details sent along with the request.
          */
         BillingModuleSettings: {
             /**
@@ -543,24 +557,24 @@ export interface components {
             type: "billing";
             /**
              * Name
-             * @description The machine name of the module instance. No spaces, no special characters. Use it to differentiate between multiple instances/implementations of the same module type.
+             * @description Part of the module's URL, so letters, digits, - and _ only. Must differ between modules of the same type.
              * @default default
              */
             name?: string;
             /**
              * Display Name
-             * @description The human-readable name of the module instance. If not provided, the machine name will be used.
+             * @description The name shown to API users. Defaults to the name.
              */
             display_name?: string | null;
             /**
              * Description
-             * @description A short description of the module instance. If not provided, the module type description will be used.
+             * @description What this module offers, shown to API users. Defaults to a description of the module type.
              */
             description?: string | null;
         };
         /**
          * CSVFormatSettings
-         * @description Timeseries format for CSV.
+         * @description The data as CSV, a row per timestamp.
          */
         CSVFormatSettings: {
             /**
@@ -799,31 +813,45 @@ export interface components {
          * @enum {string}
          */
         ConnectionType: "electricity" | "gas";
-        /** Contract */
+        /**
+         * Contract
+         * @description An energy contract of a grid connection.
+         */
         Contract: {
             /**
              * Ean
-             * @description European Article Number
+             * @description The EAN code of the connection.
              */
             ean: string;
             customer_type: components["schemas"]["CustomerType"];
             connection_type: components["schemas"]["ConnectionType"];
+            /** @description The energy supplier. */
             supplier: components["schemas"]["NamedIdentifier"];
+            /** @description The supplier's product the contract is for. */
             product: components["schemas"]["NamedIdentifier"];
+            /** @description The distribution system operator of the connection. */
             distributor: components["schemas"]["NamedIdentifier"];
+            /** @description The region the connection is in. */
             region: components["schemas"]["NamedIdentifier"];
             /**
              * Start Date
              * Format: date-time
+             * @description When the contract starts.
              */
             start_date: string;
-            /** End Date */
+            /**
+             * End Date
+             * @description When the contract ends; empty while it runs.
+             */
             end_date?: string | null;
-            /** Last Invoice Date */
+            /**
+             * Last Invoice Date
+             * @description When the contract was last invoiced.
+             */
             last_invoice_date?: string | null;
             /**
              * Is Green
-             * @description Indicates if the contract guarantees green energy
+             * @description Whether the contract guarantees green energy.
              */
             is_green: boolean;
         };
@@ -872,7 +900,7 @@ export interface components {
              * @enum {string}
              */
             type: "demo_boundary";
-            /** @description Cache what this source fetches, if set. */
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
             cache?: components["schemas"]["CacheSettings-Input"] | null;
             /**
              * Pattern
@@ -930,7 +958,7 @@ export interface components {
              * @enum {string}
              */
             type: "demo_boundary";
-            /** @description Cache what this source fetches, if set. */
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
             cache?: components["schemas"]["CacheSettings-Output"] | null;
             /**
              * Pattern
@@ -1111,7 +1139,7 @@ export interface components {
              * @enum {string}
              */
             type: "demo_net_volume";
-            /** @description Cache what this source fetches, if set. */
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
             cache?: components["schemas"]["CacheSettings-Input"] | null;
             /**
              * Pattern
@@ -1169,7 +1197,7 @@ export interface components {
              * @enum {string}
              */
             type: "demo_net_volume";
-            /** @description Cache what this source fetches, if set. */
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
             cache?: components["schemas"]["CacheSettings-Output"] | null;
             /**
              * Pattern
@@ -1228,7 +1256,7 @@ export interface components {
              * @enum {string}
              */
             type: "demo_price";
-            /** @description Cache what this source fetches, if set. */
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
             cache?: components["schemas"]["CacheSettings-Input"] | null;
             /**
              * Pattern
@@ -1286,7 +1314,7 @@ export interface components {
              * @enum {string}
              */
             type: "demo_price";
-            /** @description Cache what this source fetches, if set. */
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
             cache?: components["schemas"]["CacheSettings-Output"] | null;
             /**
              * Pattern
@@ -1345,7 +1373,7 @@ export interface components {
              * @enum {string}
              */
             type: "demo_production";
-            /** @description Cache what this source fetches, if set. */
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
             cache?: components["schemas"]["CacheSettings-Input"] | null;
             /**
              * Pattern
@@ -1403,7 +1431,7 @@ export interface components {
              * @enum {string}
              */
             type: "demo_production";
-            /** @description Cache what this source fetches, if set. */
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
             cache?: components["schemas"]["CacheSettings-Output"] | null;
             /**
              * Pattern
@@ -1462,7 +1490,7 @@ export interface components {
              * @enum {string}
              */
             type: "demo_ratio";
-            /** @description Cache what this source fetches, if set. */
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
             cache?: components["schemas"]["CacheSettings-Input"] | null;
             /**
              * Pattern
@@ -1520,7 +1548,7 @@ export interface components {
              * @enum {string}
              */
             type: "demo_ratio";
-            /** @description Cache what this source fetches, if set. */
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
             cache?: components["schemas"]["CacheSettings-Output"] | null;
             /**
              * Pattern
@@ -1554,7 +1582,10 @@ export interface components {
              */
             pattern?: number[];
         };
-        /** DirectiveFormatSettings */
+        /**
+         * DirectiveFormatSettings
+         * @description Directives as JSON, a step from -- to ++ per timestamp.
+         */
         DirectiveFormatSettings: {
             /**
              * @description discriminator enum property added by openapi-typescript
@@ -1564,7 +1595,7 @@ export interface components {
         };
         /**
          * DirectiveModuleSettings
-         * @description Module providing directives as time series.
+         * @description Serves directives, steps from -- to ++ telling members when to use less or more energy, as a time series.
          */
         "DirectiveModuleSettings-Input": {
             /**
@@ -1574,21 +1605,24 @@ export interface components {
             type: "directive";
             /**
              * Name
-             * @description The machine name of the module instance. No spaces, no special characters. Use it to differentiate between multiple instances/implementations of the same module type.
+             * @description Part of the module's URL, so letters, digits, - and _ only. Must differ between modules of the same type.
              * @default default
              */
             name?: string;
             /**
              * Display Name
-             * @description The human-readable name of the module instance. If not provided, the machine name will be used.
+             * @description The name shown to API users. Defaults to the name.
              */
             display_name?: string | null;
             /**
              * Description
-             * @description A short description of the module instance. If not provided, the module type description will be used.
+             * @description What this module offers, shown to API users. Defaults to a description of the module type.
              */
             description?: string | null;
-            /** Source */
+            /**
+             * Source
+             * @description Where the directives come from.
+             */
             source: (components["schemas"]["DirectiveSourceSettings-Input"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Input"]) | components["schemas"]["RefSettings"];
             /**
              * Formats
@@ -1598,7 +1632,7 @@ export interface components {
         };
         /**
          * DirectiveModuleSettings
-         * @description Module providing directives as time series.
+         * @description Serves directives, steps from -- to ++ telling members when to use less or more energy, as a time series.
          */
         "DirectiveModuleSettings-Output": {
             /**
@@ -1608,21 +1642,24 @@ export interface components {
             type: "directive";
             /**
              * Name
-             * @description The machine name of the module instance. No spaces, no special characters. Use it to differentiate between multiple instances/implementations of the same module type.
+             * @description Part of the module's URL, so letters, digits, - and _ only. Must differ between modules of the same type.
              * @default default
              */
             name?: string;
             /**
              * Display Name
-             * @description The human-readable name of the module instance. If not provided, the machine name will be used.
+             * @description The name shown to API users. Defaults to the name.
              */
             display_name?: string | null;
             /**
              * Description
-             * @description A short description of the module instance. If not provided, the module type description will be used.
+             * @description What this module offers, shown to API users. Defaults to a description of the module type.
              */
             description?: string | null;
-            /** Source */
+            /**
+             * Source
+             * @description Where the directives come from.
+             */
             source: (components["schemas"]["DirectiveSourceSettings-Output"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Output"]) | components["schemas"]["RefSettings"];
             /**
              * Formats
@@ -1640,11 +1677,17 @@ export interface components {
              * @enum {string}
              */
             type: "directive";
-            /** @description Cache what this source fetches, if set. */
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
             cache?: components["schemas"]["CacheSettings-Input"] | null;
-            /** Source */
-            source: (components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["DemoNetVolumeSourceSettings-Input"] | components["schemas"]["DemoPriceSourceSettings-Input"] | components["schemas"]["DemoProductionSourceSettings-Input"] | components["schemas"]["DemoRatioSourceSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"]) | components["schemas"]["RefSettings"];
-            /** Boundaries */
+            /**
+             * Source
+             * @description The values to turn into directive steps, e.g. a price or a forecast.
+             */
+            source: (components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["DemoNetVolumeSourceSettings-Input"] | components["schemas"]["DemoPriceSourceSettings-Input"] | components["schemas"]["DemoProductionSourceSettings-Input"] | components["schemas"]["DemoRatioSourceSettings-Input"] | components["schemas"]["EliaSolarForecastSourceSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"] | components["schemas"]["NedProductionForecastSourceSettings-Input"]) | components["schemas"]["RefSettings"];
+            /**
+             * Boundaries
+             * @description The four values, in ascending order, above which the directive moves up a step.
+             */
             boundaries: [
                 number,
                 number,
@@ -1653,6 +1696,7 @@ export interface components {
             ];
             /**
              * Reverse
+             * @description Turn higher values into lower steps instead, e.g. for a price, where a high one should mean using less.
              * @default false
              */
             reverse?: boolean;
@@ -1667,11 +1711,17 @@ export interface components {
              * @enum {string}
              */
             type: "directive";
-            /** @description Cache what this source fetches, if set. */
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
             cache?: components["schemas"]["CacheSettings-Output"] | null;
-            /** Source */
-            source: (components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["DemoNetVolumeSourceSettings-Output"] | components["schemas"]["DemoPriceSourceSettings-Output"] | components["schemas"]["DemoProductionSourceSettings-Output"] | components["schemas"]["DemoRatioSourceSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"]) | components["schemas"]["RefSettings"];
-            /** Boundaries */
+            /**
+             * Source
+             * @description The values to turn into directive steps, e.g. a price or a forecast.
+             */
+            source: (components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["DemoNetVolumeSourceSettings-Output"] | components["schemas"]["DemoPriceSourceSettings-Output"] | components["schemas"]["DemoProductionSourceSettings-Output"] | components["schemas"]["DemoRatioSourceSettings-Output"] | components["schemas"]["EliaSolarForecastSourceSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"] | components["schemas"]["NedProductionForecastSourceSettings-Output"]) | components["schemas"]["RefSettings"];
+            /**
+             * Boundaries
+             * @description The four values, in ascending order, above which the directive moves up a step.
+             */
             boundaries: [
                 number,
                 number,
@@ -1680,6 +1730,7 @@ export interface components {
             ];
             /**
              * Reverse
+             * @description Turn higher values into lower steps instead, e.g. for a price, where a high one should mean using less.
              * @default false
              */
             reverse?: boolean;
@@ -1694,14 +1745,21 @@ export interface components {
              * @enum {string}
              */
             type: "dynamic_boundary_directive";
-            /** @description Cache what this source fetches, if set. */
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
             cache?: components["schemas"]["CacheSettings-Input"] | null;
-            /** Signal Source */
-            signal_source: (components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["DemoNetVolumeSourceSettings-Input"] | components["schemas"]["DemoPriceSourceSettings-Input"] | components["schemas"]["DemoProductionSourceSettings-Input"] | components["schemas"]["DemoRatioSourceSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"]) | components["schemas"]["RefSettings"];
-            /** Boundary Source */
+            /**
+             * Signal Source
+             * @description The values to turn into directive steps, e.g. a price or a forecast.
+             */
+            signal_source: (components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["DemoNetVolumeSourceSettings-Input"] | components["schemas"]["DemoPriceSourceSettings-Input"] | components["schemas"]["DemoProductionSourceSettings-Input"] | components["schemas"]["DemoRatioSourceSettings-Input"] | components["schemas"]["EliaSolarForecastSourceSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"] | components["schemas"]["NedProductionForecastSourceSettings-Input"]) | components["schemas"]["RefSettings"];
+            /**
+             * Boundary Source
+             * @description The four values, in ascending order, above which the directive moves up a step, at each moment.
+             */
             boundary_source: components["schemas"]["DemoBoundarySourceSettings-Input"] | components["schemas"]["RefSettings"];
             /**
              * Reverse
+             * @description Turn higher values into lower steps instead, e.g. for a price, where a high one should mean using less.
              * @default false
              */
             reverse?: boolean;
@@ -1716,17 +1774,64 @@ export interface components {
              * @enum {string}
              */
             type: "dynamic_boundary_directive";
-            /** @description Cache what this source fetches, if set. */
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
             cache?: components["schemas"]["CacheSettings-Output"] | null;
-            /** Signal Source */
-            signal_source: (components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["DemoNetVolumeSourceSettings-Output"] | components["schemas"]["DemoPriceSourceSettings-Output"] | components["schemas"]["DemoProductionSourceSettings-Output"] | components["schemas"]["DemoRatioSourceSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"]) | components["schemas"]["RefSettings"];
-            /** Boundary Source */
+            /**
+             * Signal Source
+             * @description The values to turn into directive steps, e.g. a price or a forecast.
+             */
+            signal_source: (components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["DemoNetVolumeSourceSettings-Output"] | components["schemas"]["DemoPriceSourceSettings-Output"] | components["schemas"]["DemoProductionSourceSettings-Output"] | components["schemas"]["DemoRatioSourceSettings-Output"] | components["schemas"]["EliaSolarForecastSourceSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"] | components["schemas"]["NedProductionForecastSourceSettings-Output"]) | components["schemas"]["RefSettings"];
+            /**
+             * Boundary Source
+             * @description The four values, in ascending order, above which the directive moves up a step, at each moment.
+             */
             boundary_source: components["schemas"]["DemoBoundarySourceSettings-Output"] | components["schemas"]["RefSettings"];
             /**
              * Reverse
+             * @description Turn higher values into lower steps instead, e.g. for a price, where a high one should mean using less.
              * @default false
              */
             reverse?: boolean;
+        };
+        /**
+         * EliaSolarForecastSourceSettings
+         * @description Elia's most recent solar production forecast of a Belgian region, as % of its monitored PV capacity.
+         */
+        "EliaSolarForecastSourceSettings-Input": {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "elia_solar_forecast";
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
+            cache?: components["schemas"]["CacheSettings-Input"] | null;
+            /**
+             * Region
+             * @description The region the forecast is for.
+             * @default Belgium
+             * @enum {string}
+             */
+            region?: "Belgium" | "Flanders" | "Wallonia" | "Brussels" | "Antwerp" | "East-Flanders" | "Flemish-Brabant" | "Limburg" | "West-Flanders" | "Hainaut" | "Liège" | "Luxembourg" | "Namur" | "Walloon-Brabant";
+        };
+        /**
+         * EliaSolarForecastSourceSettings
+         * @description Elia's most recent solar production forecast of a Belgian region, as % of its monitored PV capacity.
+         */
+        "EliaSolarForecastSourceSettings-Output": {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "elia_solar_forecast";
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
+            cache?: components["schemas"]["CacheSettings-Output"] | null;
+            /**
+             * Region
+             * @description The region the forecast is for.
+             * @default Belgium
+             * @enum {string}
+             */
+            region?: "Belgium" | "Flanders" | "Wallonia" | "Brussels" | "Antwerp" | "East-Flanders" | "Flemish-Brabant" | "Limburg" | "West-Flanders" | "Hainaut" | "Liège" | "Luxembourg" | "Namur" | "Walloon-Brabant";
         };
         /**
          * EnergyCostTariffSourceSettings
@@ -1738,13 +1843,14 @@ export interface components {
              * @enum {string}
              */
             type: "energy_cost";
-            /** @description Cache what this source fetches, if set. */
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
             cache?: components["schemas"]["CacheSettings-Input"] | null;
             /**
              * Tariff
-             * @description Energy cost tariff instance
+             * @description The tariff to compute prices from.
              */
             tariff: components["schemas"]["Tariff-Input"] | components["schemas"]["RefSettings"];
+            /** @description Which of the tariff's costs to price. When empty, each request picks one, consumption by default. */
             cost_group?: components["schemas"]["CostGroup"] | null;
         };
         /**
@@ -1757,13 +1863,14 @@ export interface components {
              * @enum {string}
              */
             type: "energy_cost";
-            /** @description Cache what this source fetches, if set. */
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
             cache?: components["schemas"]["CacheSettings-Output"] | null;
             /**
              * Tariff
-             * @description Energy cost tariff instance
+             * @description The tariff to compute prices from.
              */
             tariff: components["schemas"]["Tariff-Output"] | components["schemas"]["RefSettings"];
+            /** @description Which of the tariff's costs to price. When empty, each request picks one, consumption by default. */
             cost_group?: components["schemas"]["CostGroup"] | null;
         };
         /**
@@ -1776,10 +1883,14 @@ export interface components {
              * @enum {string}
              */
             type: "energyid_production";
-            /** @description Cache what this source fetches, if set. */
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
             cache?: components["schemas"]["CacheSettings-Input"] | null;
+            /** @description An EnergyID API key with access to the record. */
             api_key: components["schemas"]["SecretRef"];
-            /** Record Id */
+            /**
+             * Record Id
+             * @description The ID of the EnergyID record whose production to serve.
+             */
             record_id: string;
         };
         /**
@@ -1792,10 +1903,14 @@ export interface components {
              * @enum {string}
              */
             type: "energyid_production";
-            /** @description Cache what this source fetches, if set. */
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
             cache?: components["schemas"]["CacheSettings-Output"] | null;
+            /** @description An EnergyID API key with access to the record. */
             api_key: components["schemas"]["SecretRef"];
-            /** Record Id */
+            /**
+             * Record Id
+             * @description The ID of the EnergyID record whose production to serve.
+             */
             record_id: string;
         };
         /**
@@ -1808,10 +1923,14 @@ export interface components {
              * @enum {string}
              */
             type: "entsoe_day_ahead";
-            /** @description Cache what this source fetches, if set. */
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
             cache?: components["schemas"]["CacheSettings-Input"] | null;
+            /** @description An ENTSO-E Transparency Platform API key. */
             api_key: components["schemas"]["SecretRef"];
-            /** Country Code */
+            /**
+             * Country Code
+             * @description The bidding zone, e.g. BE or NL. When empty, each request picks one, BE by default.
+             */
             country_code?: string | null;
         };
         /**
@@ -1824,10 +1943,14 @@ export interface components {
              * @enum {string}
              */
             type: "entsoe_day_ahead";
-            /** @description Cache what this source fetches, if set. */
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
             cache?: components["schemas"]["CacheSettings-Output"] | null;
+            /** @description An ENTSO-E Transparency Platform API key. */
             api_key: components["schemas"]["SecretRef"];
-            /** Country Code */
+            /**
+             * Country Code
+             * @description The bidding zone, e.g. BE or NL. When empty, each request picks one, BE by default.
+             */
             country_code?: string | null;
         };
         /**
@@ -1912,7 +2035,7 @@ export interface components {
         };
         /**
          * JSONFormatSettings
-         * @description Timeseries format for JSON.
+         * @description The data as JSON, with its unit and resolution alongside.
          */
         JSONFormatSettings: {
             /**
@@ -1923,7 +2046,7 @@ export interface components {
         };
         /**
          * KiwattFormatSettings
-         * @description Timeseries format for Kiwatt.
+         * @description Prices in the JSON format Kiwatt reads.
          */
         KiwattFormatSettings: {
             /**
@@ -2019,16 +2142,25 @@ export interface components {
              */
             permissions: components["schemas"]["CommunityPermissions"][];
         };
-        /** Member */
+        /**
+         * Member
+         * @description A member of the community.
+         */
         Member: {
-            /** Id */
+            /**
+             * Id
+             * @description The member's identifier.
+             */
             id: string;
             /**
              * Activation Code
-             * @description Activation code used to verify membership
+             * @description The code a member enters to prove their membership.
              */
             activation_code?: string | null;
-            /** Addresses */
+            /**
+             * Addresses
+             * @description The member's addresses, with their contracts.
+             */
             addresses?: components["schemas"]["Address"][];
         };
         /**
@@ -2043,12 +2175,12 @@ export interface components {
             type: "member_source";
             /**
              * Name
-             * @description The machine name of the resource, by which it is referenced. No spaces, no special characters.
+             * @description The name other settings refer to this resource by; letters, digits, - and _ only.
              */
             name: string;
             /**
              * Description
-             * @description A short description of the resource.
+             * @description What this resource is, shown when picking it elsewhere.
              */
             description?: string | null;
             /** Value */
@@ -2056,7 +2188,7 @@ export interface components {
         };
         /**
          * MembersModuleSettings
-         * @description Module for member-related functionalities
+         * @description Lists the members of the community, verifies their activation codes and serves their contract history.
          */
         MembersModuleSettings: {
             /**
@@ -2066,21 +2198,24 @@ export interface components {
             type: "members";
             /**
              * Name
-             * @description The machine name of the module instance. No spaces, no special characters. Use it to differentiate between multiple instances/implementations of the same module type.
+             * @description Part of the module's URL, so letters, digits, - and _ only. Must differ between modules of the same type.
              * @default default
              */
             name?: string;
             /**
              * Display Name
-             * @description The human-readable name of the module instance. If not provided, the machine name will be used.
+             * @description The name shown to API users. Defaults to the name.
              */
             display_name?: string | null;
             /**
              * Description
-             * @description A short description of the module instance. If not provided, the module type description will be used.
+             * @description What this module offers, shown to API users. Defaults to a description of the module type.
              */
             description?: string | null;
-            /** Source */
+            /**
+             * Source
+             * @description Where the members come from.
+             */
             source: components["schemas"]["DemoMembersSourceSettings"] | components["schemas"]["RefSettings"];
         };
         /**
@@ -2209,14 +2344,74 @@ export interface components {
         NamedIdentifier: {
             /**
              * Name
-             * @description Human-readable name
+             * @description The name shown.
              */
             name: string;
             /**
              * Id
-             * @description Unique identifier
+             * @description The identifier, as known to the energy cost catalog.
              */
             id: string;
+        };
+        /** NedInstallation */
+        NedInstallation: {
+            /**
+             * Region
+             * @description The region whose forecast the installation follows.
+             * @enum {string}
+             */
+            region: "Nederland" | "Groningen" | "Friesland" | "Drenthe" | "Overijssel" | "Flevoland" | "Gelderland" | "Utrecht" | "Noord-Holland" | "Zuid-Holland" | "Zeeland" | "Noord-Brabant" | "Limburg" | "Offshore";
+            /**
+             * Type
+             * @description The kind of production.
+             * @enum {string}
+             */
+            type: "solar" | "wind" | "wind_offshore";
+            /**
+             * Peak Power
+             * @description The peak power of the installation, in kW.
+             */
+            peak_power: number;
+        };
+        /**
+         * NedProductionForecastSourceSettings
+         * @description Forecast production of a set of Dutch installations, from the Nationaal Energie Dashboard.
+         */
+        "NedProductionForecastSourceSettings-Input": {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "ned_production_forecast";
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
+            cache?: components["schemas"]["CacheSettings-Input"] | null;
+            /** @description A Nationaal Energie Dashboard API key. */
+            api_key: components["schemas"]["SecretRef"];
+            /**
+             * Installations
+             * @description The installations whose forecast production is summed, each scaled to its peak power.
+             */
+            installations: components["schemas"]["NedInstallation"][];
+        };
+        /**
+         * NedProductionForecastSourceSettings
+         * @description Forecast production of a set of Dutch installations, from the Nationaal Energie Dashboard.
+         */
+        "NedProductionForecastSourceSettings-Output": {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "ned_production_forecast";
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
+            cache?: components["schemas"]["CacheSettings-Output"] | null;
+            /** @description A Nationaal Energie Dashboard API key. */
+            api_key: components["schemas"]["SecretRef"];
+            /**
+             * Installations
+             * @description The installations whose forecast production is summed, each scaled to its peak power.
+             */
+            installations: components["schemas"]["NedInstallation"][];
         };
         /**
          * PeriodicFormula
@@ -2260,7 +2455,7 @@ export interface components {
         };
         /**
          * ProductionModuleSettings
-         * @description Module providing production data as time series.
+         * @description Serves energy production as a time series.
          */
         "ProductionModuleSettings-Input": {
             /**
@@ -2270,21 +2465,24 @@ export interface components {
             type: "production";
             /**
              * Name
-             * @description The machine name of the module instance. No spaces, no special characters. Use it to differentiate between multiple instances/implementations of the same module type.
+             * @description Part of the module's URL, so letters, digits, - and _ only. Must differ between modules of the same type.
              * @default default
              */
             name?: string;
             /**
              * Display Name
-             * @description The human-readable name of the module instance. If not provided, the machine name will be used.
+             * @description The name shown to API users. Defaults to the name.
              */
             display_name?: string | null;
             /**
              * Description
-             * @description A short description of the module instance. If not provided, the module type description will be used.
+             * @description What this module offers, shown to API users. Defaults to a description of the module type.
              */
             description?: string | null;
-            /** Source */
+            /**
+             * Source
+             * @description Where the production data comes from.
+             */
             source: (components["schemas"]["DemoProductionSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"]) | components["schemas"]["RefSettings"];
             /**
              * Formats
@@ -2294,7 +2492,7 @@ export interface components {
         };
         /**
          * ProductionModuleSettings
-         * @description Module providing production data as time series.
+         * @description Serves energy production as a time series.
          */
         "ProductionModuleSettings-Output": {
             /**
@@ -2304,21 +2502,24 @@ export interface components {
             type: "production";
             /**
              * Name
-             * @description The machine name of the module instance. No spaces, no special characters. Use it to differentiate between multiple instances/implementations of the same module type.
+             * @description Part of the module's URL, so letters, digits, - and _ only. Must differ between modules of the same type.
              * @default default
              */
             name?: string;
             /**
              * Display Name
-             * @description The human-readable name of the module instance. If not provided, the machine name will be used.
+             * @description The name shown to API users. Defaults to the name.
              */
             display_name?: string | null;
             /**
              * Description
-             * @description A short description of the module instance. If not provided, the module type description will be used.
+             * @description What this module offers, shown to API users. Defaults to a description of the module type.
              */
             description?: string | null;
-            /** Source */
+            /**
+             * Source
+             * @description Where the production data comes from.
+             */
             source: (components["schemas"]["DemoProductionSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"]) | components["schemas"]["RefSettings"];
             /**
              * Formats
@@ -2487,7 +2688,7 @@ export interface components {
         };
         /**
          * SimultaneityModuleSettings
-         * @description Module providing the simultaneity of consumption and production as time series.
+         * @description Serves how much of the production is consumed at the same time, as a time series.
          */
         "SimultaneityModuleSettings-Input": {
             /**
@@ -2497,21 +2698,24 @@ export interface components {
             type: "simultaneity";
             /**
              * Name
-             * @description The machine name of the module instance. No spaces, no special characters. Use it to differentiate between multiple instances/implementations of the same module type.
+             * @description Part of the module's URL, so letters, digits, - and _ only. Must differ between modules of the same type.
              * @default default
              */
             name?: string;
             /**
              * Display Name
-             * @description The human-readable name of the module instance. If not provided, the machine name will be used.
+             * @description The name shown to API users. Defaults to the name.
              */
             display_name?: string | null;
             /**
              * Description
-             * @description A short description of the module instance. If not provided, the module type description will be used.
+             * @description What this module offers, shown to API users. Defaults to a description of the module type.
              */
             description?: string | null;
-            /** Source */
+            /**
+             * Source
+             * @description Where the simultaneity comes from.
+             */
             source: (components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["DemoRatioSourceSettings-Input"]) | components["schemas"]["RefSettings"];
             /**
              * Formats
@@ -2521,7 +2725,7 @@ export interface components {
         };
         /**
          * SimultaneityModuleSettings
-         * @description Module providing the simultaneity of consumption and production as time series.
+         * @description Serves how much of the production is consumed at the same time, as a time series.
          */
         "SimultaneityModuleSettings-Output": {
             /**
@@ -2531,21 +2735,24 @@ export interface components {
             type: "simultaneity";
             /**
              * Name
-             * @description The machine name of the module instance. No spaces, no special characters. Use it to differentiate between multiple instances/implementations of the same module type.
+             * @description Part of the module's URL, so letters, digits, - and _ only. Must differ between modules of the same type.
              * @default default
              */
             name?: string;
             /**
              * Display Name
-             * @description The human-readable name of the module instance. If not provided, the machine name will be used.
+             * @description The name shown to API users. Defaults to the name.
              */
             display_name?: string | null;
             /**
              * Description
-             * @description A short description of the module instance. If not provided, the module type description will be used.
+             * @description What this module offers, shown to API users. Defaults to a description of the module type.
              */
             description?: string | null;
-            /** Source */
+            /**
+             * Source
+             * @description Where the simultaneity comes from.
+             */
             source: (components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["DemoRatioSourceSettings-Output"]) | components["schemas"]["RefSettings"];
             /**
              * Formats
@@ -2563,9 +2770,12 @@ export interface components {
              * @enum {string}
              */
             type: "simultaneity";
-            /** @description Cache what this source fetches, if set. */
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
             cache?: components["schemas"]["CacheSettings-Input"] | null;
-            /** Sources */
+            /**
+             * Sources
+             * @description The net volumes to total, consumption positive and production negative.
+             */
             sources: ((components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["DemoNetVolumeSourceSettings-Input"]) | components["schemas"]["RefSettings"])[];
         };
         /**
@@ -2578,9 +2788,12 @@ export interface components {
              * @enum {string}
              */
             type: "simultaneity";
-            /** @description Cache what this source fetches, if set. */
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
             cache?: components["schemas"]["CacheSettings-Output"] | null;
-            /** Sources */
+            /**
+             * Sources
+             * @description The net volumes to total, consumption positive and production negative.
+             */
             sources: ((components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["DemoNetVolumeSourceSettings-Output"]) | components["schemas"]["RefSettings"])[];
         };
         /**
@@ -2595,16 +2808,16 @@ export interface components {
             type: "source";
             /**
              * Name
-             * @description The machine name of the resource, by which it is referenced. No spaces, no special characters.
+             * @description The name other settings refer to this resource by; letters, digits, - and _ only.
              */
             name: string;
             /**
              * Description
-             * @description A short description of the resource.
+             * @description What this resource is, shown when picking it elsewhere.
              */
             description?: string | null;
             /** Value */
-            value: (components["schemas"]["DirectiveSourceSettings-Input"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Input"] | components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["DemoBoundarySourceSettings-Input"] | components["schemas"]["DemoNetVolumeSourceSettings-Input"] | components["schemas"]["DemoPriceSourceSettings-Input"] | components["schemas"]["DemoProductionSourceSettings-Input"] | components["schemas"]["DemoRatioSourceSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"]) | components["schemas"]["RefSettings"];
+            value: (components["schemas"]["DirectiveSourceSettings-Input"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Input"] | components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["DemoBoundarySourceSettings-Input"] | components["schemas"]["DemoNetVolumeSourceSettings-Input"] | components["schemas"]["DemoPriceSourceSettings-Input"] | components["schemas"]["DemoProductionSourceSettings-Input"] | components["schemas"]["DemoRatioSourceSettings-Input"] | components["schemas"]["EliaSolarForecastSourceSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"] | components["schemas"]["NedProductionForecastSourceSettings-Input"]) | components["schemas"]["RefSettings"];
         };
         /**
          * SourceResourceSettings
@@ -2618,16 +2831,16 @@ export interface components {
             type: "source";
             /**
              * Name
-             * @description The machine name of the resource, by which it is referenced. No spaces, no special characters.
+             * @description The name other settings refer to this resource by; letters, digits, - and _ only.
              */
             name: string;
             /**
              * Description
-             * @description A short description of the resource.
+             * @description What this resource is, shown when picking it elsewhere.
              */
             description?: string | null;
             /** Value */
-            value: (components["schemas"]["DirectiveSourceSettings-Output"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Output"] | components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["DemoBoundarySourceSettings-Output"] | components["schemas"]["DemoNetVolumeSourceSettings-Output"] | components["schemas"]["DemoPriceSourceSettings-Output"] | components["schemas"]["DemoProductionSourceSettings-Output"] | components["schemas"]["DemoRatioSourceSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"]) | components["schemas"]["RefSettings"];
+            value: (components["schemas"]["DirectiveSourceSettings-Output"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Output"] | components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["DemoBoundarySourceSettings-Output"] | components["schemas"]["DemoNetVolumeSourceSettings-Output"] | components["schemas"]["DemoPriceSourceSettings-Output"] | components["schemas"]["DemoProductionSourceSettings-Output"] | components["schemas"]["DemoRatioSourceSettings-Output"] | components["schemas"]["EliaSolarForecastSourceSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"] | components["schemas"]["NedProductionForecastSourceSettings-Output"]) | components["schemas"]["RefSettings"];
         };
         /**
          * Subject
@@ -2647,7 +2860,7 @@ export interface components {
         "Tariff-Output": components["schemas"]["TariffVersion-Output"][];
         /**
          * TariffModuleSettings
-         * @description Module providing tariff data as time series.
+         * @description Serves energy prices as a time series.
          */
         "TariffModuleSettings-Input": {
             /**
@@ -2657,21 +2870,24 @@ export interface components {
             type: "tariff";
             /**
              * Name
-             * @description The machine name of the module instance. No spaces, no special characters. Use it to differentiate between multiple instances/implementations of the same module type.
+             * @description Part of the module's URL, so letters, digits, - and _ only. Must differ between modules of the same type.
              * @default default
              */
             name?: string;
             /**
              * Display Name
-             * @description The human-readable name of the module instance. If not provided, the machine name will be used.
+             * @description The name shown to API users. Defaults to the name.
              */
             display_name?: string | null;
             /**
              * Description
-             * @description A short description of the module instance. If not provided, the module type description will be used.
+             * @description What this module offers, shown to API users. Defaults to a description of the module type.
              */
             description?: string | null;
-            /** Source */
+            /**
+             * Source
+             * @description Where the prices come from.
+             */
             source: (components["schemas"]["DemoPriceSourceSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"]) | components["schemas"]["RefSettings"];
             /**
              * Formats
@@ -2681,7 +2897,7 @@ export interface components {
         };
         /**
          * TariffModuleSettings
-         * @description Module providing tariff data as time series.
+         * @description Serves energy prices as a time series.
          */
         "TariffModuleSettings-Output": {
             /**
@@ -2691,21 +2907,24 @@ export interface components {
             type: "tariff";
             /**
              * Name
-             * @description The machine name of the module instance. No spaces, no special characters. Use it to differentiate between multiple instances/implementations of the same module type.
+             * @description Part of the module's URL, so letters, digits, - and _ only. Must differ between modules of the same type.
              * @default default
              */
             name?: string;
             /**
              * Display Name
-             * @description The human-readable name of the module instance. If not provided, the machine name will be used.
+             * @description The name shown to API users. Defaults to the name.
              */
             display_name?: string | null;
             /**
              * Description
-             * @description A short description of the module instance. If not provided, the module type description will be used.
+             * @description What this module offers, shown to API users. Defaults to a description of the module type.
              */
             description?: string | null;
-            /** Source */
+            /**
+             * Source
+             * @description Where the prices come from.
+             */
             source: (components["schemas"]["DemoPriceSourceSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"]) | components["schemas"]["RefSettings"];
             /**
              * Formats
@@ -2725,15 +2944,15 @@ export interface components {
             type: "tariff";
             /**
              * Name
-             * @description The machine name of the resource, by which it is referenced. No spaces, no special characters.
+             * @description The name other settings refer to this resource by; letters, digits, - and _ only.
              */
             name: string;
             /**
              * Description
-             * @description A short description of the resource.
+             * @description What this resource is, shown when picking it elsewhere.
              */
             description?: string | null;
-            /** @description Energy cost tariff instance */
+            /** @description The tariff's versions over time, each with the formulas for its costs. */
             value: components["schemas"]["Tariff-Input"];
         };
         /**
@@ -2748,15 +2967,15 @@ export interface components {
             type: "tariff";
             /**
              * Name
-             * @description The machine name of the resource, by which it is referenced. No spaces, no special characters.
+             * @description The name other settings refer to this resource by; letters, digits, - and _ only.
              */
             name: string;
             /**
              * Description
-             * @description A short description of the resource.
+             * @description What this resource is, shown when picking it elsewhere.
              */
             description?: string | null;
-            /** @description Energy cost tariff instance */
+            /** @description The tariff's versions over time, each with the formulas for its costs. */
             value: components["schemas"]["Tariff-Output"];
         };
         /**
@@ -2947,7 +3166,7 @@ export interface components {
         TieringMode: "banded" | "progressive";
         /**
          * TimeseriesModuleSettings
-         * @description Module providing timeseries data.
+         * @description Serves any time series.
          */
         "TimeseriesModuleSettings-Input": {
             /**
@@ -2957,22 +3176,25 @@ export interface components {
             type: "timeseries";
             /**
              * Name
-             * @description The machine name of the module instance. No spaces, no special characters. Use it to differentiate between multiple instances/implementations of the same module type.
+             * @description Part of the module's URL, so letters, digits, - and _ only. Must differ between modules of the same type.
              * @default default
              */
             name?: string;
             /**
              * Display Name
-             * @description The human-readable name of the module instance. If not provided, the machine name will be used.
+             * @description The name shown to API users. Defaults to the name.
              */
             display_name?: string | null;
             /**
              * Description
-             * @description A short description of the module instance. If not provided, the module type description will be used.
+             * @description What this module offers, shown to API users. Defaults to a description of the module type.
              */
             description?: string | null;
-            /** Source */
-            source: (components["schemas"]["DirectiveSourceSettings-Input"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Input"] | components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["DemoBoundarySourceSettings-Input"] | components["schemas"]["DemoNetVolumeSourceSettings-Input"] | components["schemas"]["DemoPriceSourceSettings-Input"] | components["schemas"]["DemoProductionSourceSettings-Input"] | components["schemas"]["DemoRatioSourceSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"]) | components["schemas"]["RefSettings"];
+            /**
+             * Source
+             * @description Where the data comes from.
+             */
+            source: (components["schemas"]["DirectiveSourceSettings-Input"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Input"] | components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["DemoBoundarySourceSettings-Input"] | components["schemas"]["DemoNetVolumeSourceSettings-Input"] | components["schemas"]["DemoPriceSourceSettings-Input"] | components["schemas"]["DemoProductionSourceSettings-Input"] | components["schemas"]["DemoRatioSourceSettings-Input"] | components["schemas"]["EliaSolarForecastSourceSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"] | components["schemas"]["NedProductionForecastSourceSettings-Input"]) | components["schemas"]["RefSettings"];
             /**
              * Formats
              * @description The formats the data is offered in. Defaults to JSON and CSV.
@@ -2981,7 +3203,7 @@ export interface components {
         };
         /**
          * TimeseriesModuleSettings
-         * @description Module providing timeseries data.
+         * @description Serves any time series.
          */
         "TimeseriesModuleSettings-Output": {
             /**
@@ -2991,22 +3213,25 @@ export interface components {
             type: "timeseries";
             /**
              * Name
-             * @description The machine name of the module instance. No spaces, no special characters. Use it to differentiate between multiple instances/implementations of the same module type.
+             * @description Part of the module's URL, so letters, digits, - and _ only. Must differ between modules of the same type.
              * @default default
              */
             name?: string;
             /**
              * Display Name
-             * @description The human-readable name of the module instance. If not provided, the machine name will be used.
+             * @description The name shown to API users. Defaults to the name.
              */
             display_name?: string | null;
             /**
              * Description
-             * @description A short description of the module instance. If not provided, the module type description will be used.
+             * @description What this module offers, shown to API users. Defaults to a description of the module type.
              */
             description?: string | null;
-            /** Source */
-            source: (components["schemas"]["DirectiveSourceSettings-Output"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Output"] | components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["DemoBoundarySourceSettings-Output"] | components["schemas"]["DemoNetVolumeSourceSettings-Output"] | components["schemas"]["DemoPriceSourceSettings-Output"] | components["schemas"]["DemoProductionSourceSettings-Output"] | components["schemas"]["DemoRatioSourceSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"]) | components["schemas"]["RefSettings"];
+            /**
+             * Source
+             * @description Where the data comes from.
+             */
+            source: (components["schemas"]["DirectiveSourceSettings-Output"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Output"] | components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["DemoBoundarySourceSettings-Output"] | components["schemas"]["DemoNetVolumeSourceSettings-Output"] | components["schemas"]["DemoPriceSourceSettings-Output"] | components["schemas"]["DemoProductionSourceSettings-Output"] | components["schemas"]["DemoRatioSourceSettings-Output"] | components["schemas"]["EliaSolarForecastSourceSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"] | components["schemas"]["NedProductionForecastSourceSettings-Output"]) | components["schemas"]["RefSettings"];
             /**
              * Formats
              * @description The formats the data is offered in. Defaults to JSON and CSV.

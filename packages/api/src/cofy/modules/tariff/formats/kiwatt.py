@@ -39,7 +39,7 @@ class KiwattFormatSettings(TimeseriesFormatSettings):
 
 
 class KiwattFormat(PriceFormat, settings=KiwattFormatSettings):
-    """Timeseries format for Kiwatt."""
+    """Prices in the JSON format Kiwatt reads."""
 
     name = "kiwatt"
 

@@ -15,7 +15,7 @@ class BillingModuleSettings(ModuleSettings):
 
 class BillingModule(Module, settings=BillingModuleSettings):
     type: str = "billing"
-    type_description: str = "Module that computes energy costs based on meter data and contract information."
+    type_description: str = "Computes energy costs from meter data and contract details sent along with the request."
 
     def init_routes(self):
         def calculate_cost(body: BillingRequest) -> BillingResponse:

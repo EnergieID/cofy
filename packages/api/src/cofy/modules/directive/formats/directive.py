@@ -25,5 +25,7 @@ class DirectiveFormatSettings(TimeseriesFormatSettings):
 class DirectiveFormat(
     BaseJSONFormat[DirectiveRecord, MetadataType], DirectiveSeriesFormat, settings=DirectiveFormatSettings
 ):
+    """Directives as JSON, a step from -- to ++ per timestamp."""
+
     def __init__(self, MT: type[MetadataType] | None = None):
         super().__init__(DT=DirectiveRecord, MT=MT)

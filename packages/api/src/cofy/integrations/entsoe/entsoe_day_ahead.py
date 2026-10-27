@@ -15,8 +15,10 @@ from entsoe.exceptions import NoMatchingDataError
 
 class EntsoeDayAheadTariffSourceSettings(PriceSourceSettings):
     type: Literal["entsoe_day_ahead"] = "entsoe_day_ahead"
-    api_key: Secret
-    country_code: str | None = None
+    api_key: Secret = Field(description="An ENTSO-E Transparency Platform API key.")
+    country_code: str | None = Field(
+        None, description="The bidding zone, e.g. BE or NL. When empty, each request picks one, BE by default."
+    )
 
 
 class EntsoeDayAheadTariffSource(PriceSource, settings=EntsoeDayAheadTariffSourceSettings):

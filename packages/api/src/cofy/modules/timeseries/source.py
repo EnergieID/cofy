@@ -13,7 +13,9 @@ from .model import ISODuration, Timeseries
 class TimeseriesSourceSettings(BaseSettingsModel):
     type: Literal["timeseries_source"] = "timeseries_source"
     cache: CacheSettings | None = Field(
-        None, description="Cache what this source fetches, if set.", json_schema_extra={"x-advanced": True}
+        None,
+        description="Keep what this source fetches, to answer repeated requests faster and spare the upstream service.",
+        json_schema_extra={"x-advanced": True},
     )
 
     @classmethod

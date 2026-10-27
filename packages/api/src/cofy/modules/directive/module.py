@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
 class DirectiveModuleSettings(TimeseriesModuleSettings):
     type: Literal["directive"] = "directive"
-    source: "AnyDirectiveSeriesSourceSettings"
+    source: "AnyDirectiveSeriesSourceSettings" = Field(description="Where the directives come from.")
     # Generic formats, and the formats that only fit this module's series.
     formats: 'list[Annotated[AnyGenericTimeseriesFormatSettings | AnyDirectiveSeriesFormatSettings, Field(discriminator="type")]] | None' = Field(
         None,
@@ -33,7 +33,9 @@ class DirectiveModuleSettings(TimeseriesModuleSettings):
 
 class DirectiveModule(TimeseriesModule[DirectiveSeriesSource], settings=DirectiveModuleSettings):
     type: str = "directive"
-    type_description: str = "Module providing directives as time series."
+    type_description: str = (
+        "Serves directives, steps from -- to ++ telling members when to use less or more energy, as a time series."
+    )
 
     def __init__(self, source: DirectiveSeriesSource, formats: list[TimeseriesFormat] | None = None, **kwargs):
         if formats is None:

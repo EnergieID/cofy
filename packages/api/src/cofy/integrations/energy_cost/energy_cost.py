@@ -15,8 +15,11 @@ from energy_cost import CostGroup, Tariff
 
 class EnergyCostTariffSourceSettings(PriceSourceSettings):
     type: Literal["energy_cost"] = "energy_cost"
-    tariff: Annotated[Tariff, Referable("tariff")] = Field(description="Energy cost tariff instance")
-    cost_group: CostGroup | None = None
+    tariff: Annotated[Tariff, Referable("tariff")] = Field(description="The tariff to compute prices from.")
+    cost_group: CostGroup | None = Field(
+        None,
+        description="Which of the tariff's costs to price. When empty, each request picks one, consumption by default.",
+    )
 
 
 class EnergyCostTariffSource(PriceSource, settings=EnergyCostTariffSourceSettings):

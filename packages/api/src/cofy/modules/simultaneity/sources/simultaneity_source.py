@@ -18,7 +18,9 @@ if TYPE_CHECKING:
 class SimultaneitySourceSettings(RatioSourceSettings):
     type: Literal["simultaneity"] = "simultaneity"
     # Unresolved until cofy.api.finalize() publishes the discriminated unions.
-    sources: "list[AnyNetVolumeSourceSettings]" = Field(min_length=1)
+    sources: "list[AnyNetVolumeSourceSettings]" = Field(
+        min_length=1, description="The net volumes to total, consumption positive and production negative."
+    )
 
 
 class SimultaneitySource(RatioSource, settings=SimultaneitySourceSettings):

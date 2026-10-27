@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
 class TariffModuleSettings(TimeseriesModuleSettings):
     type: Literal["tariff"] = "tariff"
-    source: "AnyPriceSourceSettings"
+    source: "AnyPriceSourceSettings" = Field(description="Where the prices come from.")
     # Generic formats, and the formats that only fit this module's series.
     formats: 'list[Annotated[AnyGenericTimeseriesFormatSettings | AnyPriceFormatSettings, Field(discriminator="type")]] | None' = Field(
         None,
@@ -33,7 +33,7 @@ class TariffModuleSettings(TimeseriesModuleSettings):
 
 class TariffModule(TimeseriesModule[PriceSource], settings=TariffModuleSettings):
     type: str = "tariff"
-    type_description: str = "Module providing tariff data as time series."
+    type_description: str = "Serves energy prices as a time series."
 
     @property
     def default_args(self):
