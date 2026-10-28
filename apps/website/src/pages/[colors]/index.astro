@@ -20,6 +20,7 @@ const CHART_HUES = ["red", "orange", "yellow", "green", "cyan", "blue", "indigo"
 const WHEEL = Array.from({ length: 36 }, (_, i) => i * 10);
 const WHEEL_STEPS = ["80", "70", "60", "50", "40"];
 const bars = [62, 48, 75, 33, 54, 41, 68, 29, 57];
+
 ---
 
 <Marketing title="Colours · Cofy" description="Every colour of the Cofy theme.">
@@ -55,7 +56,7 @@ const bars = [62, 48, 75, 33, 54, 41, 68, 29, 57];
 
       <section class="wa-stack">
         <h2 class="wa-heading-l">Semantic tokens</h2>
-        <p class="wa-caption-m">Fills with their "on" text colour, borders on the page, and "on-quiet" as text.</p>
+        <p class="wa-caption-m">Fills with their "on" text colour, borders on the page, and "on-quiet" as text (more below).</p>
         <div class="tokens">
           <span></span>
           {
@@ -93,6 +94,37 @@ const bars = [62, 48, 75, 33, 54, 41, 68, 29, 57];
             ))
           }
         </div>
+      </section>
+
+      <section class="wa-stack">
+        <h2 class="wa-heading-l">Coloured text</h2>
+        <p class="wa-caption-m">
+          Each variant's text colours on the page: on-quiet for coloured text such as an error message, on-normal for
+          stronger text. The number is the contrast with the page; body text needs 4.5.
+        </p>
+        <div class="wa-stack wa-gap-s">
+          {
+            VARIANTS.map((v) => (
+              <div class="text-row">
+                <span class="wa-caption-m">{v}</span>
+                <span class="measure" style={`color: var(--wa-color-${v}-on-quiet)`}>
+                  on-quiet: something went wrong with this source.
+                </span>
+                <span class="measure" style={`color: var(--wa-color-${v}-on-normal)`}>
+                  on-normal: something went wrong with this source.
+                </span>
+              </div>
+            ))
+          }
+        </div>
+        <div class="wa-stack wa-gap-xs error-field">
+          <wa-input label="Day-ahead source" value="entsoe-da"></wa-input>
+          <ul class="issues">
+            <li class="measure">Unknown source "entsoe-da".</li>
+            <li>Must be at least 3 characters.</li>
+          </ul>
+        </div>
+        <span class="page-probe"></span>
       </section>
 
       <section class="wa-stack">
@@ -194,6 +226,37 @@ const bars = [62, 48, 75, 33, 54, 41, 68, 29, 57];
   <Tuner />
 </Marketing>
 
+<script>
+  // The contrast of each error-text token with the page, measured on the rendered colours, so it
+  // follows the tuner and the light or dark mode.
+  const canvas = document.createElement("canvas").getContext("2d", { willReadFrequently: true })!;
+  const rgb = (color: string): number[] => {
+    canvas.clearRect(0, 0, 1, 1);
+    canvas.fillStyle = color;
+    canvas.fillRect(0, 0, 1, 1);
+    return [...canvas.getImageData(0, 0, 1, 1).data.slice(0, 3)];
+  };
+  const luminance = (color: string): number => {
+    const [r, g, b] = rgb(color).map((c) => {
+      const v = c / 255;
+      return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+    });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+  function measure(): void {
+    const page = luminance(getComputedStyle(document.querySelector(".page-probe")!).backgroundColor);
+    const ratio = (element: Element): string => {
+      const [hi, lo] = [luminance(getComputedStyle(element).color), page].sort((a, b) => b - a);
+      return `${((hi + 0.05) / (lo + 0.05)).toFixed(2)}:1`;
+    };
+    for (const element of document.querySelectorAll<HTMLElement>(".measure")) {
+      element.dataset.contrast = ratio(element);
+    }
+  }
+  measure();
+  new MutationObserver(measure).observe(document.documentElement, { attributes: true });
+</script>
+
 <style>
   .colors {
     padding-block-end: 20rem;
@@ -225,6 +288,30 @@ const bars = [62, 48, 75, 33, 54, 41, 68, 29, 57];
   }
   .callouts {
     --min-column-size: 20rem;
+  }
+  .text-row {
+    display: grid;
+    grid-template-columns: 5rem minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--wa-space-m);
+    align-items: baseline;
+  }
+  .error-field {
+    max-inline-size: 24rem;
+  }
+  .issues {
+    color: var(--wa-color-danger-on-quiet);
+    margin: 0;
+    padding-inline-start: var(--wa-space-m);
+    font-size: var(--wa-font-size-s);
+  }
+  .page-probe {
+    display: none;
+    background: var(--wa-color-surface-default);
+  }
+  .measure::after {
+    content: " " attr(data-contrast);
+    font-size: var(--wa-font-size-2xs);
+    color: var(--wa-color-text-quiet);
   }
   .bars {
     display: flex;

@@ -39,7 +39,7 @@ export class CofyResourceEditor extends CofyElement {
       .issues {
         margin: var(--wa-space-m) 0 0;
         padding-inline-start: var(--wa-space-m);
-        color: var(--wa-color-danger-border-loud);
+        color: var(--wa-color-danger-on-quiet);
         font-size: var(--wa-font-size-s);
       }
     `,

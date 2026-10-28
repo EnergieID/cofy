@@ -6,8 +6,8 @@
  * Starlight ones included, through the bridge.
  */
 :root {
-  --cofy-directive-2: var(--wa-color-brand-50);
-  --cofy-directive-1: var(--wa-color-brand-70);
+  --cofy-directive-2: var(--wa-color-green-50);
+  --cofy-directive-1: var(--wa-color-green-70);
   --cofy-directive-0: var(--wa-color-neutral-90);
   --cofy-directive--1: var(--wa-color-orange-70);
   --cofy-directive--2: var(--wa-color-red-50);

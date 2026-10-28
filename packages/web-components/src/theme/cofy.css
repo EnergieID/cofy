@@ -15,9 +15,8 @@
  * (buttons, links, fills, borders) from these steps, separately for light and dark.
  *
  * The scale runs the opposite way to most: 95 is the lightest step, 05 the darkest. Steps 95-50
- * are evenly muted; the darker steps are spread between 50 and 05, which is the dark page
- * background (grey 05), so a quiet fill in dark mode (step 10, e.g. a button's hover) sits just
- * above the page.
+ * are evenly muted; the darker steps are spread between 50 and the dark page background, so a
+ * quiet fill in dark mode (step 10, e.g. a button's hover) sits just above the page.
  *
  * Every hue at every step fits in sRGB, so no browser has to clip it.
  */
@@ -51,9 +50,9 @@
  * a deployment sets another.
  */
 :root {
-  --cofy-hue-red: 20;
-  --cofy-hue-orange: 38;
-  --cofy-hue-yellow: 73;
+  --cofy-hue-red: 25;
+  --cofy-hue-orange: 55;
+  --cofy-hue-yellow: 88;
   --cofy-hue-green: 150;
   --cofy-hue-cyan: 217;
   --cofy-hue-blue: 257;
@@ -64,51 +63,93 @@
 }
 
 /*
- * Web Awesome's palette, from the ladder and the hues. Each colour's key step - its main colour,
- * paired with white text - is 50.
+ * The warm colours stand out from the family: red and yellow carry a warning, and orange sits
+ * between them. All keep the ladder's lightness, so they still sit on the same steps as every
+ * other colour.
+ *
+ * Red, for danger, has twice the ladder's chroma: on the ladder alone it reads as maroon, since
+ * red can show far more colour than green at the same lightness.
+ *
+ * Yellow, for warnings, has a chroma of its own per step - 75% of what the screen can show at
+ * that lightness - because a yellow as muted as the rest is brown. And yellow is only yellow when
+ * light, so its key colour sits off the ladder, where yellow is brightest.
+ *
+ * Orange is a light colour too, and brown when muted, so it has a chroma of its own per step in
+ * the same way. Its hue sits midway between red and yellow, so the three stay apart.
  */
 :root {
-  --wa-color-red-95: oklch(var(--cofy-lightness-95) var(--cofy-chroma-95) var(--cofy-hue-red));
-  --wa-color-red-90: oklch(var(--cofy-lightness-90) var(--cofy-chroma-90) var(--cofy-hue-red));
-  --wa-color-red-80: oklch(var(--cofy-lightness-80) var(--cofy-chroma-80) var(--cofy-hue-red));
-  --wa-color-red-70: oklch(var(--cofy-lightness-70) var(--cofy-chroma-70) var(--cofy-hue-red));
-  --wa-color-red-60: oklch(var(--cofy-lightness-60) var(--cofy-chroma-60) var(--cofy-hue-red));
-  --wa-color-red-50: oklch(var(--cofy-lightness-50) var(--cofy-chroma-50) var(--cofy-hue-red));
-  --wa-color-red-40: oklch(var(--cofy-lightness-40) var(--cofy-chroma-40) var(--cofy-hue-red));
-  --wa-color-red-30: oklch(var(--cofy-lightness-30) var(--cofy-chroma-30) var(--cofy-hue-red));
-  --wa-color-red-20: oklch(var(--cofy-lightness-20) var(--cofy-chroma-20) var(--cofy-hue-red));
-  --wa-color-red-10: oklch(var(--cofy-lightness-10) var(--cofy-chroma-10) var(--cofy-hue-red));
-  --wa-color-red-05: oklch(var(--cofy-lightness-05) var(--cofy-chroma-05) var(--cofy-hue-red));
+  --cofy-chroma-scale-red: 2;
+  --cofy-chroma-yellow-95: 0.127;
+  --cofy-chroma-yellow-90: 0.12;
+  --cofy-chroma-yellow-80: 0.106;
+  --cofy-chroma-yellow-70: 0.093;
+  --cofy-chroma-yellow-60: 0.08;
+  --cofy-chroma-yellow-50: 0.064;
+  --cofy-chroma-yellow-40: 0.056;
+  --cofy-chroma-yellow-30: 0.05;
+  --cofy-chroma-yellow-20: 0.044;
+  --cofy-chroma-yellow-10: 0.037;
+  --cofy-chroma-yellow-05: 0.032;
+  --cofy-chroma-orange-95: 0.083;
+  --cofy-chroma-orange-90: 0.108;
+  --cofy-chroma-orange-80: 0.129;
+  --cofy-chroma-orange-70: 0.113;
+  --cofy-chroma-orange-60: 0.097;
+  --cofy-chroma-orange-50: 0.078;
+  --cofy-chroma-orange-40: 0.067;
+  --cofy-chroma-orange-30: 0.06;
+  --cofy-chroma-orange-20: 0.053;
+  --cofy-chroma-orange-10: 0.044;
+  --cofy-chroma-orange-05: 0.039;
+  --cofy-yellow-key: oklch(86% 0.15 var(--cofy-hue-yellow));
+}
+
+/*
+ * Web Awesome's palette, from the ladder and the hues. Each colour's key step - its main colour,
+ * paired with white text - is 50, except yellow's, which is light and paired with dark text.
+ */
+:root {
+  --wa-color-red-95: oklch(var(--cofy-lightness-95) calc(var(--cofy-chroma-95) * var(--cofy-chroma-scale-red)) var(--cofy-hue-red));
+  --wa-color-red-90: oklch(var(--cofy-lightness-90) calc(var(--cofy-chroma-90) * var(--cofy-chroma-scale-red)) var(--cofy-hue-red));
+  --wa-color-red-80: oklch(var(--cofy-lightness-80) calc(var(--cofy-chroma-80) * var(--cofy-chroma-scale-red)) var(--cofy-hue-red));
+  --wa-color-red-70: oklch(var(--cofy-lightness-70) calc(var(--cofy-chroma-70) * var(--cofy-chroma-scale-red)) var(--cofy-hue-red));
+  --wa-color-red-60: oklch(var(--cofy-lightness-60) calc(var(--cofy-chroma-60) * var(--cofy-chroma-scale-red)) var(--cofy-hue-red));
+  --wa-color-red-50: oklch(var(--cofy-lightness-50) calc(var(--cofy-chroma-50) * var(--cofy-chroma-scale-red)) var(--cofy-hue-red));
+  --wa-color-red-40: oklch(var(--cofy-lightness-40) calc(var(--cofy-chroma-40) * var(--cofy-chroma-scale-red)) var(--cofy-hue-red));
+  --wa-color-red-30: oklch(var(--cofy-lightness-30) calc(var(--cofy-chroma-30) * var(--cofy-chroma-scale-red)) var(--cofy-hue-red));
+  --wa-color-red-20: oklch(var(--cofy-lightness-20) calc(var(--cofy-chroma-20) * var(--cofy-chroma-scale-red)) var(--cofy-hue-red));
+  --wa-color-red-10: oklch(var(--cofy-lightness-10) calc(var(--cofy-chroma-10) * var(--cofy-chroma-scale-red)) var(--cofy-hue-red));
+  --wa-color-red-05: oklch(var(--cofy-lightness-05) calc(var(--cofy-chroma-05) * var(--cofy-chroma-scale-red)) var(--cofy-hue-red));
   --wa-color-red: var(--wa-color-red-50);
   --wa-color-red-key: 50;
 
-  --wa-color-orange-95: oklch(var(--cofy-lightness-95) var(--cofy-chroma-95) var(--cofy-hue-orange));
-  --wa-color-orange-90: oklch(var(--cofy-lightness-90) var(--cofy-chroma-90) var(--cofy-hue-orange));
-  --wa-color-orange-80: oklch(var(--cofy-lightness-80) var(--cofy-chroma-80) var(--cofy-hue-orange));
-  --wa-color-orange-70: oklch(var(--cofy-lightness-70) var(--cofy-chroma-70) var(--cofy-hue-orange));
-  --wa-color-orange-60: oklch(var(--cofy-lightness-60) var(--cofy-chroma-60) var(--cofy-hue-orange));
-  --wa-color-orange-50: oklch(var(--cofy-lightness-50) var(--cofy-chroma-50) var(--cofy-hue-orange));
-  --wa-color-orange-40: oklch(var(--cofy-lightness-40) var(--cofy-chroma-40) var(--cofy-hue-orange));
-  --wa-color-orange-30: oklch(var(--cofy-lightness-30) var(--cofy-chroma-30) var(--cofy-hue-orange));
-  --wa-color-orange-20: oklch(var(--cofy-lightness-20) var(--cofy-chroma-20) var(--cofy-hue-orange));
-  --wa-color-orange-10: oklch(var(--cofy-lightness-10) var(--cofy-chroma-10) var(--cofy-hue-orange));
-  --wa-color-orange-05: oklch(var(--cofy-lightness-05) var(--cofy-chroma-05) var(--cofy-hue-orange));
+  --wa-color-orange-95: oklch(var(--cofy-lightness-95) var(--cofy-chroma-orange-95) var(--cofy-hue-orange));
+  --wa-color-orange-90: oklch(var(--cofy-lightness-90) var(--cofy-chroma-orange-90) var(--cofy-hue-orange));
+  --wa-color-orange-80: oklch(var(--cofy-lightness-80) var(--cofy-chroma-orange-80) var(--cofy-hue-orange));
+  --wa-color-orange-70: oklch(var(--cofy-lightness-70) var(--cofy-chroma-orange-70) var(--cofy-hue-orange));
+  --wa-color-orange-60: oklch(var(--cofy-lightness-60) var(--cofy-chroma-orange-60) var(--cofy-hue-orange));
+  --wa-color-orange-50: oklch(var(--cofy-lightness-50) var(--cofy-chroma-orange-50) var(--cofy-hue-orange));
+  --wa-color-orange-40: oklch(var(--cofy-lightness-40) var(--cofy-chroma-orange-40) var(--cofy-hue-orange));
+  --wa-color-orange-30: oklch(var(--cofy-lightness-30) var(--cofy-chroma-orange-30) var(--cofy-hue-orange));
+  --wa-color-orange-20: oklch(var(--cofy-lightness-20) var(--cofy-chroma-orange-20) var(--cofy-hue-orange));
+  --wa-color-orange-10: oklch(var(--cofy-lightness-10) var(--cofy-chroma-orange-10) var(--cofy-hue-orange));
+  --wa-color-orange-05: oklch(var(--cofy-lightness-05) var(--cofy-chroma-orange-05) var(--cofy-hue-orange));
   --wa-color-orange: var(--wa-color-orange-50);
   --wa-color-orange-key: 50;
 
-  --wa-color-yellow-95: oklch(var(--cofy-lightness-95) var(--cofy-chroma-95) var(--cofy-hue-yellow));
-  --wa-color-yellow-90: oklch(var(--cofy-lightness-90) var(--cofy-chroma-90) var(--cofy-hue-yellow));
-  --wa-color-yellow-80: oklch(var(--cofy-lightness-80) var(--cofy-chroma-80) var(--cofy-hue-yellow));
-  --wa-color-yellow-70: oklch(var(--cofy-lightness-70) var(--cofy-chroma-70) var(--cofy-hue-yellow));
-  --wa-color-yellow-60: oklch(var(--cofy-lightness-60) var(--cofy-chroma-60) var(--cofy-hue-yellow));
-  --wa-color-yellow-50: oklch(var(--cofy-lightness-50) var(--cofy-chroma-50) var(--cofy-hue-yellow));
-  --wa-color-yellow-40: oklch(var(--cofy-lightness-40) var(--cofy-chroma-40) var(--cofy-hue-yellow));
-  --wa-color-yellow-30: oklch(var(--cofy-lightness-30) var(--cofy-chroma-30) var(--cofy-hue-yellow));
-  --wa-color-yellow-20: oklch(var(--cofy-lightness-20) var(--cofy-chroma-20) var(--cofy-hue-yellow));
-  --wa-color-yellow-10: oklch(var(--cofy-lightness-10) var(--cofy-chroma-10) var(--cofy-hue-yellow));
-  --wa-color-yellow-05: oklch(var(--cofy-lightness-05) var(--cofy-chroma-05) var(--cofy-hue-yellow));
-  --wa-color-yellow: var(--wa-color-yellow-50);
-  --wa-color-yellow-key: 50;
+  --wa-color-yellow-95: oklch(var(--cofy-lightness-95) var(--cofy-chroma-yellow-95) var(--cofy-hue-yellow));
+  --wa-color-yellow-90: oklch(var(--cofy-lightness-90) var(--cofy-chroma-yellow-90) var(--cofy-hue-yellow));
+  --wa-color-yellow-80: oklch(var(--cofy-lightness-80) var(--cofy-chroma-yellow-80) var(--cofy-hue-yellow));
+  --wa-color-yellow-70: oklch(var(--cofy-lightness-70) var(--cofy-chroma-yellow-70) var(--cofy-hue-yellow));
+  --wa-color-yellow-60: oklch(var(--cofy-lightness-60) var(--cofy-chroma-yellow-60) var(--cofy-hue-yellow));
+  --wa-color-yellow-50: oklch(var(--cofy-lightness-50) var(--cofy-chroma-yellow-50) var(--cofy-hue-yellow));
+  --wa-color-yellow-40: oklch(var(--cofy-lightness-40) var(--cofy-chroma-yellow-40) var(--cofy-hue-yellow));
+  --wa-color-yellow-30: oklch(var(--cofy-lightness-30) var(--cofy-chroma-yellow-30) var(--cofy-hue-yellow));
+  --wa-color-yellow-20: oklch(var(--cofy-lightness-20) var(--cofy-chroma-yellow-20) var(--cofy-hue-yellow));
+  --wa-color-yellow-10: oklch(var(--cofy-lightness-10) var(--cofy-chroma-yellow-10) var(--cofy-hue-yellow));
+  --wa-color-yellow-05: oklch(var(--cofy-lightness-05) var(--cofy-chroma-yellow-05) var(--cofy-hue-yellow));
+  --wa-color-yellow: var(--cofy-yellow-key);
+  --wa-color-yellow-key: 80;
 
   --wa-color-green-95: oklch(var(--cofy-lightness-95) var(--cofy-chroma-95) var(--cofy-hue-green));
   --wa-color-green-90: oklch(var(--cofy-lightness-90) var(--cofy-chroma-90) var(--cofy-hue-green));
@@ -210,21 +251,38 @@
 }
 
 /*
- * Grey is the ladder without chroma. Web Awesome builds its text, borders, neutral fills and
- * surfaces from it, the dark page background included (step 05).
+ * A softer dark background than Web Awesome's near-black `neutral-05`: the charcoal Starlight
+ * uses, which sits better behind the brand green. Raised surfaces stay a step lighter than it.
+ */
+.wa-dark {
+  --wa-color-surface-default: #17181c;
+  --wa-color-surface-raised: #1f2126;
+}
+
+/*
+ * A warning's loud fill (a filled button, badge or callout): yellow's key colour in light mode;
+ * in dark mode, where that is too bright, yellow's step 80. Dark text on both.
  */
 :root {
-  --wa-color-gray-95: oklch(var(--cofy-lightness-95) 0 0);
-  --wa-color-gray-90: oklch(var(--cofy-lightness-90) 0 0);
-  --wa-color-gray-80: oklch(var(--cofy-lightness-80) 0 0);
-  --wa-color-gray-70: oklch(var(--cofy-lightness-70) 0 0);
-  --wa-color-gray-60: oklch(var(--cofy-lightness-60) 0 0);
-  --wa-color-gray-50: oklch(var(--cofy-lightness-50) 0 0);
-  --wa-color-gray-40: oklch(var(--cofy-lightness-40) 0 0);
-  --wa-color-gray-30: oklch(var(--cofy-lightness-30) 0 0);
-  --wa-color-gray-20: oklch(var(--cofy-lightness-20) 0 0);
-  --wa-color-gray-10: oklch(var(--cofy-lightness-10) 0 0);
-  --wa-color-gray-05: oklch(var(--cofy-lightness-05) 0 0);
-  --wa-color-gray: var(--wa-color-gray-50);
-  --wa-color-gray-key: 50;
+  --wa-color-warning-fill-loud: var(--cofy-yellow-key);
+  --wa-color-warning-on-loud: var(--wa-color-warning-10);
+}
+.wa-dark {
+  --wa-color-warning-fill-loud: var(--wa-color-warning-80);
+  --wa-color-warning-on-loud: var(--wa-color-warning-10);
+}
+
+/*
+ * Coloured text in dark mode, a step lighter than Web Awesome's 60 and 70: on the dark page the
+ * ladder's middle steps are too dark to read. Neutral is Web Awesome's grey and reads fine as is.
+ */
+.wa-dark {
+  --wa-color-brand-on-quiet: var(--wa-color-brand-70);
+  --wa-color-brand-on-normal: var(--wa-color-brand-80);
+  --wa-color-success-on-quiet: var(--wa-color-success-70);
+  --wa-color-success-on-normal: var(--wa-color-success-80);
+  --wa-color-warning-on-quiet: var(--wa-color-warning-70);
+  --wa-color-warning-on-normal: var(--wa-color-warning-80);
+  --wa-color-danger-on-quiet: var(--wa-color-danger-70);
+  --wa-color-danger-on-normal: var(--wa-color-danger-80);
 }

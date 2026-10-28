@@ -55,7 +55,7 @@ export class CofyFieldShell extends CofyElement {
       }
       .cofy-field-issues {
         padding-inline-start: var(--wa-space-m);
-        color: var(--wa-color-danger-fill-loud);
+        color: var(--wa-color-danger-on-quiet);
         font-size: var(--wa-font-size-s);
       }
     `,

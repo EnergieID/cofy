@@ -56,6 +56,7 @@ const HUES = ["red", "orange", "yellow", "green", "cyan", "blue", "indigo", "pur
   ]);
   const HUES: Record<string, number> = Object.fromEntries(HUE_NAMES.map((hue) => [hue, read(`--cofy-hue-${hue}`)]));
   const LOGO_GREEN = "#32563a";
+  const DARK_SURFACE = "#17181c";
   const STORAGE_KEY = "theme-tuner-2";
   const defaults: Record<string, number> = { ...HUES, chroma: 100, lightness: 0 };
 
@@ -106,8 +107,8 @@ const HUES = ["red", "orange", "yellow", "green", "cyan", "blue", "indigo", "pur
   const inputs = [...panel.querySelectorAll<HTMLInputElement>("input")];
   const swatches = panel.querySelector<HTMLElement>(".swatches")!;
   const contrastLine = panel.querySelector<HTMLElement>(".contrast")!;
-  // The dark page background is grey 05; the darker steps end there.
-  const surfaceL = LADDER[10][0];
+  // The dark page background (#17181c in cofy.css) is where the darker steps end.
+  const surfaceL = 0.21;
   let values: Record<string, number> = defaults;
   let ladder = LADDER;
 
@@ -154,7 +155,6 @@ const HUES = ["red", "orange", "yellow", "green", "cyan", "blue", "indigo", "pur
       }),
     );
     const [s70, , s50, s40] = [ramp[3], ramp[4], ramp[5], ramp[6]];
-    const DARK_SURFACE = oklchToHex(ladder[10][0], 0, 0);
     contrastLine.textContent =
       `brand 50 ${s50} · white on 50 ${contrast("#ffffff", s50)} · 40 on white ${contrast(s40, "#ffffff")} · ` +
       `50 on dark ${contrast(s50, DARK_SURFACE)} · 70 on dark ${contrast(s70, DARK_SURFACE)}`;
