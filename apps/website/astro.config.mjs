@@ -3,23 +3,11 @@ import starlight from "@astrojs/starlight";
 import { defineConfig } from "astro/config";
 import starlightLlmsTxt from "starlight-llms-txt";
 import { cofyCodeThemes } from "./src/code-theme.mjs";
+import { schemeScript } from "./src/scheme.mjs";
 
 // Starlight renders the documentation, under /docs/. The marketing pages around it are plain
 // Astro pages built with Web Awesome (src/pages/, with their words in src/content/home and
 // src/content/pages); both draw from the same Cofy theme.
-
-// Web Awesome's tokens switch scheme on a class, Starlight's on `data-theme`: keep the class in
-// step, so the Cofy theme behind the Starlight bridge follows the reader's choice.
-const followStarlightScheme = `
-  const root = document.documentElement;
-  const sync = () => {
-    const dark = root.dataset.theme === "dark";
-    root.classList.toggle("wa-dark", dark);
-    root.classList.toggle("wa-light", !dark);
-  };
-  sync();
-  new MutationObserver(sync).observe(root, { attributes: true, attributeFilter: ["data-theme"] });
-`;
 
 export default defineConfig({
   site: "https://cofy.cloud",
@@ -44,7 +32,7 @@ export default defineConfig({
         useStarlightUiThemeColors: true,
         minSyntaxHighlightingColorContrast: 0,
       },
-      head: [{ tag: "script", content: followStarlightScheme }],
+      head: [{ tag: "script", content: schemeScript }],
       components: { PageFrame: "./src/components/PageFrame.astro" },
       // English lives at the root. A language is added by adding an entry here and a folder
       // of the same name under src/content/docs/ - untranslated pages fall back to English.

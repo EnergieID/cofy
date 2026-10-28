@@ -18,7 +18,6 @@ tasks:
       - uv run --project packages/api --directory packages/api poe test
       - uv run --project packages/management-api --directory packages/management-api poe test
       - uv run --project packages/runner --directory packages/runner poe test
-      - uv run --project apps/website-contact --directory apps/website-contact poe test
       - task: test-frontend
 
   test-frontend:
@@ -39,7 +38,6 @@ tasks:
       - uv run --project packages/api --directory packages/api poe lint
       - uv run --project packages/management-api --directory packages/management-api poe lint
       - uv run --project packages/runner --directory packages/runner poe lint
-      - uv run --project apps/website-contact --directory apps/website-contact poe lint
       - |
         bash -c '{{.WITH_NODE}}
         for pkg in {{.NODE_PACKAGES}}; do
@@ -53,7 +51,6 @@ tasks:
       - uv run --project packages/api --directory packages/api poe format
       - uv run --project packages/management-api --directory packages/management-api poe format
       - uv run --project packages/runner --directory packages/runner poe format
-      - uv run --project apps/website-contact --directory apps/website-contact poe format
       - |
         bash -c '{{.WITH_NODE}}
         for pkg in {{.NODE_PACKAGES}}; do

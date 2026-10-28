@@ -1,7 +1,7 @@
 ---
 /*
- * Light, dark, or follow the system - for the marketing pages. It remembers the choice where
- * the docs' own theme switch does (`starlight-theme`), so both halves of the site agree.
+ * Light, dark, or follow the system - for the marketing pages; the docs have Starlight's own switch. Both remember
+ * the choice in the same place: see src/scheme.mjs.
  */
 ---
 
@@ -15,27 +15,11 @@
 </wa-dropdown>
 
 <script>
-  type Theme = "auto" | "light" | "dark";
-
-  const system = matchMedia("(prefers-color-scheme: dark)");
-
-  function chosen(): Theme {
-    const stored = localStorage.getItem("starlight-theme");
-    return stored === "light" || stored === "dark" ? stored : "auto";
-  }
-
-  function apply(theme: Theme): void {
-    const dark = theme === "dark" || (theme === "auto" && system.matches);
-    document.documentElement.classList.toggle("wa-dark", dark);
-    document.documentElement.classList.toggle("wa-light", !dark);
-  }
+  import { chooseTheme } from "../scheme.mjs";
 
   for (const picker of document.querySelectorAll(".theme-picker")) {
     picker.addEventListener("wa-select", (event: Event): void => {
-      const theme = (event as CustomEvent<{ item: { value: Theme } }>).detail.item.value;
-      localStorage.setItem("starlight-theme", theme === "auto" ? "" : theme);
-      apply(theme);
+      chooseTheme((event as CustomEvent<{ item: { value: "auto" | "light" | "dark" } }>).detail.item.value);
     });
   }
-  system.addEventListener("change", (): void => apply(chosen()));
 </script>

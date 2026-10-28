@@ -11,6 +11,7 @@ import Credits from "../components/Credits.astro";
 import ThemePicker from "../components/ThemePicker.astro";
 import logo from "../assets/logo.svg";
 import { appUrl } from "../site";
+import { schemeScript } from "../scheme.mjs";
 
 interface Props {
   title: string;
@@ -34,15 +35,8 @@ const links = [
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <!-- Before the first paint, so there's no flash of the wrong scheme. Reads the choice the
-         docs' theme switch remembers, so both halves of the site agree. -->
-    <script is:inline>
-      const chosen = localStorage.getItem("starlight-theme");
-      const dark =
-        chosen === "dark" || (chosen !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
-      document.documentElement.classList.toggle("wa-dark", dark);
-      document.documentElement.classList.toggle("wa-light", !dark);
-    </script>
+    <!-- Before the first paint, so there's no flash of the wrong scheme. -->
+    <script is:inline set:html={schemeScript} />
   </head>
   <body>
     <wa-page>

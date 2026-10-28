@@ -51,8 +51,7 @@ same server, on that server's `COFY_WEBSITE_DOMAIN` - see [apps/demo_multitenant
   layout.
   The SmartCORE co-funding logo sits beside "Where Cofy comes from" on the home page, at the
   size Interreg asks for.
-- **Contact** - the "Talk to us" page gives the address `contact@cofy.cloud`. The contact form
-  and its endpoint, [apps/website-contact](../website-contact), are set aside for now.
+- **Contact** - the "Talk to us" page gives the address `contact@cofy.cloud`.
 - **Visuals** - the mockups beside each feature, and the Klimaan charts, are components in
   [src/components/visuals/](src/components/visuals) and
   [src/components/DirectiveStrip.astro](src/components/DirectiveStrip.astro): drawn from Web
