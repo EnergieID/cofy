@@ -94,7 +94,8 @@ the next `cloud-v<YYYY.MM.DD.N>` tag and deploys its images to production, or de
 the server,
 `docker-compose.yml` runs them as `app`, the management API, and `runner`, which mounts only the community configs,
 read-only - behind `caddy` (`Caddyfile`) for TLS. Caddy sends `/communities/<slug>/...` to the runner and everything
-else to the management API. Neither has a published port at all, so the only way in from outside is through Caddy's
+else to the management API. The public website ([apps/website](../website)) is built into an image of its own in the
+same workflows, and runs beside them as `website`; Caddy serves it on the server's `COFY_WEBSITE_DOMAIN`. None of them has a published port, so the only way in from outside is through Caddy's
 automatic Let's Encrypt HTTPS on 80/443. `caddy_data`/`caddy_config` (the issued certificate and Caddy's own state) are
 named volumes, so a redeploy doesn't force reissuing the certificate. `alloy` ships the logs of the `cofy` project's
 containers to Loki (`config.alloy`), each record whole - a traceback with the line it belongs to - and labelled with
@@ -110,7 +111,7 @@ its server's `SCALEWAY_SSH_HOST`, `SCALEWAY_SSH_KEY` (the deploy key's private h
 
 Each server needs what the repository doesn't carry:
 
-- `/opt/cofy/.env`, with its domain, which refs it deploys, its login configuration and where its logs go -
+- `/opt/cofy/.env`, with its domains, which refs it deploys, its login configuration and where its logs go -
   `.env.example` lists them;
 - the data, on a volume labelled `cofy-data`, mounted at `/data`.
 

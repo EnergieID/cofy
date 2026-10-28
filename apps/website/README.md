@@ -13,6 +13,12 @@ npm run dev
 
 Serves the site at http://127.0.0.1:4321. `npm run build` writes the static site to `dist/`.
 
+## Deploying
+
+[Dockerfile](Dockerfile) builds the site, from the repository root, into an image serving it with Caddy on port 8080
+([Caddyfile](Caddyfile)). It is built and deployed with the management API and runner, and runs beside them on the
+same server, on that server's `COFY_WEBSITE_DOMAIN` - see [apps/demo_multitenant](../demo_multitenant#production-deploy).
+
 ## Where things are
 
 - **Home page** - its words are [src/content/home/en.md](src/content/home/en.md): each section
@@ -45,9 +51,8 @@ Serves the site at http://127.0.0.1:4321. `npm run build` writes the static site
   layout.
   The SmartCORE co-funding logo sits beside "Where Cofy comes from" on the home page, at the
   size Interreg asks for.
-- **Contact form** - [src/components/ContactForm.astro](src/components/ContactForm.astro) posts
-  to the endpoint in [apps/website-contact](../website-contact). Build with its URL in
-  `PUBLIC_CONTACT_ENDPOINT`; without it the form shows an error when sent.
+- **Contact** - the "Talk to us" page gives the address `contact@cofy.cloud`. The contact form
+  and its endpoint, [apps/website-contact](../website-contact), are set aside for now.
 - **Visuals** - the mockups beside each feature, and the Klimaan charts, are components in
   [src/components/visuals/](src/components/visuals) and
   [src/components/DirectiveStrip.astro](src/components/DirectiveStrip.astro): drawn from Web
