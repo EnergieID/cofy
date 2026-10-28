@@ -21,9 +21,10 @@ The API is available at http://127.0.0.1:8000 with docs at `/docs`.
 ## Deltawind simultaneity directive
 
 The `deltawind` directive module is the proof of concept for the Deltawind pilot. It fetches
-forecasts per EAN from ACC's Connection Usage Service (`acc_forecast`), turns them into
-consumption as a percentage of production (`simultaneity`), and encodes that as directive steps.
-It needs `ACC_CREDENTIALS` (the service-account JSON from ACC, on a single line) and `ACC_EAN_1`;
+forecasts per EAN from the Connection Usage Service of EvO (Energie van Ons) (`acc_forecast`),
+turns them into how well consumption matches production (`simultaneity`), and encodes that as
+directive steps. It needs `ACC_CREDENTIALS` (the service-account JSON from EvO, on a single line)
+and `ACC_EAN_1`;
 add more entries to `sources` in [settings.yaml](settings.yaml) for more connections.
 
 ## Data

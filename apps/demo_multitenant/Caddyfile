@@ -1,6 +1,6 @@
-{$COFY_DOMAIN} {
-	# Every request, as JSON on stderr, for Loki (`config.alloy`): what was asked, how it was answered and how long it
-	# took. Not the headers, and not the `token` in a query, which is an API key.
+# Every request, as JSON on stderr, for Loki (`config.alloy`): what was asked, how it was answered and how long it
+# took. Not the headers, and not the `token` in a query, which is an API key.
+(log_requests) {
 	log {
 		format filter {
 			wrap json
@@ -13,6 +13,10 @@
 			}
 		}
 	}
+}
+
+{$COFY_DOMAIN} {
+	import log_requests
 	# The communities' APIs, each under /communities/<slug>/; the prefix is stripped, and the
 	# runner told it through UVICORN_ROOT_PATH.
 	handle_path /communities/* {
@@ -22,4 +26,10 @@
 	handle {
 		reverse_proxy app:8080
 	}
+}
+
+# The public website, on a domain of its own.
+{$COFY_WEBSITE_DOMAIN} {
+	import log_requests
+	reverse_proxy website:8080
 }

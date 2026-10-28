@@ -49,7 +49,7 @@ jobs:
             echo "ref=refs/tags/$TAG" >> "$GITHUB_OUTPUT"
           else
             sha=$(git rev-parse origin/main)
-            for image in management runner; do
+            for image in management runner website; do
               if ! docker manifest inspect "ghcr.io/energieid/cofy-api/$image:$sha" >/dev/null; then
                 echo "::error::$sha has no $image image yet; release it once Deploy to Scaleway built it"
                 exit 1

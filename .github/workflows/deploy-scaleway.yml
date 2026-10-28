@@ -23,6 +23,7 @@ jobs:
     env:
       IMAGE: ghcr.io/energieid/cofy-api/management
       RUNNER_IMAGE: ghcr.io/energieid/cofy-api/runner
+      WEBSITE_IMAGE: ghcr.io/energieid/cofy-api/website
     steps:
       - uses: actions/checkout@v7
 
@@ -33,8 +34,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Both from the same commit, so the runner builds the community configs with the same cofy-api the management
-      # API validated them with.
+      # All from the same commit, so the runner builds the community configs with the same cofy-api the management
+      # API validated them with, and the website describes the Cofy that is deployed beside it.
       - name: Build and push
         run: |
           docker build \
@@ -47,10 +48,17 @@ jobs:
             -t ${{ env.RUNNER_IMAGE }}:latest \
             -f apps/demo_multitenant/runner.Dockerfile \
             .
+          docker build \
+            -t ${{ env.WEBSITE_IMAGE }}:${{ github.sha }} \
+            -t ${{ env.WEBSITE_IMAGE }}:latest \
+            -f apps/website/Dockerfile \
+            .
           docker push ${{ env.IMAGE }}:${{ github.sha }}
           docker push ${{ env.IMAGE }}:latest
           docker push ${{ env.RUNNER_IMAGE }}:${{ github.sha }}
           docker push ${{ env.RUNNER_IMAGE }}:latest
+          docker push ${{ env.WEBSITE_IMAGE }}:${{ github.sha }}
+          docker push ${{ env.WEBSITE_IMAGE }}:latest
 
   # The dev server only accepts main, so running this by hand from another branch builds its images, but deploys none.
   deploy:

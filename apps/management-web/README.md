@@ -29,9 +29,10 @@ different API with `COFY_MANAGEMENT_API=http://host:port npm run dev`.
 
 ## Customising
 
-- **Branding** - [src/brand.css](src/brand.css) is the one place the console's colour is
-  decided: eleven CSS custom properties (a light/dark colour ramp), and Web Awesome derives
-  every button, link and focus ring from them. No code, no build step.
+- **Branding** - the console uses the Cofy theme from `@cofy/web-components/theme/cofy.css`.
+  [src/brand.css](src/brand.css) is where you replace it with your own: one CSS custom property
+  (the brand hue), and Web Awesome derives every button, link and focus ring from it. No code,
+  no build step.
 - **Translations** - the app's own strings live in `public/locales/<lang>/app.yaml`;
   `@cofy/web-components`' strings live in `public/locales/<lang>/components.yaml`, overriding
   the library's own copy under

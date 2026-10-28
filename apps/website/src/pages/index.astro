@@ -1,0 +1,291 @@
+---
+/*
+ * The home page. Its words are in src/content/home/<language>.md; this is only its layout.
+ */
+import { getEntry, render } from "astro:content";
+import DirectiveStrip from "../components/DirectiveStrip.astro";
+import Flag from "../components/Flag.astro";
+import ApiVisual from "../components/visuals/ApiVisual.astro";
+import BillingVisual from "../components/visuals/BillingVisual.astro";
+import Marketing from "../layouts/Marketing.astro";
+import logo from "../assets/logo.svg";
+import smartcore from "../assets/smartcore-logo.png";
+import { Image } from "astro:assets";
+
+const home = (await getEntry("home", "en"))!;
+const { hero, features, customers, independence, ways, cta } = home.data;
+const { Content: Origins } = await render(home);
+---
+
+<Marketing title={home.data.title} description={home.data.description}>
+  <section class="section">
+    <div class="wa-grid hero">
+      <div class="wa-stack wa-gap-l">
+        <h1 class="wa-heading-4xl">{hero.title}</h1>
+        <p class="wa-body-xl wa-color-text-quiet">{hero.tagline}</p>
+        <div class="wa-cluster wa-gap-m">
+          <wa-button variant="brand" size="large" pill href={hero.primary.href}>
+            {hero.primary.label}
+            <wa-icon slot="end" name="arrow-right"></wa-icon>
+          </wa-button>
+          <wa-button appearance="plain" size="large" pill href={hero.secondary.href}>{hero.secondary.label}</wa-button>
+        </div>
+      </div>
+      <img class="hero-logo" src={logo.src} alt="" />
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wa-stack wa-gap-3xl">
+      <h2 class="wa-heading-2xl">{features.title}</h2>
+      {
+        features.items.map((feature) => (
+          <div class="wa-grid feature">
+            <div class="wa-stack wa-gap-s">
+              <h3 class="wa-heading-xl">{feature.title}</h3>
+              <p class="wa-body-l">{feature.text}</p>
+              {feature.link && <a href={feature.link.href}>{feature.link.label}</a>}
+            </div>
+            <div class="feature-visual">
+              {feature.visual === "billing" && <BillingVisual />}
+              {feature.visual === "directives" && (
+                <DirectiveStrip label={features.directive.label} caption={features.directive.caption} />
+              )}
+              {feature.visual === "api" && <ApiVisual />}
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="section lowered" id="customers">
+    <div class="wa-stack wa-gap-xl">
+      <h2 class="wa-heading-2xl">{customers.title}</h2>
+      <wa-carousel class="customers" loop autoplay autoplay-interval="10000" navigation slides-per-page="3">
+        {
+          customers.items.map((customer) => (
+            <wa-carousel-item>
+              <wa-card class="customer">
+                <div class="wa-stack wa-gap-xs">
+                  <div class="wa-cluster wa-gap-s">
+                    <Flag country={customer.country} />
+                    <h3 class="wa-heading-m">
+                      <a href={customer.href}>{customer.name}</a>
+                    </h3>
+                  </div>
+                  <p class="wa-body-s wa-color-text-quiet">{customer.text}</p>
+                </div>
+              </wa-card>
+            </wa-carousel-item>
+          ))
+        }
+      </wa-carousel>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wa-stack wa-gap-xl">
+      <div class="wa-stack wa-gap-s">
+        <h2 class="wa-heading-2xl">{independence.title}</h2>
+        <p class="wa-body-l wa-color-text-quiet intro">{independence.intro}</p>
+      </div>
+      <div class="wa-grid trio">
+        {
+          independence.pillars.map((pillar) => (
+            <wa-card>
+              <div class="wa-stack wa-gap-m">
+                <div class="wa-cluster wa-gap-s">
+                  <span class="icon-badge">
+                    <wa-icon name={pillar.icon} />
+                  </span>
+                  <h3 class="wa-heading-l">{pillar.title}</h3>
+                </div>
+                <ul class="wa-stack wa-gap-xs points">
+                  {pillar.points.map((point) => (
+                    <li>{point}</li>
+                  ))}
+                </ul>
+              </div>
+            </wa-card>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section lowered">
+    <div class="wa-stack wa-gap-xl">
+      <div class="wa-stack wa-gap-s">
+        <h2 class="wa-heading-2xl">{ways.title}</h2>
+        <p class="wa-body-l wa-color-text-quiet intro">{ways.intro}</p>
+      </div>
+      <div class="wa-grid trio">
+        {
+          ways.items.map((way) => (
+            <wa-card>
+              <div class="wa-stack wa-gap-s">
+                <span class="icon-badge">
+                  <wa-icon name={way.icon} />
+                </span>
+                <h3 class="wa-heading-l">{way.title}</h3>
+                <p>{way.text}</p>
+              </div>
+              <wa-button slot="footer" variant="brand" appearance="outlined" pill href={way.action.href}>
+                {way.action.label}
+              </wa-button>
+            </wa-card>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="origins-row">
+      <div class="wa-stack wa-gap-m origins">
+        <Origins />
+      </div>
+      <Image
+        class="funding"
+        src={smartcore}
+        alt="Interreg North-West Europe, co-funded by the European Union: SmartCORE"
+        width={1280}
+      />
+    </div>
+  </section>
+
+  <section class="section cta">
+    <div class="wa-stack wa-gap-l wa-align-items-center">
+      <h2 class="wa-heading-2xl">{cta.title}</h2>
+      <wa-button variant="neutral" appearance="filled" size="large" pill href={cta.action.href}>
+        {cta.action.label}
+      </wa-button>
+    </div>
+  </section>
+</Marketing>
+
+<script>
+  // One customer per slide on a phone, two on a tablet, three from there on.
+  const sizes: [MediaQueryList, number][] = [
+    [matchMedia("(min-width: 64rem)"), 3],
+    [matchMedia("(min-width: 40rem)"), 2],
+  ];
+  const fit = (): void => {
+    const perPage = sizes.find(([query]) => query.matches)?.[1] ?? 1;
+    document.querySelector(".customers")?.setAttribute("slides-per-page", String(perPage));
+  };
+  for (const [query] of sizes) query.addEventListener("change", fit);
+  fit();
+</script>
+
+<style>
+  .hero {
+    --min-column-size: 22rem;
+    align-items: center;
+  }
+  .hero-logo {
+    inline-size: min(100%, 16rem);
+    justify-self: center;
+  }
+  /* On a small screen the logo would push the pitch below the fold; the header has it already. */
+  @media (max-width: 48rem) {
+    .hero-logo {
+      display: none;
+    }
+  }
+
+  /* A feature beside its mockup; on wide screens they swap sides every other row. */
+  .feature {
+    --min-column-size: 22rem;
+    align-items: center;
+    gap: var(--wa-space-2xl);
+  }
+  @media (min-width: 48rem) {
+    .feature:nth-of-type(odd) .feature-visual {
+      order: -1;
+    }
+  }
+
+  /* Slides as tall as their card, not the carousel's default 16:9 frame. */
+  .customers {
+    --aspect-ratio: auto;
+  }
+  /* Every card as tall as the tallest: the slides stretch instead of centring. */
+  .customers::part(scroll-container) {
+    align-items: stretch;
+  }
+  .customer {
+    position: relative;
+    inline-size: 100%;
+    block-size: 100%;
+  }
+  .customer a {
+    color: inherit;
+    text-decoration: none;
+  }
+  /* The whole card is the customer's link: the name's link stretches over it. */
+  .customer a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+  .customer:has(a:focus-visible) {
+    outline: var(--wa-focus-ring);
+    outline-offset: var(--wa-focus-ring-offset);
+  }
+
+  .intro {
+    max-inline-size: 48rem;
+  }
+  .icon-badge {
+    display: inline-grid;
+    place-items: center;
+    inline-size: var(--wa-space-2xl);
+    block-size: var(--wa-space-2xl);
+    border-radius: var(--wa-border-radius-m);
+    background: var(--wa-color-brand-fill-quiet);
+    color: var(--wa-color-brand-on-quiet);
+    font-size: var(--wa-font-size-l);
+  }
+  .points {
+    margin: 0;
+    padding-inline-start: var(--wa-space-l);
+  }
+
+  /* The story beside the SmartCORE logo. Interreg asks for the logotype and EU flag at 300px or
+     wider on a desktop screen, which is about 540px for the whole logo: it goes under the story
+     when the two don't fit side by side. */
+  .origins-row {
+    display: grid;
+    gap: var(--wa-space-2xl);
+    align-items: center;
+  }
+  @media (min-width: 72rem) {
+    .origins-row {
+      grid-template-columns: minmax(0, 1fr) 34rem;
+    }
+  }
+  .funding {
+    inline-size: 34rem;
+    max-inline-size: 100%;
+    block-size: auto;
+    border-radius: var(--wa-border-radius-l);
+  }
+  .origins :global(h2) {
+    font-size: var(--wa-font-size-2xl);
+  }
+
+  .cta {
+    background: var(--wa-color-brand-fill-loud);
+    color: var(--wa-color-brand-on-loud);
+    text-align: center;
+  }
+  /* A white pill with a green label, readable on the brand band in both schemes. */
+  .cta wa-button::part(button) {
+    background-color: var(--wa-color-brand-on-loud);
+    color: var(--wa-color-brand-fill-loud);
+    border-color: transparent;
+  }
+</style>

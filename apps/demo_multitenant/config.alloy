@@ -108,6 +108,12 @@ prometheus.exporter.process "services" {
     cmdline = [`cofy\.runner\.main:app`]
   }
 
+  // The website's own Caddy, told apart from the one in front by its config file; matched first, as both are `caddy`.
+  matcher {
+    name    = "website"
+    cmdline = [`website\.Caddyfile`]
+  }
+
   matcher {
     name = "caddy"
     comm = ["caddy"]
@@ -124,14 +130,15 @@ prometheus.scrape "services" {
   forward_to = [prometheus.relabel.server.receiver]
 }
 
-// Whether the console and the communities' APIs answer at the public URL, through DNS, TLS and Caddy as anyone would
-// reach them. The runner has no route of its own, so its 404 is how it answers at /communities/ - Caddy answers 502
+// Whether the console, the communities' APIs and the website answer at their public URLs, through DNS, TLS and Caddy
+// as anyone would reach them. The runner has no route of its own, so its 404 is how it answers at /communities/ - Caddy answers 502
 // when it doesn't.
 prometheus.exporter.blackbox "checks" {
   config = `{
     modules: {
       console: { prober: http, timeout: 10s },
       communities: { prober: http, timeout: 10s, http: { valid_status_codes: [404] } },
+      website: { prober: http, timeout: 10s },
     },
   }`
 
@@ -145,6 +152,12 @@ prometheus.exporter.blackbox "checks" {
     name    = "communities"
     address = "https://" + sys.env("COFY_DOMAIN") + "/communities/"
     module  = "communities"
+  }
+
+  target {
+    name    = "website"
+    address = "https://" + sys.env("COFY_WEBSITE_DOMAIN") + "/"
+    module  = "website"
   }
 }
 

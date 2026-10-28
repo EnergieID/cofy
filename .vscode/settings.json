@@ -1,7 +1,7 @@
 {
     "workbench.colorCustomizations": {
         "[*Dark*]": {
-            "titleBar.activeBackground": "#304401"
+            "titleBar.activeBackground": "#32563a"
         }
     },
     "python.defaultInterpreterPath": "${workspaceFolder}/packages/api/.venv/bin/python",

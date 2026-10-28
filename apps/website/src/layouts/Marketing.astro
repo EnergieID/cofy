@@ -1,0 +1,137 @@
+---
+/*
+ * The marketing pages' frame, built with Web Awesome and the Cofy theme - the same components,
+ * tokens and theme as the console. The docs stay in Starlight, drawn from the same theme
+ * through src/styles/starlight-bridge.css.
+ */
+import "@awesome.me/webawesome/dist/styles/webawesome.css";
+import "@cofy/web-components/theme/cofy.css";
+import "../styles/site.css";
+import Credits from "../components/Credits.astro";
+import ThemePicker from "../components/ThemePicker.astro";
+import logo from "../assets/logo.svg";
+import { appUrl } from "../site";
+import { schemeScript } from "../scheme.mjs";
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+
+const links = [
+  { href: "/docs/", label: "Docs" },
+  { href: "/vision/", label: "Vision" },
+  { href: "https://github.com/EnergieID/cofy-api", label: "GitHub" },
+];
+---
+
+<!doctype html>
+<html lang="en" class="wa-theme-default wa-palette-default wa-light wa-cloak">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- Before the first paint, so there's no flash of the wrong scheme. -->
+    <script is:inline set:html={schemeScript} />
+  </head>
+  <body>
+    <wa-page>
+      <header slot="header" class="wa-split site-header">
+        <a href="/" class="brand wa-cluster wa-gap-xs">
+          <img src={logo.src} alt="" />
+          Cofy
+        </a>
+        <div class="wa-cluster wa-gap-m">
+          <nav class="wa-desktop-only wa-cluster wa-gap-l" aria-label="Main">
+            {links.map((link) => <a href={link.href}>{link.label}</a>)}
+            <wa-button appearance="outlined" size="small" pill href={appUrl}>
+              <wa-icon slot="start" name="right-to-bracket"></wa-icon>
+              Log in
+            </wa-button>
+            <wa-button variant="brand" size="small" pill href="/contact/">Talk to us</wa-button>
+          </nav>
+          <ThemePicker />
+          <wa-button data-toggle-nav appearance="plain" class="wa-mobile-only">
+            <wa-icon name="bars" label="Open menu"></wa-icon>
+          </wa-button>
+        </div>
+      </header>
+
+      <nav slot="navigation" class="wa-stack wa-gap-m" aria-label="Main">
+        {links.map((link) => <a href={link.href} data-drawer="close">{link.label}</a>)}
+        <wa-button appearance="outlined" pill href={appUrl}>
+          <wa-icon slot="start" name="right-to-bracket"></wa-icon>
+          Log in
+        </wa-button>
+        <wa-button variant="brand" pill href="/contact/">Talk to us</wa-button>
+      </nav>
+
+      <main>
+        <slot />
+      </main>
+
+      <footer slot="footer" class="site-footer">
+        <Credits />
+      </footer>
+    </wa-page>
+
+    <script>
+      import "../scripts/web-awesome.ts";
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  main {
+    padding: 0;
+  }
+
+  /* Header links in the bar on desktop, in the drawer on mobile: no sidebar on desktop. */
+  wa-page[view="desktop"]::part(navigation) {
+    display: none;
+  }
+
+  .site-header {
+    inline-size: 100%;
+    padding-inline: var(--wa-space-xl);
+    border-block-end: var(--wa-border-width-s) solid var(--wa-color-surface-border);
+  }
+  .site-header a,
+  [slot="navigation"] a {
+    color: var(--wa-color-text-normal);
+    text-decoration: none;
+  }
+  .site-header a:hover,
+  [slot="navigation"] a:hover {
+    color: var(--wa-color-text-link);
+  }
+  .site-header .brand {
+    font-size: var(--wa-font-size-l);
+    font-weight: var(--wa-font-weight-bold);
+    color: var(--wa-color-brand-50);
+  }
+  .brand img {
+    block-size: var(--wa-font-size-2xl);
+  }
+
+  /* Each section runs full width, and lines its content up in one centred column. */
+  .section {
+    padding: var(--wa-space-4xl) var(--wa-space-xl);
+  }
+  .section > * {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+  }
+  .section.lowered {
+    background: var(--wa-color-surface-lowered);
+  }
+
+  .site-footer {
+    padding: var(--wa-space-s) var(--wa-space-xl);
+    border-block-start: var(--wa-border-width-s) solid var(--wa-color-surface-border);
+  }
+</style>

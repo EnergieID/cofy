@@ -15,14 +15,14 @@
  */
 :root,
 .wa-light {
-  --cofy-syntax-key: var(--wa-color-indigo-40);
-  --cofy-syntax-string: var(--wa-color-green-30);
-  --cofy-syntax-number: var(--wa-color-cyan-30);
-  --cofy-syntax-atom: var(--wa-color-purple-40);
+  --cofy-syntax-key: var(--wa-color-indigo-60);
+  --cofy-syntax-string: var(--wa-color-green-60);
+  --cofy-syntax-number: var(--wa-color-cyan-60);
+  --cofy-syntax-atom: var(--wa-color-purple-60);
   --cofy-syntax-comment: var(--wa-color-gray-50);
-  --cofy-syntax-meta: var(--wa-color-orange-40);
+  --cofy-syntax-meta: var(--wa-color-orange-60);
   --cofy-syntax-punctuation: var(--wa-color-gray-50);
-  --cofy-syntax-invalid: var(--wa-color-red-40);
+  --cofy-syntax-invalid: var(--wa-color-red-60);
 }
 
 .wa-dark {

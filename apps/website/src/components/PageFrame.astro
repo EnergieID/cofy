@@ -1,0 +1,74 @@
+---
+/*
+ * Starlight's page frame, with the credits as a footer across the bottom of every docs page,
+ * like the marketing pages have.
+ */
+import Default from "@astrojs/starlight/components/PageFrame.astro";
+import Credits from "./Credits.astro";
+---
+
+<Default>
+  <slot name="header" slot="header" />
+  <slot name="sidebar" slot="sidebar" />
+  <slot />
+  <footer class="site-footer"><Credits /></footer>
+</Default>
+
+<style>
+  /* The content grows to fill the screen, so on a short page the footer still sits at the bottom. */
+  :global(.main-frame) {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+  :global(.main-frame) > :global(:not(.site-footer)) {
+    flex: 1;
+  }
+
+  /* On wide screens the menu is a column beside the content instead of fixed to the screen, so it
+     stops where the footer starts and the footer runs the full width of the page. The main frame
+     steps aside (display: contents) to put its content and the footer straight into that grid. */
+  @media (min-width: 50rem) {
+    :global([data-has-sidebar] .page) {
+      display: grid;
+      grid-template-columns: var(--sl-sidebar-width) minmax(0, 1fr);
+      grid-template-rows: 1fr auto;
+    }
+    :global([data-has-sidebar] .main-frame) {
+      display: contents;
+    }
+    :global([data-has-sidebar] .main-frame) > :global(:not(.site-footer)) {
+      grid-column: 2;
+      padding-top: var(--sl-nav-height);
+    }
+    :global([data-has-sidebar]) .site-footer {
+      grid-column: 1 / -1;
+    }
+    /* The column carries the menu's background and edge down to the footer; the menu itself
+       follows the reader down the page, scrolling on its own when it's taller than the screen. */
+    :global([data-has-sidebar] .sidebar) {
+      grid-row: 1;
+      grid-column: 1;
+      padding-top: var(--sl-nav-height);
+      background-color: var(--sl-color-bg-sidebar);
+      border-inline-end: 1px solid var(--sl-color-hairline-shade);
+    }
+    :global([data-has-sidebar] .sidebar-pane) {
+      position: sticky;
+      inset-block: var(--sl-nav-height) auto;
+      block-size: auto;
+      max-block-size: calc(100vh - var(--sl-nav-height));
+      background-color: transparent;
+      border-inline-end: none;
+    }
+  }
+
+  /* "On this page" is fixed to the full height of the screen; the footer covers it. */
+  .site-footer {
+    position: relative;
+    z-index: 1;
+    background: var(--sl-color-bg);
+    padding: var(--wa-space-s) var(--wa-space-xl);
+    border-block-start: var(--wa-border-width-s) solid var(--wa-color-surface-border);
+  }
+</style>

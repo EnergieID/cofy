@@ -1,0 +1,119 @@
+---
+/*
+ * A mockup of a yearly bill, broken down the way Cofy's billing engine breaks it down: what goes
+ * to the supplier, to the grid, and to fees and taxes. Illustrative numbers.
+ */
+const parts = [
+  { key: "supplier", label: "Supplier", amount: 1870 },
+  { key: "grid", label: "Distribution", amount: 1200 },
+  { key: "fees", label: "Fees and taxes", amount: 880 },
+];
+const total = parts.reduce((sum, part) => sum + part.amount, 0);
+const euro = (amount: number): string => `€ ${amount.toLocaleString("en")}`;
+
+// The ring has a circumference of 100, so a share is its own dash length; a small gap separates
+// the segments, as the surface gap between stacked fills does in a chart.
+const gap = 1;
+let offset = 25;
+const segments = parts.map((part) => {
+  const share = (part.amount / total) * 100;
+  const segment = { ...part, share, dash: share - gap, offset };
+  offset -= share;
+  return segment;
+});
+---
+
+<figure class="mockup billing" aria-label="Example yearly energy bill, broken down into supplier, distribution, and fees and taxes">
+  <div class="wa-grid wa-align-items-center layout">
+    <svg viewBox="0 0 42 42" class="donut" aria-hidden="true">
+      {
+        segments.map((segment) => (
+          <circle
+            class={segment.key}
+            cx="21"
+            cy="21"
+            r="15.915"
+            pathLength="100"
+            stroke-dasharray={`${segment.dash} ${100 - segment.dash}`}
+            stroke-dashoffset={segment.offset}
+          />
+        ))
+      }
+      <text x="21" y="20" class="total-label">Total</text>
+      <text x="21" y="25" class="total">{euro(total)}</text>
+    </svg>
+    <ul class="wa-stack wa-gap-s legend">
+      {
+        segments.map((segment) => (
+          <li class="wa-split">
+            <span class="wa-cluster wa-gap-xs">
+              <span class={`dot ${segment.key}`} />
+              {segment.label}
+            </span>
+            <span class="wa-color-text-quiet">
+              {Math.round(segment.share)}% · {euro(segment.amount)}
+            </span>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</figure>
+
+<style>
+  .billing {
+    --cost-supplier: var(--wa-color-blue-60);
+    --cost-grid: var(--wa-color-yellow-70);
+    --cost-fees: var(--wa-color-brand-50);
+  }
+  :global(.wa-dark) .billing {
+    --cost-fees: var(--wa-color-brand-60);
+  }
+  .layout {
+    --min-column-size: 10rem;
+  }
+  .donut {
+    inline-size: 100%;
+    max-inline-size: 10rem;
+    margin-inline: auto;
+  }
+  .donut circle {
+    fill: none;
+    stroke-width: 6;
+  }
+  .supplier {
+    stroke: var(--cost-supplier);
+    background: var(--cost-supplier);
+  }
+  .grid {
+    stroke: var(--cost-grid);
+    background: var(--cost-grid);
+  }
+  .fees {
+    stroke: var(--cost-fees);
+    background: var(--cost-fees);
+  }
+  .donut text {
+    text-anchor: middle;
+    fill: var(--wa-color-text-normal);
+  }
+  .donut .total-label {
+    font-size: 3px;
+    fill: var(--wa-color-text-quiet);
+  }
+  .total {
+    font-size: 4.5px;
+    font-weight: var(--wa-font-weight-semibold);
+  }
+  .legend {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--wa-font-size-s);
+  }
+  .dot {
+    inline-size: var(--wa-space-s);
+    block-size: var(--wa-space-s);
+    border-radius: var(--wa-border-radius-circle);
+  }
+</style>

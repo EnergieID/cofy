@@ -1,0 +1,85 @@
+---
+/*
+ * A mockup of simultaneity over one day: the community's solar production, its members'
+ * consumption, and the overlap - the energy used locally, as it is produced. Illustrative curves.
+ */
+const width = 240;
+const height = 100;
+const hours = Array.from({ length: 97 }, (_, i) => i / 4);
+
+const bump = (hour: number, peak: number, spread: number): number => Math.exp(-((hour - peak) ** 2) / (2 * spread ** 2));
+const production = (hour: number): number => 0.95 * bump(hour, 13, 2.6);
+const consumption = (hour: number): number => 0.18 + 0.28 * bump(hour, 8, 1.4) + 0.5 * bump(hour, 19, 2) + 0.12 * bump(hour, 13, 3);
+
+const x = (hour: number): number => (hour / 24) * width;
+const y = (value: number): number => height - value * height;
+const line = (f: (hour: number) => number): string =>
+  hours.map((hour, i) => `${i ? "L" : "M"}${x(hour).toFixed(1)},${y(f(hour)).toFixed(1)}`).join(" ");
+const area = (f: (hour: number) => number): string => `${line(f)} L${width},${height} L0,${height} Z`;
+
+const sum = (f: (hour: number) => number): number => hours.reduce((total, hour) => total + f(hour), 0);
+const shared = (hour: number): number => Math.min(production(hour), consumption(hour));
+const sharedPercent = Math.round((sum(shared) / sum(production)) * 100);
+---
+
+<figure class="mockup simultaneity wa-stack wa-gap-s" aria-label={`Example day: ${sharedPercent}% of the community's solar production is used locally, as it is produced`}>
+  <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" aria-hidden="true">
+    <path class="production" d={area(production)}></path>
+    <path class="shared" d={area(shared)}></path>
+    <path class="consumption" d={line(consumption)} vector-effect="non-scaling-stroke"></path>
+  </svg>
+  <div class="wa-split axis"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div>
+  <ul class="wa-cluster wa-gap-m legend">
+    <li class="wa-cluster wa-gap-2xs"><span class="key production"></span>Solar production</li>
+    <li class="wa-cluster wa-gap-2xs"><span class="key shared"></span>Used locally: {sharedPercent}%</li>
+    <li class="wa-cluster wa-gap-2xs"><span class="key consumption"></span>Consumption</li>
+  </ul>
+</figure>
+
+<style>
+  .simultaneity {
+    --production: var(--wa-color-yellow-80);
+    --shared: var(--wa-color-brand-50);
+    --consumption: var(--wa-color-text-normal);
+  }
+  svg {
+    inline-size: 100%;
+    block-size: 10rem;
+  }
+  path.production {
+    fill: var(--production);
+  }
+  path.shared {
+    fill: var(--shared);
+  }
+  path.consumption {
+    fill: none;
+    stroke: var(--consumption);
+    stroke-width: 2px;
+  }
+  .axis,
+  .legend {
+    font-size: var(--wa-font-size-xs);
+    color: var(--wa-color-text-quiet);
+  }
+  .legend {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .key {
+    inline-size: var(--wa-space-s);
+    block-size: var(--wa-space-s);
+    border-radius: var(--wa-border-radius-s);
+  }
+  .key.production {
+    background: var(--production);
+  }
+  .key.shared {
+    background: var(--shared);
+  }
+  .key.consumption {
+    block-size: 2px;
+    background: var(--consumption);
+  }
+</style>

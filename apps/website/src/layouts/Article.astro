@@ -1,0 +1,55 @@
+---
+/*
+ * A marketing page that is mostly prose: the vision, the contact page, customer stories. Its
+ * content is Markdown, which Web Awesome's native styles already lay out.
+ */
+import Marketing from "./Marketing.astro";
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<Marketing title={`${title} · Cofy`} description={description}>
+  <article class="section">
+    <div class="wa-stack wa-gap-xl article">
+      <h1 class="wa-heading-3xl">{title}</h1>
+      <div class="prose">
+        <slot />
+      </div>
+    </div>
+  </article>
+</Marketing>
+
+<style>
+  .section > .article {
+    max-inline-size: 60rem;
+  }
+  .prose > :global(* + *) {
+    margin-block-start: var(--wa-space-l);
+  }
+  .prose :global(h2) {
+    margin-block-start: var(--wa-space-2xl);
+  }
+  /* A heading that opens a block beside something else, such as a visual, starts at its top. */
+  .prose :global(div > h2:first-child) {
+    margin-block-start: 0;
+  }
+  /* A card's title with its icon in front; a long title wraps beside the icon, not under it. */
+  .prose :global(wa-card h3) {
+    display: flex;
+    align-items: baseline;
+    gap: var(--wa-space-xs);
+  }
+  .prose :global(wa-card h3 wa-icon) {
+    flex: none;
+    color: var(--wa-color-brand-on-quiet);
+  }
+  .prose :global(table) {
+    display: block;
+    overflow-x: auto;
+  }
+</style>

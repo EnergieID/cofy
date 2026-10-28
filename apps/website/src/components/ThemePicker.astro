@@ -1,0 +1,25 @@
+---
+/*
+ * Light, dark, or follow the system - for the marketing pages; the docs have Starlight's own switch. Both remember
+ * the choice in the same place: see src/scheme.mjs.
+ */
+---
+
+<wa-dropdown class="theme-picker" placement="bottom-end">
+  <wa-button slot="trigger" appearance="plain" size="small">
+    <wa-icon name="circle-half-stroke" label="Theme"></wa-icon>
+  </wa-button>
+  <wa-dropdown-item value="auto"><wa-icon slot="icon" name="circle-half-stroke"></wa-icon>System</wa-dropdown-item>
+  <wa-dropdown-item value="light"><wa-icon slot="icon" name="sun"></wa-icon>Light</wa-dropdown-item>
+  <wa-dropdown-item value="dark"><wa-icon slot="icon" name="moon"></wa-icon>Dark</wa-dropdown-item>
+</wa-dropdown>
+
+<script>
+  import { chooseTheme } from "../scheme.mjs";
+
+  for (const picker of document.querySelectorAll(".theme-picker")) {
+    picker.addEventListener("wa-select", (event: Event): void => {
+      chooseTheme((event as CustomEvent<{ item: { value: "auto" | "light" | "dark" } }>).detail.item.value);
+    });
+  }
+</script>
