@@ -449,7 +449,7 @@ export interface components {
     schemas: {
         /**
          * AccForecastSettings
-         * @description Forecast net volumes of a connection, from the ACC forecast API.
+         * @description Forecast net volumes of a connection, from the EvO (Energie van Ons) forecast API.
          */
         "AccForecastSettings-Input": {
             /**
@@ -464,18 +464,18 @@ export interface components {
              * @description The EAN code of the connection to forecast.
              */
             ean: string;
-            /** @description The service account key, in JSON, that ACC provided. */
+            /** @description The service account key, in JSON, that EvO (Energie van Ons) provided. */
             credentials: components["schemas"]["SecretRef"];
             /**
              * Base Url
-             * @description The address of ACC's Connection Usage Service. Only change it to use another environment.
+             * @description The address of EvO's Connection Usage Service. Only change it to use another environment.
              * @default https://connection-usage-service-prd-730943142752.europe-west1.run.app
              */
             base_url?: string;
         };
         /**
          * AccForecastSettings
-         * @description Forecast net volumes of a connection, from the ACC forecast API.
+         * @description Forecast net volumes of a connection, from the EvO (Energie van Ons) forecast API.
          */
         "AccForecastSettings-Output": {
             /**
@@ -490,11 +490,11 @@ export interface components {
              * @description The EAN code of the connection to forecast.
              */
             ean: string;
-            /** @description The service account key, in JSON, that ACC provided. */
+            /** @description The service account key, in JSON, that EvO (Energie van Ons) provided. */
             credentials: components["schemas"]["SecretRef"];
             /**
              * Base Url
-             * @description The address of ACC's Connection Usage Service. Only change it to use another environment.
+             * @description The address of EvO's Connection Usage Service. Only change it to use another environment.
              * @default https://connection-usage-service-prd-730943142752.europe-west1.run.app
              */
             base_url?: string;

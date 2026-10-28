@@ -105,7 +105,7 @@ Any source can cache what it fetches, in memory and in aligned chunks of time, b
 source:
   type: acc_forecast
   ean: "541448800000000000"
-  credentials: ${ACC_CREDENTIALS}
+  credentials: { type: secret, name: evo_credentials }
   cache:
     max_age: PT15M  # defaults to how long the source says its data stays valid
 ```

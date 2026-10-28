@@ -5,13 +5,35 @@ description: Find the part of the Cofy docs that fits what you want to do.
 
 import { LinkCard, CardGrid } from "@astrojs/starlight/components";
 
-What do you want to do?
+New to Cofy? Start with the [concepts](/docs/concepts/): communities, modules, sources and resources, in a few minutes.
+
+## Manage your community in the console
+
+For community managers. No code needed.
 
 <CardGrid>
-  <LinkCard title="Understand how Cofy works" description="Communities, modules, sources and resources, in a few minutes." href="/docs/concepts/" />
-  <LinkCard title="Set up a community in the console" description="For community managers. No code needed." href="/docs/console/" />
-  <LinkCard title="Use Cofy with an AI agent" description="Coming soon." href="/docs/agents/" />
-  <LinkCard title="Run Cofy yourself" description="Install and run your own Cofy API." href="/docs/self-host/single-community/" />
-  <LinkCard title="Build on Cofy" description="Write your own modules and sources, or your own console." href="/docs/build/packages/" />
-  <LinkCard title="Calculate energy costs" description="The energy-cost library, on its own or inside Cofy." href="/docs/energy-cost/" />
+  <LinkCard title="Use the console" description="Log in, add modules, and connect your apps." href="/docs/console/" />
+  <LinkCard title="Choose modules and sources" description="What each module serves, and where its data can come from." href="/docs/modules/" />
+</CardGrid>
+
+## Run your own Cofy
+
+For whoever runs the server.
+
+<CardGrid>
+  <LinkCard title="Run one community" description="Install Cofy, and describe your community in a settings file." href="/docs/self-host/single-community/" />
+  <LinkCard title="The settings file" description="Everything a community's settings can hold." href="/docs/self-host/settings-file/" />
+</CardGrid>
+
+## Calculate energy costs
+
+<CardGrid>
+  <LinkCard title="Energy cost" description="Write tariffs and contracts, and calculate bills, inside Cofy or on their own." href="/docs/energy-cost/" />
+</CardGrid>
+
+## Build on Cofy
+
+<CardGrid>
+  <LinkCard title="Build and extend" description="Write your own sources and modules, or your own console." href="/docs/extend/" />
+  <LinkCard title="Use Cofy with an AI agent" description="Let an agent read these docs and help you." href="/docs/agents/" />
 </CardGrid>

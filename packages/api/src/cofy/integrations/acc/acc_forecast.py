@@ -17,17 +17,17 @@ from cofy.modules.timeseries import CacheSettings, ISODuration, Timeseries
 
 ACC_BASE_URL = "https://connection-usage-service-prd-730943142752.europe-west1.run.app"
 ACC_TARGET_AUDIENCE = "connection-usage"
-# seconds; without one a hanging ACC blocks the request, and the cache lock held for it, indefinitely
+# seconds; without one a hanging EvO service blocks the request, and the cache lock held for it, indefinitely
 ACC_TIMEOUT = 30
 
 
 class AccForecastSettings(NetVolumeSourceSettings):
     type: Literal["acc_forecast"] = "acc_forecast"
     ean: str = Field(description="The EAN code of the connection to forecast.")
-    credentials: Secret = Field(description="The service account key, in JSON, that ACC provided.")
+    credentials: Secret = Field(description="The service account key, in JSON, that EvO (Energie van Ons) provided.")
     base_url: str = Field(
         ACC_BASE_URL,
-        description="The address of ACC's Connection Usage Service. Only change it to use another environment.",
+        description="The address of EvO's Connection Usage Service. Only change it to use another environment.",
         json_schema_extra={"x-advanced": True},
     )
 
@@ -43,16 +43,16 @@ class AccForecastPage(BaseModel):
 
 
 class AccForecastSource(NetVolumeSource, settings=AccForecastSettings):
-    """Forecast net volumes of a connection, from the ACC forecast API."""
+    """Forecast net volumes of a connection, from the EvO (Energie van Ons) forecast API."""
 
     def __init__(
         self, ean: str, credentials: str, base_url: str = ACC_BASE_URL, cache: CacheSettings | None = None
     ) -> None:
-        """Net forecasted consumption (positive) or production (negative) in kWh per quarter-hour for one EAN, from ACC's Connection Usage Service.
+        """Net forecasted consumption (positive) or production (negative) in kWh per quarter-hour for one EAN, from EvO's Connection Usage Service.
 
         Args:
             ean: EAN18 code of the connection.
-            credentials: Google service-account credentials JSON provided by ACC.
+            credentials: Google service-account credentials JSON provided by EvO.
             base_url: Base URL of the Connection Usage Service.
             cache: Cache what this source fetches, see `TimeseriesSource`.
         """
@@ -82,7 +82,7 @@ class AccForecastSource(NetVolumeSource, settings=AccForecastSettings):
             timeout=ACC_TIMEOUT,
         )
         if response.status_code != 200:
-            raise ValueError(f"Failed to fetch forecasts from ACC: {response.status_code} - {response.text}")
+            raise ValueError(f"Failed to fetch forecasts from EvO: {response.status_code} - {response.text}")
         return AccForecastPage.model_validate(response.json())
 
     def _fetch_all(self, start: dt.datetime, end: dt.datetime) -> list[AccForecast]:

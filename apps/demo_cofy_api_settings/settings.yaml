@@ -109,7 +109,7 @@ modules:
 
   - type: directive
     name: deltawind
-    description: Simultaneity directive for the Deltawind pilot, based on ACC forecasts. Low simultaneity encourages consumption.
+    description: Simultaneity directive for the Deltawind pilot, based on EvO forecasts. Low simultaneity encourages consumption.
     source:
       type: directive
       # simultaneity is total consumption as a percentage of total production; 80-120% is neutral.

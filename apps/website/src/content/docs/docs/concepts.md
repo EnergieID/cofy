@@ -21,10 +21,13 @@ A **module** is one thing a community's API can do. You switch on only the modul
 | `billing` | Calculates energy costs from meter data and a contract |
 | `simultaneity` | How much consumption overlaps with local production, as time series |
 | `directive` | A five-step signal, from `--` to `++`, telling members when to use energy |
+| `timeseries` | Any other time series, such as a solar forecast |
+
+Each module has [its own page](/docs/modules/).
 
 ## Source
 
-A **source** is where a module gets its data from, such as EnergyID meter data, ENTSO-E day-ahead prices, or Elia and NED solar forecasts. Each module only accepts sources that fit it: a tariff module only takes prices, for example.
+A **source** is where a module gets its data from, such as EnergyID meter data, ENTSO-E day-ahead prices, or Elia and NED solar forecasts. Each module only accepts sources that fit it: a tariff module only takes prices, for example. [Sources](/docs/sources/) lists them all.
 
 ## Format
 
