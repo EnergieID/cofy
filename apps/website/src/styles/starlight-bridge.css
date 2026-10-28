@@ -31,10 +31,21 @@
   --sl-color-accent: var(--wa-color-brand-fill-loud);
   --sl-color-accent-high: var(--wa-color-brand-on-quiet);
 
-  /* Starlight's green (tips, success badges) is the success green, which is the brand green. */
+  /*
+   * Starlight's other colours (asides, badges) in the same three roles: low is a quiet fill, the
+   * plain one a loud fill, high coloured text. Green, orange and red are the success, warning and
+   * danger tokens - Starlight's orange is its "caution", our yellow warning. Blue and purple have
+   * no role of their own, so they come from the palette, below.
+   */
   --sl-color-green-low: var(--wa-color-success-fill-quiet);
   --sl-color-green: var(--wa-color-success-fill-loud);
   --sl-color-green-high: var(--wa-color-success-on-quiet);
+  --sl-color-orange-low: var(--wa-color-warning-fill-quiet);
+  --sl-color-orange: var(--wa-color-warning-fill-loud);
+  --sl-color-orange-high: var(--wa-color-warning-on-quiet);
+  --sl-color-red-low: var(--wa-color-danger-fill-quiet);
+  --sl-color-red: var(--wa-color-danger-fill-loud);
+  --sl-color-red-high: var(--wa-color-danger-on-quiet);
 
   --sl-color-text: var(--wa-color-text-normal);
   --sl-color-text-accent: var(--wa-color-text-link);
@@ -48,6 +59,25 @@
   --sl-color-hairline: var(--wa-color-surface-border);
   --sl-color-hairline-shade: var(--wa-color-surface-border);
   --sl-color-backdrop-overlay: var(--wa-color-overlay-modal);
+}
+
+/*
+ * Blue and purple from the palette, in the steps Web Awesome gives the role tokens: the
+ * quiet fill and text swap ends between the schemes, the loud fill is 50 in both.
+ */
+:root {
+  --sl-color-blue-low: var(--wa-color-blue-95);
+  --sl-color-blue: var(--wa-color-blue-50);
+  --sl-color-blue-high: var(--wa-color-blue-40);
+  --sl-color-purple-low: var(--wa-color-purple-95);
+  --sl-color-purple: var(--wa-color-purple-50);
+  --sl-color-purple-high: var(--wa-color-purple-40);
+}
+.wa-dark {
+  --sl-color-blue-low: var(--wa-color-blue-10);
+  --sl-color-blue-high: var(--wa-color-blue-70);
+  --sl-color-purple-low: var(--wa-color-purple-10);
+  --sl-color-purple-high: var(--wa-color-purple-70);
 }
 
 /* Link cards and the previous / next links hint that they're clickable on hover, without

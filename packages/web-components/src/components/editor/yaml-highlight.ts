@@ -17,22 +17,22 @@ import { tags } from "@lezer/highlight";
  */
 const highlight = HighlightStyle.define([
   // Keys are the bulk of a YAML document and the thing you scan for.
-  { tag: tags.propertyName, color: "var(--cofy-syntax-key, var(--wa-color-indigo-40))" },
-  { tag: [tags.string, tags.special(tags.string)], color: "var(--cofy-syntax-string, var(--wa-color-green-30))" },
-  { tag: tags.number, color: "var(--cofy-syntax-number, var(--wa-color-cyan-30))" },
-  { tag: [tags.bool, tags.null, tags.atom], color: "var(--cofy-syntax-atom, var(--wa-color-purple-40))" },
+  { tag: tags.propertyName, color: "var(--cofy-syntax-key, var(--wa-color-indigo-60))" },
+  { tag: [tags.string, tags.special(tags.string)], color: "var(--cofy-syntax-string, var(--wa-color-green-60))" },
+  { tag: tags.number, color: "var(--cofy-syntax-number, var(--wa-color-cyan-60))" },
+  { tag: [tags.bool, tags.null, tags.atom], color: "var(--cofy-syntax-atom, var(--wa-color-purple-60))" },
   {
     tag: [tags.comment, tags.lineComment],
     color: "var(--cofy-syntax-comment, var(--wa-color-gray-50))",
     fontStyle: "italic",
   },
   // Document markers, directives, anchors and tags - the YAML-about-YAML parts.
-  { tag: tags.meta, color: "var(--cofy-syntax-meta, var(--wa-color-orange-40))" },
+  { tag: tags.meta, color: "var(--cofy-syntax-meta, var(--wa-color-orange-60))" },
   {
     tag: [tags.punctuation, tags.separator],
     color: "var(--cofy-syntax-punctuation, var(--wa-color-gray-50))",
   },
-  { tag: tags.invalid, color: "var(--cofy-syntax-invalid, var(--wa-color-red-40))" },
+  { tag: tags.invalid, color: "var(--cofy-syntax-invalid, var(--wa-color-red-60))" },
 ]);
 
 /** The editor's own chrome - everything that is not a token in the document. */

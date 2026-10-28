@@ -2,6 +2,7 @@
 import starlight from "@astrojs/starlight";
 import { defineConfig } from "astro/config";
 import starlightLlmsTxt from "starlight-llms-txt";
+import { cofyCodeThemes } from "./src/code-theme.mjs";
 
 // Starlight renders the documentation, under /docs/. The marketing pages around it are plain
 // Astro pages built with Web Awesome (src/pages/, with their words in src/content/home and
@@ -34,8 +35,15 @@ export default defineConfig({
         "@awesome.me/webawesome/dist/styles/themes/default.css",
         "@awesome.me/webawesome/dist/styles/color/variants.css",
         "@cofy/web-components/theme/cofy.css",
+        "@cofy/web-components/theme/syntax.css",
         "./src/styles/starlight-bridge.css",
       ],
+      // Code examples in the console's editor colours, from the Cofy theme (src/code-theme.mjs).
+      expressiveCode: {
+        themes: cofyCodeThemes,
+        useStarlightUiThemeColors: true,
+        minSyntaxHighlightingColorContrast: 0,
+      },
       head: [{ tag: "script", content: followStarlightScheme }],
       components: { PageFrame: "./src/components/PageFrame.astro" },
       // English lives at the root. A language is added by adding an entry here and a folder
