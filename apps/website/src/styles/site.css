@@ -1,0 +1,85 @@
+/*
+ * The directive colours, and the hourly strip on the home page that shows them.
+ *
+ * The five steps match the directive module's `--` to `++`: dark green is the best moment to
+ * use energy, red the worst. Built on Web Awesome's tokens, so they hold on every page - the
+ * Starlight ones included, through the bridge.
+ */
+:root {
+  --cofy-directive-2: var(--wa-color-brand-50);
+  --cofy-directive-1: var(--wa-color-brand-70);
+  --cofy-directive-0: var(--wa-color-neutral-90);
+  --cofy-directive--1: var(--wa-color-orange-70);
+  --cofy-directive--2: var(--wa-color-red-50);
+}
+
+/* Three cards side by side, or one under the other when they don't fit: never two above one. */
+.wa-grid.trio {
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 52rem) {
+  .wa-grid.trio {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* The frame around a product mockup: a raised panel, like a card in the console. */
+.mockup {
+  margin: 0;
+  padding: var(--wa-space-l);
+  border: var(--wa-border-width-s) solid var(--wa-color-surface-border);
+  border-radius: var(--wa-border-radius-l);
+  background: var(--wa-color-surface-raised);
+  box-shadow: var(--wa-shadow-m);
+}
+
+.directive-strip .hours {
+  display: grid;
+  grid-template-columns: repeat(14, 1fr);
+  gap: var(--wa-space-3xs);
+  block-size: var(--wa-space-4xl);
+}
+
+.directive-strip .hours span {
+  border-radius: var(--wa-border-radius-s);
+}
+
+.directive-strip .d2 {
+  background: var(--cofy-directive-2);
+}
+.directive-strip .d1 {
+  background: var(--cofy-directive-1);
+}
+.directive-strip .d0 {
+  background: var(--cofy-directive-0);
+}
+.directive-strip .d-1 {
+  background: var(--cofy-directive--1);
+}
+.directive-strip .d-2 {
+  background: var(--cofy-directive--2);
+}
+
+.directive-strip .axis {
+  display: flex;
+  justify-content: space-between;
+  margin-block-start: var(--wa-space-xs);
+  font-size: var(--wa-font-size-xs);
+  color: var(--wa-color-text-quiet);
+}
+
+.directive-strip figcaption {
+  margin-block-start: var(--wa-space-s);
+  font-weight: var(--wa-font-weight-semibold);
+  color: var(--wa-color-text-normal);
+}
+
+/* A colour swatch in front of a directive's name, as in the Stroomplanner's colour table. */
+.swatch {
+  display: inline-block;
+  inline-size: 0.9em;
+  block-size: 0.9em;
+  margin-inline-end: 0.4em;
+  border-radius: var(--wa-border-radius-s);
+  vertical-align: -0.1em;
+}

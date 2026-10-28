@@ -1,0 +1,37 @@
+---
+/*
+ * A country's flag, drawn as plain stripes - for the countries Cofy's customers are in.
+ */
+interface Props {
+  country: "be" | "fr" | "nl";
+}
+
+const flags = {
+  be: { label: "Belgium", direction: "vertical", stripes: ["#000000", "#fdda24", "#ef3340"] },
+  fr: { label: "France", direction: "vertical", stripes: ["#002654", "#ffffff", "#ce1126"] },
+  nl: { label: "Netherlands", direction: "horizontal", stripes: ["#ae1c28", "#ffffff", "#21468b"] },
+} as const;
+
+const { country } = Astro.props;
+const flag = flags[country];
+---
+
+<svg class="flag" viewBox="0 0 3 2" role="img" aria-label={flag.label}>
+  {
+    flag.stripes.map((colour, i) =>
+      flag.direction === "vertical" ? (
+        <rect x={i} y="0" width="1" height="2" fill={colour} />
+      ) : (
+        <rect x="0" y={(i * 2) / 3} width="3" height={2 / 3} fill={colour} />
+      ),
+    )
+  }
+</svg>
+
+<style>
+  .flag {
+    inline-size: var(--wa-font-size-xl);
+    border-radius: var(--wa-border-radius-s);
+    box-shadow: 0 0 0 var(--wa-border-width-s) var(--wa-color-surface-border);
+  }
+</style>

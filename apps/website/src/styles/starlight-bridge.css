@@ -1,0 +1,81 @@
+/*
+ * Starlight, drawn from the Cofy theme.
+ *
+ * Starlight has its own markup and its own `--sl-*` variables, so it can't use Web Awesome's
+ * components or native styles - but every colour and font it uses can come from Web Awesome's
+ * tokens, with the Cofy theme on top. That makes the docs follow the same brand, the same
+ * greys and the same dark background as the console and the marketing pages, from one source.
+ *
+ * Web Awesome's tokens switch scheme on a `wa-light` / `wa-dark` class, which the script in
+ * astro.config.mjs keeps in step with Starlight's own `data-theme`. Starlight swaps which grey
+ * plays which role between its schemes, so the roles are set here as well as the grey scale.
+ *
+ * Declared unlayered, so it beats Starlight's own `@layer starlight.base` values.
+ */
+:root {
+  --sl-font: var(--wa-font-family-body);
+  --sl-font-mono: var(--wa-font-family-code);
+
+  /* Starlight's grey scale runs from its strongest text ("white") to the page ("black"). */
+  --sl-color-white: var(--wa-color-text-normal);
+  --sl-color-gray-1: var(--wa-color-text-normal);
+  --sl-color-gray-2: var(--wa-color-text-normal);
+  --sl-color-gray-3: var(--wa-color-text-quiet);
+  --sl-color-gray-4: var(--wa-color-neutral-border-loud);
+  --sl-color-gray-5: var(--wa-color-neutral-border-normal);
+  --sl-color-gray-6: var(--wa-color-neutral-fill-quiet);
+  --sl-color-gray-7: var(--wa-color-surface-lowered);
+  --sl-color-black: var(--wa-color-surface-default);
+
+  --sl-color-accent-low: var(--wa-color-brand-fill-quiet);
+  --sl-color-accent: var(--wa-color-brand-fill-loud);
+  --sl-color-accent-high: var(--wa-color-brand-on-quiet);
+
+  /* Starlight's green (tips, success badges) is the success green, which is the brand green. */
+  --sl-color-green-low: var(--wa-color-success-fill-quiet);
+  --sl-color-green: var(--wa-color-success-fill-loud);
+  --sl-color-green-high: var(--wa-color-success-on-quiet);
+
+  --sl-color-text: var(--wa-color-text-normal);
+  --sl-color-text-accent: var(--wa-color-text-link);
+  --sl-color-text-invert: var(--wa-color-brand-on-loud);
+  --sl-color-bg: var(--wa-color-surface-default);
+  --sl-color-bg-nav: var(--wa-color-surface-default);
+  --sl-color-bg-sidebar: var(--wa-color-surface-default);
+  --sl-color-bg-inline-code: var(--wa-color-neutral-fill-quiet);
+  --sl-color-bg-accent: var(--wa-color-brand-fill-loud);
+  --sl-color-hairline-light: var(--wa-color-surface-border);
+  --sl-color-hairline: var(--wa-color-surface-border);
+  --sl-color-hairline-shade: var(--wa-color-surface-border);
+  --sl-color-backdrop-overlay: var(--wa-color-overlay-modal);
+}
+
+/* Link cards and the previous / next links hint that they're clickable on hover, without
+   Starlight's full-strength text-coloured border. */
+.sl-link-card:hover,
+.pagination-links a:hover {
+  background: var(--wa-color-neutral-fill-quiet);
+  border-color: var(--wa-color-neutral-border-loud);
+}
+
+/* Starlight fills the current menu item and the skip link with the link text colour, which is
+   tuned to be read as text, not to sit behind it. The brand fill is what Web Awesome's own brand
+   buttons use, with the text colour that belongs on it. */
+.sidebar-content [aria-current="page"],
+.sl-skip-link {
+  color: var(--wa-color-brand-on-loud);
+  background-color: var(--wa-color-brand-fill-loud);
+}
+
+/* The name in the header is the logo's green in both schemes, as in the console and on the
+   marketing pages. */
+.site-title {
+  color: var(--wa-color-brand-50);
+}
+
+/* A badge, such as "Soon" in the menu, is filled with the brand green like Web Awesome's own. */
+:root {
+  --sl-badge-default-bg: var(--wa-color-brand-fill-loud);
+  --sl-badge-default-border: var(--wa-color-brand-fill-loud);
+  --sl-badge-default-text: var(--wa-color-brand-on-loud);
+}

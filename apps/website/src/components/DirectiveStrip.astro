@@ -1,0 +1,19 @@
+---
+/*
+ * An example day of energy directives: one colour per hour, from red (`--`) to dark green (`++`).
+ */
+interface Props {
+  /** What the strip shows, for screen readers. */
+  label: string;
+  caption: string;
+}
+
+const { label, caption } = Astro.props;
+const hours = [-2, -2, -1, 0, 1, 1, 2, 2, 2, 1, 0, 0, -1, -2];
+---
+
+<figure class="mockup directive-strip" aria-label={label}>
+  <div class="hours">{hours.map((step) => <span class={`d${step}`} />)}</div>
+  <div class="axis"><span>06:00</span><span>10:00</span><span>14:00</span><span>18:00</span></div>
+  <figcaption>{caption}</figcaption>
+</figure>

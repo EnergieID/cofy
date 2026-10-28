@@ -22,10 +22,12 @@ build your own console instead (route 3 in the [root README](../../README.md)). 
   YAML syntax highlighting and lint diagnostics, backing the raw-YAML fallback form and
   anywhere else config needs hand-editing.
 - **Theming** (`theme/*`) - `ThemeState` (light/dark/system, persisted), plus shared styles
-  (`nativeStyles`, `utilityStyles`, `tableStyles`) built on Web Awesome's `--wa-*` tokens. See
+  (`nativeStyles`, `utilityStyles`, `tableStyles`) built on Web Awesome's `--wa-*` tokens.
+  `theme/cofy.css` is the Cofy theme - every colour built from one lightness and chroma ladder
+  and a hue per colour, grey included - shared by the console and the website. See
   [apps/management-web/src/brand.css](../../apps/management-web/src/brand.css) for how a
-  deployment sets its own brand colour - it's a set of CSS custom properties, no code or build
-  step involved.
+  deployment sets its own brand hue on top of it - a CSS custom property, no code or build step
+  involved.
 - **Translations** (`i18n/*`) - `createI18n`, `CofyI18n`, built on
   [i18next](https://www.i18next.com/). The library's own strings ship as YAML under
   [locales/](locales) rather than bundled into the JS, so a deployment can add a language or

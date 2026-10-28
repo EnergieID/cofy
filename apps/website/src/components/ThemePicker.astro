@@ -1,0 +1,41 @@
+---
+/*
+ * Light, dark, or follow the system - for the marketing pages. It remembers the choice where
+ * the docs' own theme switch does (`starlight-theme`), so both halves of the site agree.
+ */
+---
+
+<wa-dropdown class="theme-picker" placement="bottom-end">
+  <wa-button slot="trigger" appearance="plain" size="small">
+    <wa-icon name="circle-half-stroke" label="Theme"></wa-icon>
+  </wa-button>
+  <wa-dropdown-item value="auto"><wa-icon slot="icon" name="circle-half-stroke"></wa-icon>System</wa-dropdown-item>
+  <wa-dropdown-item value="light"><wa-icon slot="icon" name="sun"></wa-icon>Light</wa-dropdown-item>
+  <wa-dropdown-item value="dark"><wa-icon slot="icon" name="moon"></wa-icon>Dark</wa-dropdown-item>
+</wa-dropdown>
+
+<script>
+  type Theme = "auto" | "light" | "dark";
+
+  const system = matchMedia("(prefers-color-scheme: dark)");
+
+  function chosen(): Theme {
+    const stored = localStorage.getItem("starlight-theme");
+    return stored === "light" || stored === "dark" ? stored : "auto";
+  }
+
+  function apply(theme: Theme): void {
+    const dark = theme === "dark" || (theme === "auto" && system.matches);
+    document.documentElement.classList.toggle("wa-dark", dark);
+    document.documentElement.classList.toggle("wa-light", !dark);
+  }
+
+  for (const picker of document.querySelectorAll(".theme-picker")) {
+    picker.addEventListener("wa-select", (event: Event): void => {
+      const theme = (event as CustomEvent<{ item: { value: Theme } }>).detail.item.value;
+      localStorage.setItem("starlight-theme", theme === "auto" ? "" : theme);
+      apply(theme);
+    });
+  }
+  system.addEventListener("change", (): void => apply(chosen()));
+</script>

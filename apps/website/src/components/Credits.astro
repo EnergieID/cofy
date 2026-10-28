@@ -1,0 +1,59 @@
+---
+/*
+ * The footer of every page, Starlight's and Web Awesome's alike: the links the header doesn't
+ * have and the EU co-funding on one line, EnergyID's legal details on the next. Styled with Web
+ * Awesome tokens only, which both kinds of page have.
+ */
+const links = [
+  { href: "/contact/", label: "Contact" },
+  { href: "https://www.energyid.eu/en/privacy/", label: "Privacy" },
+];
+---
+
+<div class="credits">
+  <div class="row">
+    <nav aria-label="Footer">
+      {links.map((link) => <a href={link.href}>{link.label}</a>)}
+    </nav>
+    <a href="https://www.energyid.eu/en/projects/smartcore/">Co-funded by the EU through SmartCORE</a>
+  </div>
+  <p class="legal">
+    © {new Date().getFullYear()} EnergieID erkende cv · Posthoflei 3 bus 3, 2600 Antwerpen, Belgium ·
+    BE 0562.861.306 · <a href="mailto:support@energyid.eu">support@energyid.eu</a> · Cofy is MIT licensed
+  </p>
+</div>
+
+<style>
+  .credits {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wa-space-2xs);
+    inline-size: 100%;
+    font-size: var(--wa-font-size-s);
+    color: var(--wa-color-text-quiet);
+  }
+  .row,
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--wa-space-2xs) var(--wa-space-l);
+  }
+  .row {
+    justify-content: space-between;
+  }
+  .credits a {
+    color: inherit;
+  }
+  nav a {
+    color: var(--wa-color-text-normal);
+    text-decoration: none;
+  }
+  nav a:hover {
+    text-decoration: underline;
+  }
+  .legal {
+    margin: 0;
+    font-size: var(--wa-font-size-xs);
+  }
+</style>

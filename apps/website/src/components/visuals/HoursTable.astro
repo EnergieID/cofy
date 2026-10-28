@@ -1,0 +1,108 @@
+---
+/*
+ * The directive colours through the year, as a table: per month, a bar of the average hours per
+ * day in each colour (dark green at the bottom, red at the top), and the share of days with
+ * light-green and dark-green hours.
+ */
+interface Month {
+  month: string;
+  /** Average hours per day at each step, from `--` to `++`. */
+  hours: [number, number, number, number, number];
+  /** Share of days with at least one light-green hour, in %. */
+  light: number;
+  /** Share of days with at least one dark-green hour, in %. */
+  dark: number;
+}
+
+interface Props {
+  months: Month[];
+}
+
+const { months } = Astro.props;
+
+const steps = [
+  { key: "d-2", label: "red" },
+  { key: "d-1", label: "orange" },
+  { key: "d0", label: "grey" },
+  { key: "d1", label: "light green" },
+  { key: "d2", label: "dark green" },
+];
+const describe = (month: Month): string =>
+  `${month.month}: ` + steps.map((step, i) => `${month.hours[i]} h ${step.label}`).reverse().join(", ");
+---
+
+<table class="hours-table">
+  <thead>
+    <tr>
+      <th scope="row" class="bars-label">Average distribution per day</th>
+      {
+        months.map((month) => (
+          <td>
+            <div class="bar" role="img" aria-label={describe(month)}>
+              {steps.map((step, i) => (
+                <span class={step.key} style={`flex-grow: ${month.hours[i]}`} title={`${month.hours[i]} h ${step.label}`} />
+              ))}
+            </div>
+          </td>
+        ))
+      }
+    </tr>
+    <tr>
+      <td></td>
+      {months.map((month) => <th scope="col">{month.month}</th>)}
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th scope="row"><span class="swatch d1"></span>Days with light green</th>
+      {months.map((month) => <td>{month.light}%</td>)}
+    </tr>
+    <tr>
+      <th scope="row"><span class="swatch d2"></span>Days with dark green</th>
+      {months.map((month) => <td>{month.dark}%</td>)}
+    </tr>
+  </tbody>
+</table>
+
+<style>
+  th[scope="row"] {
+    text-align: start;
+    font-weight: inherit;
+  }
+  .bars-label {
+    vertical-align: bottom;
+  }
+  /* The months' columns: centred under their bars. */
+  th[scope="col"],
+  td {
+    text-align: center;
+  }
+  /* The hours of a day, red on top: the bar fills with the steps in proportion to their hours. */
+  .bar {
+    display: flex;
+    flex-direction: column;
+    block-size: calc(2 * var(--wa-space-4xl));
+    inline-size: var(--wa-space-xl);
+    margin-inline: auto;
+    border-radius: var(--wa-border-radius-m);
+    overflow: hidden;
+  }
+  .bar span {
+    flex-basis: 0;
+  }
+  .d2 {
+    background: var(--cofy-directive-2);
+  }
+  .d1 {
+    background: var(--cofy-directive-1);
+  }
+  .d0 {
+    background: var(--cofy-directive-0);
+  }
+  .d-1 {
+    background: var(--cofy-directive--1);
+  }
+  .d-2 {
+    background: var(--cofy-directive--2);
+  }
+</style>

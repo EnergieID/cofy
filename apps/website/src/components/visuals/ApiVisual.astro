@@ -1,0 +1,52 @@
+---
+/*
+ * A mockup of a community in the console: the modules it has switched on, where each gets its
+ * data, and one request against the API they make up.
+ */
+const modules = [
+  { type: "members", source: "EnergyID" },
+  { type: "tariff", source: "ENTSO-E day-ahead" },
+  { type: "directive", source: "Elia solar forecast" },
+];
+---
+
+<figure class="mockup api wa-stack wa-gap-m" aria-label="Example community in the Cofy console, with its modules and an API request">
+  <div class="wa-split">
+    <strong class="wa-heading-s">Klimaan</strong>
+    <wa-tag variant="success" size="small" pill>API online</wa-tag>
+  </div>
+  <ul class="wa-stack wa-gap-2xs modules">
+    {
+      modules.map((module) => (
+        <li class="wa-split">
+          <code>{module.type}</code>
+          <span class="wa-color-text-quiet">{module.source}</span>
+        </li>
+      ))
+    }
+  </ul>
+  <pre class="request"><code><span class="method">GET</span> /directive/stroomplanner
+[{"{"} "timestamp": "2026-10-27T12:00+01:00", "value": "++" {"}"}, …]</code></pre>
+</figure>
+
+<style>
+  .modules {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--wa-font-size-s);
+  }
+  .modules li {
+    padding-block: var(--wa-space-xs);
+    border-block-end: var(--wa-border-width-s) solid var(--wa-color-surface-border);
+  }
+  .request {
+    margin: 0;
+    font-size: var(--wa-font-size-xs);
+    white-space: pre-wrap;
+  }
+  .method {
+    color: var(--wa-color-brand-on-quiet);
+    font-weight: var(--wa-font-weight-bold);
+  }
+</style>

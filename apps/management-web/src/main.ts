@@ -31,6 +31,7 @@ import { CrumbState } from "./states/crumb-state.js";
 import { RouteState } from "./states/route-state.js";
 import { routes } from "./routes.js";
 import "./styles.css";
+import "@cofy/web-components/theme/cofy.css";
 import "./brand.css";
 import "@cofy/web-components/theme/syntax.css";
 
@@ -48,7 +49,7 @@ const i18n = await createI18n({
 });
 
 // Puts the colour scheme on the root element and keeps following the operating system while
-// the reader has not chosen otherwise. The brand colour is `brand.css`, not code.
+// the reader has not chosen otherwise. The brand colour is CSS (the Cofy theme, then `brand.css`), not code.
 const theme = new ThemeState();
 theme.start();
 
@@ -78,6 +79,7 @@ export class CofyApp extends LitElement {
         min-block-size: 100vh;
       }
       .brand {
+        color: var(--wa-color-brand-50);
         font-weight: var(--wa-font-weight-semibold);
         text-decoration: none;
         font-size: var(--wa-font-size-l);

@@ -1,0 +1,20 @@
+---
+/*
+ * Every marketing page written in Markdown, from src/content/pages/<language>/: adding a page is
+ * adding a file there. English is served at the root.
+ */
+import { getCollection, render } from "astro:content";
+import Article from "../layouts/Article.astro";
+
+export async function getStaticPaths() {
+  const pages = await getCollection("pages", ({ id }) => id.startsWith("en/"));
+  return pages.map((page) => ({ params: { page: page.id.slice("en/".length) }, props: { page } }));
+}
+
+const { page } = Astro.props;
+const { Content } = await render(page);
+---
+
+<Article title={page.data.title} description={page.data.description}>
+  <Content />
+</Article>

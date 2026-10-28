@@ -1,0 +1,72 @@
+---
+/*
+ * The contact form. It posts to the website's contact endpoint (apps/website-contact), whose URL
+ * is set at build time in PUBLIC_CONTACT_ENDPOINT, so the recipient's address is never on the page.
+ */
+const endpoint: string = import.meta.env.PUBLIC_CONTACT_ENDPOINT ?? "";
+---
+
+<form class="contact-form wa-stack wa-gap-l" data-endpoint={endpoint}>
+  <wa-input name="name" label="Name" autocomplete="name" required maxlength="200"></wa-input>
+  <wa-input name="email" type="email" label="Email" autocomplete="email" required maxlength="320"></wa-input>
+  <wa-input name="organisation" label="Organisation" placeholder="Optional" autocomplete="organization" maxlength="200"
+  ></wa-input>
+  <wa-select name="role" label="I'm…" value="other">
+    <wa-option value="supplier">an energy supplier</wa-option>
+    <wa-option value="community">an energy community</wa-option>
+    <wa-option value="self-host">planning to run Cofy myself</wa-option>
+    <wa-option value="other">something else</wa-option>
+  </wa-select>
+  <wa-textarea name="message" label="Message" rows="6" required maxlength="5000"></wa-textarea>
+  <!-- Hidden from people, so only bots fill it in. -->
+  <label class="honeypot" aria-hidden="true">
+    Website
+    <input name="website" tabindex="-1" autocomplete="off" />
+  </label>
+  <div>
+    <wa-button type="submit" variant="brand" pill>Send</wa-button>
+  </div>
+  <wa-callout class="sent" variant="success" hidden>Thanks! We'll get back to you soon.</wa-callout>
+  <wa-callout class="failed" variant="danger" hidden>
+    Your message couldn't be sent. Please try again, or use one of the options below.
+  </wa-callout>
+</form>
+
+<script>
+  for (const form of document.querySelectorAll<HTMLFormElement>(".contact-form")) {
+    const button = form.querySelector<HTMLButtonElement>("wa-button[type=submit]")!;
+    const sent = form.querySelector<HTMLElement>(".sent")!;
+    const failed = form.querySelector<HTMLElement>(".failed")!;
+
+    form.addEventListener("submit", async (event: SubmitEvent): Promise<void> => {
+      event.preventDefault();
+      button.setAttribute("loading", "");
+      sent.hidden = true;
+      failed.hidden = true;
+      try {
+        const response = await fetch(form.dataset.endpoint!, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(Object.fromEntries(new FormData(form))),
+        });
+        if (!response.ok) throw new Error(`status ${response.status}`);
+        form.reset();
+        sent.hidden = false;
+      } catch {
+        failed.hidden = false;
+      } finally {
+        button.removeAttribute("loading");
+      }
+    });
+  }
+</script>
+
+<style>
+  .contact-form {
+    max-inline-size: 36rem;
+  }
+  .honeypot {
+    position: absolute;
+    inset-inline-start: -10000px;
+  }
+</style>

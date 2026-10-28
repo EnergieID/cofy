@@ -1,0 +1,230 @@
+/*
+ * The Cofy theme: Web Awesome's default theme with Cofy's colours, shared by the console and the
+ * website so both look like one product.
+ *
+ * Import it after Web Awesome's own styles. A deployment with its own brand imports it too, and
+ * redeclares what it wants to change after it - see apps/management-web/src/brand.css.
+ *
+ * Declared unlayered, so it beats Web Awesome's own `@layer wa-color-palette` and
+ * `@layer wa-color-variant` defaults.
+ */
+
+/*
+ * The ladder every colour is built on: a lightness and a chroma per step, the same for every hue,
+ * so all colours are one family and differ in hue alone. Web Awesome derives every semantic token
+ * (buttons, links, fills, borders) from these steps, separately for light and dark.
+ *
+ * The scale runs the opposite way to most: 95 is the lightest step, 05 the darkest. Steps 95-50
+ * are evenly muted; the darker steps are spread between 50 and 05, which is the dark page
+ * background (grey 05), so a quiet fill in dark mode (step 10, e.g. a button's hover) sits just
+ * above the page.
+ *
+ * Every hue at every step fits in sRGB, so no browser has to clip it.
+ */
+:root {
+  --cofy-lightness-95: 82.9%;
+  --cofy-chroma-95: 0.015;
+  --cofy-lightness-90: 78.5%;
+  --cofy-chroma-90: 0.034;
+  --cofy-lightness-80: 69.4%;
+  --cofy-chroma-80: 0.046;
+  --cofy-lightness-70: 60.6%;
+  --cofy-chroma-70: 0.063;
+  --cofy-lightness-60: 52.0%;
+  --cofy-chroma-60: 0.075;
+  --cofy-lightness-50: 41.8%;
+  --cofy-chroma-50: 0.063;
+  --cofy-lightness-40: 36.3%;
+  --cofy-chroma-40: 0.048;
+  --cofy-lightness-30: 32.4%;
+  --cofy-chroma-30: 0.039;
+  --cofy-lightness-20: 28.4%;
+  --cofy-chroma-20: 0.030;
+  --cofy-lightness-10: 23.9%;
+  --cofy-chroma-10: 0.020;
+  --cofy-lightness-05: 21.0%;
+  --cofy-chroma-05: 0.016;
+}
+
+/*
+ * One hue per colour, close to Web Awesome's own. The brand is a hue of its own, the green unless
+ * a deployment sets another.
+ */
+:root {
+  --cofy-hue-red: 20;
+  --cofy-hue-orange: 38;
+  --cofy-hue-yellow: 73;
+  --cofy-hue-green: 150;
+  --cofy-hue-cyan: 217;
+  --cofy-hue-blue: 257;
+  --cofy-hue-indigo: 277;
+  --cofy-hue-purple: 305;
+  --cofy-hue-pink: 355;
+  --cofy-hue-brand: var(--cofy-hue-green);
+}
+
+/*
+ * Web Awesome's palette, from the ladder and the hues. Each colour's key step - its main colour,
+ * paired with white text - is 50.
+ */
+:root {
+  --wa-color-red-95: oklch(var(--cofy-lightness-95) var(--cofy-chroma-95) var(--cofy-hue-red));
+  --wa-color-red-90: oklch(var(--cofy-lightness-90) var(--cofy-chroma-90) var(--cofy-hue-red));
+  --wa-color-red-80: oklch(var(--cofy-lightness-80) var(--cofy-chroma-80) var(--cofy-hue-red));
+  --wa-color-red-70: oklch(var(--cofy-lightness-70) var(--cofy-chroma-70) var(--cofy-hue-red));
+  --wa-color-red-60: oklch(var(--cofy-lightness-60) var(--cofy-chroma-60) var(--cofy-hue-red));
+  --wa-color-red-50: oklch(var(--cofy-lightness-50) var(--cofy-chroma-50) var(--cofy-hue-red));
+  --wa-color-red-40: oklch(var(--cofy-lightness-40) var(--cofy-chroma-40) var(--cofy-hue-red));
+  --wa-color-red-30: oklch(var(--cofy-lightness-30) var(--cofy-chroma-30) var(--cofy-hue-red));
+  --wa-color-red-20: oklch(var(--cofy-lightness-20) var(--cofy-chroma-20) var(--cofy-hue-red));
+  --wa-color-red-10: oklch(var(--cofy-lightness-10) var(--cofy-chroma-10) var(--cofy-hue-red));
+  --wa-color-red-05: oklch(var(--cofy-lightness-05) var(--cofy-chroma-05) var(--cofy-hue-red));
+  --wa-color-red: var(--wa-color-red-50);
+  --wa-color-red-key: 50;
+
+  --wa-color-orange-95: oklch(var(--cofy-lightness-95) var(--cofy-chroma-95) var(--cofy-hue-orange));
+  --wa-color-orange-90: oklch(var(--cofy-lightness-90) var(--cofy-chroma-90) var(--cofy-hue-orange));
+  --wa-color-orange-80: oklch(var(--cofy-lightness-80) var(--cofy-chroma-80) var(--cofy-hue-orange));
+  --wa-color-orange-70: oklch(var(--cofy-lightness-70) var(--cofy-chroma-70) var(--cofy-hue-orange));
+  --wa-color-orange-60: oklch(var(--cofy-lightness-60) var(--cofy-chroma-60) var(--cofy-hue-orange));
+  --wa-color-orange-50: oklch(var(--cofy-lightness-50) var(--cofy-chroma-50) var(--cofy-hue-orange));
+  --wa-color-orange-40: oklch(var(--cofy-lightness-40) var(--cofy-chroma-40) var(--cofy-hue-orange));
+  --wa-color-orange-30: oklch(var(--cofy-lightness-30) var(--cofy-chroma-30) var(--cofy-hue-orange));
+  --wa-color-orange-20: oklch(var(--cofy-lightness-20) var(--cofy-chroma-20) var(--cofy-hue-orange));
+  --wa-color-orange-10: oklch(var(--cofy-lightness-10) var(--cofy-chroma-10) var(--cofy-hue-orange));
+  --wa-color-orange-05: oklch(var(--cofy-lightness-05) var(--cofy-chroma-05) var(--cofy-hue-orange));
+  --wa-color-orange: var(--wa-color-orange-50);
+  --wa-color-orange-key: 50;
+
+  --wa-color-yellow-95: oklch(var(--cofy-lightness-95) var(--cofy-chroma-95) var(--cofy-hue-yellow));
+  --wa-color-yellow-90: oklch(var(--cofy-lightness-90) var(--cofy-chroma-90) var(--cofy-hue-yellow));
+  --wa-color-yellow-80: oklch(var(--cofy-lightness-80) var(--cofy-chroma-80) var(--cofy-hue-yellow));
+  --wa-color-yellow-70: oklch(var(--cofy-lightness-70) var(--cofy-chroma-70) var(--cofy-hue-yellow));
+  --wa-color-yellow-60: oklch(var(--cofy-lightness-60) var(--cofy-chroma-60) var(--cofy-hue-yellow));
+  --wa-color-yellow-50: oklch(var(--cofy-lightness-50) var(--cofy-chroma-50) var(--cofy-hue-yellow));
+  --wa-color-yellow-40: oklch(var(--cofy-lightness-40) var(--cofy-chroma-40) var(--cofy-hue-yellow));
+  --wa-color-yellow-30: oklch(var(--cofy-lightness-30) var(--cofy-chroma-30) var(--cofy-hue-yellow));
+  --wa-color-yellow-20: oklch(var(--cofy-lightness-20) var(--cofy-chroma-20) var(--cofy-hue-yellow));
+  --wa-color-yellow-10: oklch(var(--cofy-lightness-10) var(--cofy-chroma-10) var(--cofy-hue-yellow));
+  --wa-color-yellow-05: oklch(var(--cofy-lightness-05) var(--cofy-chroma-05) var(--cofy-hue-yellow));
+  --wa-color-yellow: var(--wa-color-yellow-50);
+  --wa-color-yellow-key: 50;
+
+  --wa-color-green-95: oklch(var(--cofy-lightness-95) var(--cofy-chroma-95) var(--cofy-hue-green));
+  --wa-color-green-90: oklch(var(--cofy-lightness-90) var(--cofy-chroma-90) var(--cofy-hue-green));
+  --wa-color-green-80: oklch(var(--cofy-lightness-80) var(--cofy-chroma-80) var(--cofy-hue-green));
+  --wa-color-green-70: oklch(var(--cofy-lightness-70) var(--cofy-chroma-70) var(--cofy-hue-green));
+  --wa-color-green-60: oklch(var(--cofy-lightness-60) var(--cofy-chroma-60) var(--cofy-hue-green));
+  --wa-color-green-50: oklch(var(--cofy-lightness-50) var(--cofy-chroma-50) var(--cofy-hue-green));
+  --wa-color-green-40: oklch(var(--cofy-lightness-40) var(--cofy-chroma-40) var(--cofy-hue-green));
+  --wa-color-green-30: oklch(var(--cofy-lightness-30) var(--cofy-chroma-30) var(--cofy-hue-green));
+  --wa-color-green-20: oklch(var(--cofy-lightness-20) var(--cofy-chroma-20) var(--cofy-hue-green));
+  --wa-color-green-10: oklch(var(--cofy-lightness-10) var(--cofy-chroma-10) var(--cofy-hue-green));
+  --wa-color-green-05: oklch(var(--cofy-lightness-05) var(--cofy-chroma-05) var(--cofy-hue-green));
+  --wa-color-green: var(--wa-color-green-50);
+  --wa-color-green-key: 50;
+
+  --wa-color-cyan-95: oklch(var(--cofy-lightness-95) var(--cofy-chroma-95) var(--cofy-hue-cyan));
+  --wa-color-cyan-90: oklch(var(--cofy-lightness-90) var(--cofy-chroma-90) var(--cofy-hue-cyan));
+  --wa-color-cyan-80: oklch(var(--cofy-lightness-80) var(--cofy-chroma-80) var(--cofy-hue-cyan));
+  --wa-color-cyan-70: oklch(var(--cofy-lightness-70) var(--cofy-chroma-70) var(--cofy-hue-cyan));
+  --wa-color-cyan-60: oklch(var(--cofy-lightness-60) var(--cofy-chroma-60) var(--cofy-hue-cyan));
+  --wa-color-cyan-50: oklch(var(--cofy-lightness-50) var(--cofy-chroma-50) var(--cofy-hue-cyan));
+  --wa-color-cyan-40: oklch(var(--cofy-lightness-40) var(--cofy-chroma-40) var(--cofy-hue-cyan));
+  --wa-color-cyan-30: oklch(var(--cofy-lightness-30) var(--cofy-chroma-30) var(--cofy-hue-cyan));
+  --wa-color-cyan-20: oklch(var(--cofy-lightness-20) var(--cofy-chroma-20) var(--cofy-hue-cyan));
+  --wa-color-cyan-10: oklch(var(--cofy-lightness-10) var(--cofy-chroma-10) var(--cofy-hue-cyan));
+  --wa-color-cyan-05: oklch(var(--cofy-lightness-05) var(--cofy-chroma-05) var(--cofy-hue-cyan));
+  --wa-color-cyan: var(--wa-color-cyan-50);
+  --wa-color-cyan-key: 50;
+
+  --wa-color-blue-95: oklch(var(--cofy-lightness-95) var(--cofy-chroma-95) var(--cofy-hue-blue));
+  --wa-color-blue-90: oklch(var(--cofy-lightness-90) var(--cofy-chroma-90) var(--cofy-hue-blue));
+  --wa-color-blue-80: oklch(var(--cofy-lightness-80) var(--cofy-chroma-80) var(--cofy-hue-blue));
+  --wa-color-blue-70: oklch(var(--cofy-lightness-70) var(--cofy-chroma-70) var(--cofy-hue-blue));
+  --wa-color-blue-60: oklch(var(--cofy-lightness-60) var(--cofy-chroma-60) var(--cofy-hue-blue));
+  --wa-color-blue-50: oklch(var(--cofy-lightness-50) var(--cofy-chroma-50) var(--cofy-hue-blue));
+  --wa-color-blue-40: oklch(var(--cofy-lightness-40) var(--cofy-chroma-40) var(--cofy-hue-blue));
+  --wa-color-blue-30: oklch(var(--cofy-lightness-30) var(--cofy-chroma-30) var(--cofy-hue-blue));
+  --wa-color-blue-20: oklch(var(--cofy-lightness-20) var(--cofy-chroma-20) var(--cofy-hue-blue));
+  --wa-color-blue-10: oklch(var(--cofy-lightness-10) var(--cofy-chroma-10) var(--cofy-hue-blue));
+  --wa-color-blue-05: oklch(var(--cofy-lightness-05) var(--cofy-chroma-05) var(--cofy-hue-blue));
+  --wa-color-blue: var(--wa-color-blue-50);
+  --wa-color-blue-key: 50;
+
+  --wa-color-indigo-95: oklch(var(--cofy-lightness-95) var(--cofy-chroma-95) var(--cofy-hue-indigo));
+  --wa-color-indigo-90: oklch(var(--cofy-lightness-90) var(--cofy-chroma-90) var(--cofy-hue-indigo));
+  --wa-color-indigo-80: oklch(var(--cofy-lightness-80) var(--cofy-chroma-80) var(--cofy-hue-indigo));
+  --wa-color-indigo-70: oklch(var(--cofy-lightness-70) var(--cofy-chroma-70) var(--cofy-hue-indigo));
+  --wa-color-indigo-60: oklch(var(--cofy-lightness-60) var(--cofy-chroma-60) var(--cofy-hue-indigo));
+  --wa-color-indigo-50: oklch(var(--cofy-lightness-50) var(--cofy-chroma-50) var(--cofy-hue-indigo));
+  --wa-color-indigo-40: oklch(var(--cofy-lightness-40) var(--cofy-chroma-40) var(--cofy-hue-indigo));
+  --wa-color-indigo-30: oklch(var(--cofy-lightness-30) var(--cofy-chroma-30) var(--cofy-hue-indigo));
+  --wa-color-indigo-20: oklch(var(--cofy-lightness-20) var(--cofy-chroma-20) var(--cofy-hue-indigo));
+  --wa-color-indigo-10: oklch(var(--cofy-lightness-10) var(--cofy-chroma-10) var(--cofy-hue-indigo));
+  --wa-color-indigo-05: oklch(var(--cofy-lightness-05) var(--cofy-chroma-05) var(--cofy-hue-indigo));
+  --wa-color-indigo: var(--wa-color-indigo-50);
+  --wa-color-indigo-key: 50;
+
+  --wa-color-purple-95: oklch(var(--cofy-lightness-95) var(--cofy-chroma-95) var(--cofy-hue-purple));
+  --wa-color-purple-90: oklch(var(--cofy-lightness-90) var(--cofy-chroma-90) var(--cofy-hue-purple));
+  --wa-color-purple-80: oklch(var(--cofy-lightness-80) var(--cofy-chroma-80) var(--cofy-hue-purple));
+  --wa-color-purple-70: oklch(var(--cofy-lightness-70) var(--cofy-chroma-70) var(--cofy-hue-purple));
+  --wa-color-purple-60: oklch(var(--cofy-lightness-60) var(--cofy-chroma-60) var(--cofy-hue-purple));
+  --wa-color-purple-50: oklch(var(--cofy-lightness-50) var(--cofy-chroma-50) var(--cofy-hue-purple));
+  --wa-color-purple-40: oklch(var(--cofy-lightness-40) var(--cofy-chroma-40) var(--cofy-hue-purple));
+  --wa-color-purple-30: oklch(var(--cofy-lightness-30) var(--cofy-chroma-30) var(--cofy-hue-purple));
+  --wa-color-purple-20: oklch(var(--cofy-lightness-20) var(--cofy-chroma-20) var(--cofy-hue-purple));
+  --wa-color-purple-10: oklch(var(--cofy-lightness-10) var(--cofy-chroma-10) var(--cofy-hue-purple));
+  --wa-color-purple-05: oklch(var(--cofy-lightness-05) var(--cofy-chroma-05) var(--cofy-hue-purple));
+  --wa-color-purple: var(--wa-color-purple-50);
+  --wa-color-purple-key: 50;
+
+  --wa-color-pink-95: oklch(var(--cofy-lightness-95) var(--cofy-chroma-95) var(--cofy-hue-pink));
+  --wa-color-pink-90: oklch(var(--cofy-lightness-90) var(--cofy-chroma-90) var(--cofy-hue-pink));
+  --wa-color-pink-80: oklch(var(--cofy-lightness-80) var(--cofy-chroma-80) var(--cofy-hue-pink));
+  --wa-color-pink-70: oklch(var(--cofy-lightness-70) var(--cofy-chroma-70) var(--cofy-hue-pink));
+  --wa-color-pink-60: oklch(var(--cofy-lightness-60) var(--cofy-chroma-60) var(--cofy-hue-pink));
+  --wa-color-pink-50: oklch(var(--cofy-lightness-50) var(--cofy-chroma-50) var(--cofy-hue-pink));
+  --wa-color-pink-40: oklch(var(--cofy-lightness-40) var(--cofy-chroma-40) var(--cofy-hue-pink));
+  --wa-color-pink-30: oklch(var(--cofy-lightness-30) var(--cofy-chroma-30) var(--cofy-hue-pink));
+  --wa-color-pink-20: oklch(var(--cofy-lightness-20) var(--cofy-chroma-20) var(--cofy-hue-pink));
+  --wa-color-pink-10: oklch(var(--cofy-lightness-10) var(--cofy-chroma-10) var(--cofy-hue-pink));
+  --wa-color-pink-05: oklch(var(--cofy-lightness-05) var(--cofy-chroma-05) var(--cofy-hue-pink));
+  --wa-color-pink: var(--wa-color-pink-50);
+  --wa-color-pink-key: 50;
+
+  --wa-color-brand-95: oklch(var(--cofy-lightness-95) var(--cofy-chroma-95) var(--cofy-hue-brand));
+  --wa-color-brand-90: oklch(var(--cofy-lightness-90) var(--cofy-chroma-90) var(--cofy-hue-brand));
+  --wa-color-brand-80: oklch(var(--cofy-lightness-80) var(--cofy-chroma-80) var(--cofy-hue-brand));
+  --wa-color-brand-70: oklch(var(--cofy-lightness-70) var(--cofy-chroma-70) var(--cofy-hue-brand));
+  --wa-color-brand-60: oklch(var(--cofy-lightness-60) var(--cofy-chroma-60) var(--cofy-hue-brand));
+  --wa-color-brand-50: oklch(var(--cofy-lightness-50) var(--cofy-chroma-50) var(--cofy-hue-brand));
+  --wa-color-brand-40: oklch(var(--cofy-lightness-40) var(--cofy-chroma-40) var(--cofy-hue-brand));
+  --wa-color-brand-30: oklch(var(--cofy-lightness-30) var(--cofy-chroma-30) var(--cofy-hue-brand));
+  --wa-color-brand-20: oklch(var(--cofy-lightness-20) var(--cofy-chroma-20) var(--cofy-hue-brand));
+  --wa-color-brand-10: oklch(var(--cofy-lightness-10) var(--cofy-chroma-10) var(--cofy-hue-brand));
+  --wa-color-brand-05: oklch(var(--cofy-lightness-05) var(--cofy-chroma-05) var(--cofy-hue-brand));
+  --wa-color-brand: var(--wa-color-brand-50);
+  --wa-color-brand-on: white;
+}
+
+/*
+ * Grey is the ladder without chroma. Web Awesome builds its text, borders, neutral fills and
+ * surfaces from it, the dark page background included (step 05).
+ */
+:root {
+  --wa-color-gray-95: oklch(var(--cofy-lightness-95) 0 0);
+  --wa-color-gray-90: oklch(var(--cofy-lightness-90) 0 0);
+  --wa-color-gray-80: oklch(var(--cofy-lightness-80) 0 0);
+  --wa-color-gray-70: oklch(var(--cofy-lightness-70) 0 0);
+  --wa-color-gray-60: oklch(var(--cofy-lightness-60) 0 0);
+  --wa-color-gray-50: oklch(var(--cofy-lightness-50) 0 0);
+  --wa-color-gray-40: oklch(var(--cofy-lightness-40) 0 0);
+  --wa-color-gray-30: oklch(var(--cofy-lightness-30) 0 0);
+  --wa-color-gray-20: oklch(var(--cofy-lightness-20) 0 0);
+  --wa-color-gray-10: oklch(var(--cofy-lightness-10) 0 0);
+  --wa-color-gray-05: oklch(var(--cofy-lightness-05) 0 0);
+  --wa-color-gray: var(--wa-color-gray-50);
+  --wa-color-gray-key: 50;
+}

@@ -1,0 +1,251 @@
+---
+/*
+ * TEMPORARY: a panel for trying out the theme's colours, shown only by `npm run dev`. It moves
+ * the chroma and lightness of the ladder every colour is built on and the hue of each colour (see
+ * @cofy/web-components/theme/cofy.css), and sets them on the page. Remove when settled.
+ */
+const HUES = ["red", "orange", "yellow", "green", "cyan", "blue", "indigo", "purple", "pink"];
+---
+
+<div class="brand-tuner">
+  <strong>Theme colours</strong>
+  <label>Brand hue <output data-for="brand"></output><input type="range" name="brand" min="0" max="360" step="1" /></label>
+  <label
+    >Chroma <output data-for="chroma"></output><input type="range" name="chroma" min="0" max="200" step="1" /></label
+  >
+  <label
+    >Lightness <output data-for="lightness"></output><input
+      type="range"
+      name="lightness"
+      min="-15"
+      max="15"
+      step="0.5"
+    /></label
+  >
+  <details>
+    <summary>Hues</summary>
+    {
+      HUES.map((hue) => (
+        <label>
+          {hue} <output data-for={hue} />
+          <input type="range" name={hue} min="0" max="360" step="1" />
+        </label>
+      ))
+    }
+  </details>
+  <div class="swatches"></div>
+  <div class="contrast"></div>
+  <div class="actions">
+    <button type="button" data-action="copy">Copy CSS</button>
+    <button type="button" data-action="reset">Reset</button>
+    <button type="button" data-action="hide">Hide</button>
+  </div>
+</div>
+
+<script>
+  type Lab = [number, number, number];
+  const STEPS = ["95", "90", "80", "70", "60", "50", "40", "30", "20", "10", "05"];
+  const HUE_NAMES = ["brand", "red", "orange", "yellow", "green", "cyan", "blue", "indigo", "purple", "pink"];
+  // The theme's own values, read before the tuner sets anything, so Reset matches cofy.css.
+  const theme = getComputedStyle(document.documentElement);
+  const read = (name: string): number => parseFloat(theme.getPropertyValue(name));
+  /** The ladder in cofy.css: lightness (0-1) and chroma per step. */
+  const LADDER: [number, number][] = STEPS.map((step) => [
+    read(`--cofy-lightness-${step}`) / 100,
+    read(`--cofy-chroma-${step}`),
+  ]);
+  const HUES: Record<string, number> = Object.fromEntries(HUE_NAMES.map((hue) => [hue, read(`--cofy-hue-${hue}`)]));
+  const LOGO_GREEN = "#32563a";
+  const STORAGE_KEY = "theme-tuner-2";
+  const defaults: Record<string, number> = { ...HUES, chroma: 100, lightness: 0 };
+
+  const toLinear = (c: number): number => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+  const fromLinear = (c: number): number => (c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055);
+
+  function oklabToLinear([L, a, b]: Lab): Lab {
+    const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+    const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+    const s = (L - 0.0894841775 * a - 1.291485548 * b) ** 3;
+    return [
+      4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+      -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+      -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s,
+    ];
+  }
+
+  /** The colour at this lightness, chroma and hue, with chroma reduced until it fits in sRGB. */
+  function oklchToHex(L: number, C: number, h: number): string {
+    const rad = (h * Math.PI) / 180;
+    let rgb = oklabToLinear([L, C * Math.cos(rad), C * Math.sin(rad)]);
+    for (let c = C; rgb.some((v) => v < -0.0001 || v > 1.0001) && c > 0; c -= 0.002) {
+      rgb = oklabToLinear([L, c * Math.cos(rad), c * Math.sin(rad)]);
+    }
+    return (
+      "#" +
+      rgb
+        .map((v) =>
+          Math.round(fromLinear(Math.min(1, Math.max(0, v))) * 255)
+            .toString(16)
+            .padStart(2, "0"),
+        )
+        .join("")
+    );
+  }
+
+  function luminance(hex: string): number {
+    const [r, g, b] = [1, 3, 5].map((i) => toLinear(parseInt(hex.slice(i, i + 2), 16) / 255));
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  }
+
+  function contrast(a: string, b: string): string {
+    const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+    return ((hi + 0.05) / (lo + 0.05)).toFixed(2);
+  }
+
+  const panel = document.querySelector<HTMLElement>(".brand-tuner")!;
+  const inputs = [...panel.querySelectorAll<HTMLInputElement>("input")];
+  const swatches = panel.querySelector<HTMLElement>(".swatches")!;
+  const contrastLine = panel.querySelector<HTMLElement>(".contrast")!;
+  // The dark page background is grey 05; the darker steps end there.
+  const surfaceL = LADDER[10][0];
+  let values: Record<string, number> = defaults;
+  let ladder = LADDER;
+
+  // The logo is an <img> with its green baked in, so it gets a copy with the brand's step 50.
+  const logos = [...document.querySelectorAll<HTMLImageElement>("img")].filter((img) => img.src.includes("logo"));
+  const logoSource = logos.length ? fetch(logos[0].src).then((r) => r.text()) : Promise.resolve("");
+  const logoOriginal = logos.map((img) => img.src);
+
+  function apply(): void {
+    values = Object.fromEntries(
+      inputs.map((input) => [input.name, input.type === "checkbox" ? Number(input.checked) : Number(input.value)]),
+    );
+    // Lightness moves steps 95-50 by the slider; the darker steps are spread between the new 50
+    // and the dark page background, as in cofy.css.
+    const [L50] = LADDER[5];
+    const [L05] = LADDER[10];
+    const shifted50 = L50 + values.lightness / 100;
+    ladder = LADDER.map(([L, C], i) => [
+      Math.min(
+        1,
+        Math.max(0, i <= 5 ? L + values.lightness / 100 : surfaceL + ((L - L05) * (shifted50 - surfaceL)) / (L50 - L05)),
+      ),
+      (C * values.chroma) / 100,
+    ]);
+    const root = document.documentElement.style;
+    ladder.forEach(([L, C], i) => {
+      root.setProperty(`--cofy-lightness-${STEPS[i]}`, `${(L * 100).toFixed(1)}%`);
+      root.setProperty(`--cofy-chroma-${STEPS[i]}`, C.toFixed(3));
+    });
+    for (const hue of Object.keys(HUES)) root.setProperty(`--cofy-hue-${hue}`, String(values[hue]));
+
+    for (const output of panel.querySelectorAll<HTMLOutputElement>("output")) {
+      const name = output.dataset.for!;
+      const value = values[name];
+      output.value = name === "chroma" ? `${value}%` : name === "lightness" ? `${value > 0 ? "+" : ""}${value}` : `${value}°`;
+    }
+    const ramp = ladder.map(([L, C]) => oklchToHex(L, C, values.brand));
+    swatches.replaceChildren(
+      ...ramp.map((hex, i) => {
+        const swatch = document.createElement("span");
+        swatch.style.background = hex;
+        swatch.title = `${STEPS[i]} ${hex}`;
+        return swatch;
+      }),
+    );
+    const [s70, , s50, s40] = [ramp[3], ramp[4], ramp[5], ramp[6]];
+    const DARK_SURFACE = oklchToHex(ladder[10][0], 0, 0);
+    contrastLine.textContent =
+      `brand 50 ${s50} · white on 50 ${contrast("#ffffff", s50)} · 40 on white ${contrast(s40, "#ffffff")} · ` +
+      `50 on dark ${contrast(s50, DARK_SURFACE)} · 70 on dark ${contrast(s70, DARK_SURFACE)}`;
+
+    const changed = s50 !== LOGO_GREEN;
+    logoSource.then((svg) => {
+      const url = `data:image/svg+xml,${encodeURIComponent(svg.replaceAll(LOGO_GREEN, s50))}`;
+      logos.forEach((img, i) => (img.src = changed ? url : logoOriginal[i]));
+    });
+
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(values));
+    } catch {}
+  }
+
+  function load(saved: Record<string, number>): void {
+    inputs.forEach((input) => {
+      const value = saved[input.name] ?? defaults[input.name];
+      if (input.type === "checkbox") input.checked = Boolean(value);
+      else input.value = String(value);
+    });
+    apply();
+  }
+
+  let saved: Record<string, number> = defaults;
+  try {
+    saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null") ?? defaults;
+  } catch {}
+  inputs.forEach((input) => input.addEventListener("input", apply));
+  panel.querySelector("[data-action=reset]")!.addEventListener("click", () => load(defaults));
+  panel.querySelector("[data-action=hide]")!.addEventListener("click", () => panel.classList.toggle("hidden"));
+  panel.querySelector("[data-action=copy]")!.addEventListener("click", () => {
+    const lines = [
+      ...ladder.flatMap(([L, C], i) => [
+        `  --cofy-lightness-${STEPS[i]}: ${(L * 100).toFixed(1)}%;`,
+        `  --cofy-chroma-${STEPS[i]}: ${C.toFixed(3)};`,
+      ]),
+      ...Object.keys(HUES).map((hue) => `  --cofy-hue-${hue}: ${values[hue]};`),
+    ];
+    navigator.clipboard.writeText(lines.join("\n"));
+  });
+  load(saved);
+</script>
+
+<style>
+  .brand-tuner {
+    position: fixed;
+    inset: auto var(--wa-space-m) var(--wa-space-m) auto;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: var(--wa-space-xs);
+    inline-size: 22rem;
+    max-block-size: calc(100vh - 2 * var(--wa-space-m));
+    overflow-y: auto;
+    padding: var(--wa-space-m);
+    font-size: var(--wa-font-size-xs);
+    background: var(--wa-color-surface-raised);
+    border: var(--wa-border-width-s) solid var(--wa-color-surface-border);
+    border-radius: var(--wa-border-radius-l);
+    box-shadow: var(--wa-shadow-l);
+  }
+  /* Hidden, only the buttons stay. */
+  .brand-tuner.hidden > :not(.actions) {
+    display: none;
+  }
+  label {
+    display: grid;
+    grid-template-columns: 5rem 3rem 1fr;
+    align-items: center;
+    text-transform: capitalize;
+  }
+  details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wa-space-xs);
+  }
+  summary {
+    cursor: pointer;
+  }
+  .swatches {
+    display: flex;
+    block-size: var(--wa-space-l);
+    border-radius: var(--wa-border-radius-s);
+    overflow: hidden;
+  }
+  .swatches :global(span) {
+    flex: 1;
+  }
+  .actions {
+    display: flex;
+    gap: var(--wa-space-xs);
+  }
+</style>

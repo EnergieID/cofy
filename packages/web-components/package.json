@@ -15,7 +15,8 @@
       "types": "./dist/components/*.d.ts",
       "default": "./dist/components/*.js"
     },
-    "./theme/syntax.css": "./dist/theme/syntax.css"
+    "./theme/syntax.css": "./dist/theme/syntax.css",
+    "./theme/cofy.css": "./dist/theme/cofy.css"
   },
   "files": [
     "dist",
@@ -30,7 +31,7 @@
     "node": ">=24"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && vite build --config vite.build.config.ts && cp src/theme/syntax.css dist/theme/syntax.css",
+    "build": "tsc -p tsconfig.build.json && vite build --config vite.build.config.ts && cp src/theme/syntax.css src/theme/cofy.css dist/theme/",
     "check": "tsc -p tsconfig.json",
     "lint": "eslint .",
     "format": "eslint . --fix",

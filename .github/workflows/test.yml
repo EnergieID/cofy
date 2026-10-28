@@ -95,6 +95,7 @@ jobs:
             packages/frontend-sdk/package-lock.json
             packages/web-components/package-lock.json
             apps/management-web/package-lock.json
+            apps/website/package-lock.json
       - name: Install Task
         uses: arduino/setup-task@v3
         with:

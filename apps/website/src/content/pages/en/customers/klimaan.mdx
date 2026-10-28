@@ -1,0 +1,81 @@
+---
+title: "Klimaan: the Stroomplanner"
+description: How Klimaan's households see, hour by hour, when local solar power is plentiful.
+---
+
+import DirectiveStrip from "../../../../components/DirectiveStrip.astro";
+import HoursTable from "../../../../components/visuals/HoursTable.astro";
+
+export const months = [
+  { month: "Jan", hours: [15.4, 3.6, 3, 2, 0], light: 48, dark: 0 },
+  { month: "Feb", hours: [13.9, 2.8, 4.2, 2.6, 0.5], light: 71, dark: 18 },
+  { month: "Mar", hours: [11.9, 1.8, 2.4, 4.9, 3], light: 97, dark: 71 },
+  { month: "Apr", hours: [10, 2.2, 2.5, 4.8, 4.6], light: 100, dark: 83 },
+  { month: "May", hours: [8.3, 2.3, 3.4, 6.3, 3.7], light: 100, dark: 71 },
+  { month: "Jun", hours: [7.5, 2.4, 3.4, 6.9, 3.8], light: 100, dark: 77 },
+  { month: "Jul", hours: [7.9, 2.2, 2.9, 6.1, 5], light: 100, dark: 81 },
+  { month: "Aug", hours: [9.4, 2, 3, 6.3, 3.3], light: 100, dark: 74 },
+  { month: "Sep", hours: [11.2, 2, 2.8, 5.7, 2.3], light: 100, dark: 60 },
+  { month: "Oct", hours: [13.2, 2.4, 4, 4, 0.4], light: 94, dark: 16 },
+  { month: "Nov", hours: [15, 3, 3.2, 2.7, 0.1], light: 63, dark: 10 },
+  { month: "Dec", hours: [15.9, 2.6, 3.6, 1.8, 0], light: 48, dark: 0 },
+];
+
+<div class="wa-grid wa-align-items-center">
+<div>
+
+In the Belgian pilot in Otterbeek, energy community [Klimaan](https://klimaan.be) shows its households when local solar power is plentiful. Households use the **Stroomplanner** (Dutch for "power planner") to plan their electricity use for the greenest hours. It's built on Cofy's [energy directives](/docs/concepts/#module).
+
+</div>
+<DirectiveStrip
+  label="Example Stroomplanner day: a colour per hour, green when local solar power is plentiful"
+  caption="10:00 – 16:00: a good moment to use energy"
+/>
+</div>
+
+<div class="wa-grid trio">
+<wa-card>
+<h3 class="wa-heading-m"><wa-icon name="eye"></wa-icon>What it shows</h3>
+
+One colour per hour: expected solar power compared with a household's baseload. Households move large electricity use to the green hours.
+
+</wa-card>
+<wa-card>
+<h3 class="wa-heading-m"><wa-icon name="solar-panel"></wa-icon>Where the data comes from</h3>
+
+Elia's solar forecast for the province of Antwerp, set for a typical 3–4 kWp installation.
+
+</wa-card>
+<wa-card>
+<h3 class="wa-heading-m"><wa-icon name="display"></wa-icon>Where households see it</h3>
+
+On a Smartstuff display (the previous 2 hours, the current hour and the next 5), and in the EnergyID app, which shows more hours ahead.
+
+</wa-card>
+</div>
+
+## Reading the colours
+
+| Colour | Meaning | Forecast solar output | For a 3–4 kWp installation |
+| --- | --- | --- | --- |
+| <span class="swatch" style="background: var(--cofy-directive-2)"></span>Dark green | Well above baseload: best for large use | 40% or more | about 1.5 kW or more |
+| <span class="swatch" style="background: var(--cofy-directive-1)"></span>Light green | Above baseload: a relatively good moment | below 40% | up to about 1.5 kW |
+| <span class="swatch" style="background: var(--cofy-directive-0)"></span>Grey | Around baseload | below 12% | up to about 0.5 kW |
+| <span class="swatch" style="background: var(--cofy-directive--1)"></span>Orange | Lower than baseload | below 3% | up to about 0.1 kW |
+| <span class="swatch" style="background: var(--cofy-directive--2)"></span>Red | No solar production | 0% | 0 kW |
+
+Forecast solar output is the share of the solar production in the province of Antwerp that Elia expects to be active.
+
+Light green is set low on purpose, so cloudy and winter days still show their better hours. For large consumption, households aim for dark green. Every home gets the same regional signal: not exact for each roof, but a good indication.
+
+## What to expect through the year
+
+Average hours per day in each colour, calculated by EnergyID on the previous year. In winter, households see mainly grey, with the occasional light-green hour.
+
+<HoursTable months={months} />
+
+## About the pilot
+
+The Otterbeek pilot is part of [U2DEMO](https://u2demo.eu), funded by the European Union's Horizon Innovation Actions under grant agreement no. 101160684. Views and opinions expressed are those of the authors only and do not necessarily reflect those of the European Union or the European Climate, Infrastructure and Environment Executive Agency (CINEA). Neither the European Union nor the granting authority can be held responsible for them.
+
+Want directives like these for your community? [Talk to us](/contact/).
