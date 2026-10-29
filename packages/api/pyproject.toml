@@ -84,8 +84,8 @@ debug = [
 all = ["cofy-api[timeseries,tariff,members,production,directive,simultaneity,billing,entsoe,energy-cost,energyid,acc,elia,ned,demo,debug]"]
 
 [project.urls]
-Source = "https://github.com/EnergieID/cofy-api"
-Changelog = "https://github.com/EnergieID/cofy-api/releases"
+Source = "https://github.com/EnergieID/cofy"
+Changelog = "https://github.com/EnergieID/cofy/releases"
 
 [build-system]
 requires = ["setuptools>=75.0", "wheel"]

@@ -8,7 +8,7 @@ switch on only the parts your community actually needs.
 ## Not sure where to start?
 
 The quickest way to find out if Cofy fits your community, or to get help setting it up, is to
-[open a GitHub issue](https://github.com/EnergieID/cofy-api/issues). That's true whether you
+[open a GitHub issue](https://github.com/EnergieID/cofy/issues). That's true whether you
 have an IT team behind you or not — we'd rather help you get it right than have you guess.
 
 If you (or someone helping you) are comfortable running your own software, read on: there are
@@ -104,7 +104,7 @@ task check
 
 ## Getting help
 
-Open a [GitHub issue](https://github.com/EnergieID/cofy-api/issues) — for questions, bug
+Open a [GitHub issue](https://github.com/EnergieID/cofy/issues) — for questions, bug
 reports, or help getting set up.
 
 ## License

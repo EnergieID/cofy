@@ -17,8 +17,8 @@ export default defineConfig({
       description: "Cofy is EnergyID's open-source energy engine for energy communities and suppliers.",
       logo: { src: "./src/assets/logo.svg" },
       favicon: "/favicon.svg",
-      social: [{ icon: "github", label: "GitHub", href: "https://github.com/EnergieID/cofy-api" }],
-      editLink: { baseUrl: "https://github.com/EnergieID/cofy-api/edit/main/apps/website/" },
+      social: [{ icon: "github", label: "GitHub", href: "https://github.com/EnergieID/cofy" }],
+      editLink: { baseUrl: "https://github.com/EnergieID/cofy/edit/main/apps/website/" },
       customCss: [
         "@awesome.me/webawesome/dist/styles/themes/default.css",
         "@awesome.me/webawesome/dist/styles/color/variants.css",
