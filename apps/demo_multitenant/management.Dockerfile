@@ -64,16 +64,13 @@ ENV COFY_MANAGEMENT_DATA_DIR=/data
 ENV COFY_MANAGEMENT_COMMUNITIES_DIR=/communities
 VOLUME /data /communities
 
-COPY apps/demo_multitenant/logging.yaml /app/logging.yaml
-
 # uvicorn reads each of its options from a UVICORN_* variable, so a deployment overrides any of
 # these the same way, e.g. UVICORN_PORT. Behind a TLS-terminating proxy, the forwarded headers
 # are what make the login callback URL an https:// one on the public host; only the proxy can
 # reach this port.
 ENV UVICORN_HOST=0.0.0.0 \
     UVICORN_PORT=8080 \
-    UVICORN_FORWARDED_ALLOW_IPS=* \
-    UVICORN_LOG_CONFIG=/app/logging.yaml
+    UVICORN_FORWARDED_ALLOW_IPS=*
 # Healthy once uvicorn listens, which it only does once the app has started: what a zero-downtime deploy waits for
 # before it stops the container this one replaces.
 HEALTHCHECK --interval=5s --timeout=3s --start-period=120s CMD nc -z 127.0.0.1 "$UVICORN_PORT"
