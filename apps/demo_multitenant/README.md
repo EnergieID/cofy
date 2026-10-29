@@ -106,7 +106,11 @@ the environment, the compose service and its level - and the server's metrics to
 Both workflows deploy through `.github/workflows/deploy-to-server.yml`, logging in as `deploy`, whose key can run
 nothing but `cofy-deploy`. That deploys a branch or tag only if the server's `COFY_DEPLOY_REFS` allows it: it reads
 the commit from GitHub itself, fetches that commit's `docker-compose.yml`, `Caddyfile` and `config.alloy` into
-`/opt/cofy`, and runs the images built from it. Each GitHub environment, `multitenant-dev` and `multitenant-prod`, has
+`/opt/cofy`, and runs the images built from it. It replaces `app`, `runner` and `website` without downtime, with
+[docker-rollout](https://github.com/wowu/docker-rollout), which `cloud-init.yaml` installs: each new container starts
+beside the old one, which only stops once the new one is healthy - its image's health check passes once it listens -
+and Caddy retries a request that can't connect meanwhile. A new container that never gets healthy is removed again,
+and the deploy fails with the old one still running. A changed `Caddyfile` is reloaded without stopping Caddy. Each GitHub environment, `multitenant-dev` and `multitenant-prod`, has
 its server's `SCALEWAY_SSH_HOST`, `SCALEWAY_SSH_KEY` (the deploy key's private half) and `SCALEWAY_SSH_KNOWN_HOSTS`
 (the server's host key, as `ssh-keyscan` prints it) secrets.
 

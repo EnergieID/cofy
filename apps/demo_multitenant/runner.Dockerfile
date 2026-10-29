@@ -42,4 +42,7 @@ ENV UVICORN_HOST=0.0.0.0 \
     UVICORN_PORT=8080 \
     UVICORN_FORWARDED_ALLOW_IPS=* \
     UVICORN_LOG_CONFIG=/app/logging.yaml
+# Healthy once uvicorn listens, which it only does once the app has started: what a zero-downtime deploy waits for
+# before it stops the container this one replaces.
+HEALTHCHECK --interval=5s --timeout=3s --start-period=120s CMD nc -z 127.0.0.1 "$UVICORN_PORT"
 CMD ["/app/packages/runner/.venv/bin/uvicorn", "cofy.runner.main:app"]

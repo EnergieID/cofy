@@ -20,8 +20,10 @@ RUN cd apps/website && npm ci
 COPY apps/website ./apps/website
 RUN cd apps/website && npm run build
 
-FROM caddy:2-alpine
+FROM caddy:2.11.7-alpine
 # Under a name of its own, so the server's process metrics tell this Caddy from the one in front of it.
 COPY apps/website/Caddyfile /etc/caddy/website.Caddyfile
 COPY --from=builder /app/apps/website/dist /srv
+# Healthy once Caddy listens: what a zero-downtime deploy waits for before it stops the container this one replaces.
+HEALTHCHECK --interval=5s --timeout=3s --start-period=30s CMD nc -z 127.0.0.1 8080
 CMD ["caddy", "run", "--config", "/etc/caddy/website.Caddyfile", "--adapter", "caddyfile"]
