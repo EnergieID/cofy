@@ -7,8 +7,7 @@ behind a single management layer.
 
 This is a worked example of route 2 in the [root README](../../README.md) - several
 communities, with a management UI. It's the reference for anyone hosting Cofy on behalf of more
-than one community: what to run, how the pieces talk to each other, and how to package and
-deploy them.
+than one community: what to run, how the pieces talk to each other, and how to package them.
 
 ## Running
 
@@ -81,64 +80,15 @@ configs do; the runner image only reads `/communities`. Both are mounted in from
 the demo's own `.data/management` and `.data/communities`. The images bring no data of their own
 and never seed or rewrite what is mounted there. Each runs plain uvicorn, which reads its options
 from `UVICORN_*` variables: they listen on `UVICORN_PORT` (`8080` by default), and the runner
-takes the path prefix a proxy strips in `UVICORN_ROOT_PATH`. Both log as `logging.yaml` says (`UVICORN_LOG_CONFIG`):
-every record to stderr, starting with its time, level and logger, and for one the runner logs while serving a
-community's request, that community's slug, as in `cofy.modules.timeseries.cache [klimaan]:`. Both honor a `VERSION` build arg for
-`APP_VERSION`. `/data/access/users.yaml` is the file to edit to change who the system admins are.
+takes the path prefix a proxy strips in `UVICORN_ROOT_PATH`, and how they log as a logging config file in
+`UVICORN_LOG_CONFIG`. The runner starts each record with its time, level and logger, and for one it logs while serving
+a community's request, that community's slug, as in `cofy.modules.timeseries.cache [klimaan]:`. Both honor a `VERSION`
+build arg for `APP_VERSION`. `/data/access/users.yaml` is the file to edit to change who the system admins are.
 
-## Production deploy
+## Hosting it
 
-EnergyID runs two servers this way, dev and production, each on a Scaleway instance set up by `cloud-init.yaml`.
-`.github/workflows/deploy-scaleway.yml` builds both images on every push to `main`, tagged with the commit, pushes
-them to `ghcr.io`, and deploys them to dev. Run by hand, `.github/workflows/deploy-production.yml` releases `main` as
-the next `cloud-v<YYYY.MM.DD.N>` tag and deploys its images to production, or deploys an earlier tag again, to go back to it. On
-the server,
-`docker-compose.yml` runs them as `app`, the management API, and `runner`, which mounts only the community configs,
-read-only - behind `caddy` (`Caddyfile`) for TLS. Caddy sends `/communities/<slug>/...` to the runner and everything
-else to the management API. The public website ([apps/website](../website)) is built into an image of its own in the
-same workflows, and runs beside them as `website`; Caddy serves it on the server's `COFY_WEBSITE_DOMAIN`. None of them has a published port, so the only way in from outside is through Caddy's
-automatic Let's Encrypt HTTPS on 80/443. `caddy_data`/`caddy_config` (the issued certificate and Caddy's own state) are
-named volumes, so a redeploy doesn't force reissuing the certificate. `alloy` ships the logs of the `cofy` project's
-containers to Loki (`config.alloy`), each record whole - a traceback with the line it belongs to - and labelled with
-the environment, the compose service and its level - and the server's metrics to Prometheus, as
-[Monitoring](#monitoring) describes.
-
-Both workflows deploy through `.github/workflows/deploy-to-server.yml`, logging in as `deploy`, whose key can run
-nothing but `cofy-deploy`. That deploys a branch or tag only if the server's `COFY_DEPLOY_REFS` allows it: it reads
-the commit from GitHub itself, fetches that commit's `docker-compose.yml`, `Caddyfile` and `config.alloy` into
-`/opt/cofy`, and runs the images built from it. It replaces `app`, `runner` and `website` without downtime, with
-[docker-rollout](https://github.com/wowu/docker-rollout), which `cloud-init.yaml` installs: each new container starts
-beside the old one, which only stops once the new one is healthy - its image's health check passes once it listens -
-and Caddy retries a request that can't connect meanwhile. A new container that never gets healthy is removed again,
-and the deploy fails with the old one still running. A changed `Caddyfile` is reloaded without stopping Caddy. Each GitHub environment, `multitenant-dev` and `multitenant-prod`, has
-its server's `SCALEWAY_SSH_HOST`, `SCALEWAY_SSH_KEY` (the deploy key's private half) and `SCALEWAY_SSH_KNOWN_HOSTS`
-(the server's host key, as `ssh-keyscan` prints it) secrets.
-
-Each server needs what the repository doesn't carry:
-
-- `/opt/cofy/.env`, with its domains, which refs it deploys, its login configuration and where its logs go -
-  `.env.example` lists them;
-- the data, on a volume labelled `cofy-data`, mounted at `/data`.
-
-This is how EnergyID runs its own hosted instance, not generally reachable images - the
-`ghcr.io/energieid/cofy-api/management` and `.../runner` packages are private, so
-`docker-compose.yml` as committed here only works for EnergyID's own deploy. To deploy your own
-copy the same way, build and push the images to a registry you control, and point
-`docker-compose.yml` and `cofy-deploy` at those and your repository instead.
-
-## Monitoring
-
-EnergyID's Grafana, at `logs.energyid.eu`, shows how the servers are doing and alerts when they aren't; its
-dashboards and alert rules live there, in the Cofy folder. From each server, `alloy` sends:
-
-- to Loki, every container's logs, Caddy's included: it logs every request (`Caddyfile`), with its status and how long
-  it took, but not its headers or the `token` in its query;
-- to Prometheus, every minute, the host's CPU, memory and disks, the CPU, memory and start time of each service's
-  processes, and whether the console (`/`) and the communities' APIs (`/communities/`) answer at the public URL.
-
-Each server's `/opt/cofy/.env` says where they go: `LOKI_URL` and `PROMETHEUS_URL`
-(`https://logs.energyid.eu/cofy/<environment>/loki/api/v1/push` and `.../prometheus/api/v1/write`), with the
-environment's credential in `LOKI_USERNAME` and `LOKI_PASSWORD`, and again in `PROMETHEUS_USERNAME` and
-`PROMETHEUS_PASSWORD`. Without them, the deploy fails.
-
-The `cofy-logs` skill (`.claude/skills/cofy-logs/`) lets Claude Code search these logs and metrics while debugging.
+EnergyID's hosted Cofy, at [cofy.cloud](https://cofy.cloud), builds its images the same way, in a private repository
+that adds EnergyID's own integrations to them, and runs them behind a TLS-terminating proxy, with their logs and
+metrics shipped to Grafana. To host your own, run both images the same way: the management API with `/data` and
+`/communities` mounted, the runner with `/communities` read-only, behind a proxy that sends `/communities/<slug>/...` to
+the runner, with the prefix stripped and given as `UVICORN_ROOT_PATH`, and everything else to the management API.

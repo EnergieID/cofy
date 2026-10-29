@@ -16,8 +16,8 @@ Serves the site at http://127.0.0.1:4321. `npm run build` writes the static site
 ## Deploying
 
 [Dockerfile](Dockerfile) builds the site, from the repository root, into an image serving it with Caddy on port 8080
-([Caddyfile](Caddyfile)). It is built and deployed with the management API and runner, and runs beside them on the
-same server, on that server's `COFY_WEBSITE_DOMAIN` - see [apps/demo_multitenant](../demo_multitenant#production-deploy).
+([Caddyfile](Caddyfile)). EnergyID builds and deploys it with the management API and runner of its hosted Cofy, and
+runs it beside them on the same server.
 
 ## Where things are
 

@@ -33,15 +33,12 @@ ENV APP_VERSION=${VERSION}
 ENV COFY_RUNNER_DIRECTORY=/communities
 VOLUME /communities
 
-COPY apps/demo_multitenant/logging.yaml /app/logging.yaml
-
 # uvicorn reads each of its options from a UVICORN_* variable, so a deployment overrides any of
 # these the same way: UVICORN_PORT, or UVICORN_ROOT_PATH when a proxy serves the communities
 # under a path prefix it strips, so their API docs point at where they really are.
 ENV UVICORN_HOST=0.0.0.0 \
     UVICORN_PORT=8080 \
-    UVICORN_FORWARDED_ALLOW_IPS=* \
-    UVICORN_LOG_CONFIG=/app/logging.yaml
+    UVICORN_FORWARDED_ALLOW_IPS=*
 # Healthy once uvicorn listens, which it only does once the app has started: what a zero-downtime deploy waits for
 # before it stops the container this one replaces.
 HEALTHCHECK --interval=5s --timeout=3s --start-period=120s CMD nc -z 127.0.0.1 "$UVICORN_PORT"
