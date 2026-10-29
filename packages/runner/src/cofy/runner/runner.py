@@ -7,6 +7,7 @@ import datetime as dt
 import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager, suppress
+from contextvars import ContextVar
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -18,6 +19,23 @@ from starlette.routing import Mount
 from starlette.types import Receive, Scope, Send
 
 logger = logging.getLogger(__name__)
+
+_serving: ContextVar[str | None] = ContextVar("serving", default=None)
+"""The slug of the community whose request is being served."""
+
+
+def log_communities() -> None:
+    """Has every record say which community's request it was logged for, as its `context`: ` [<slug>]`, or empty."""
+    factory = logging.getLogRecordFactory()
+
+    def record(*args, **kwargs) -> logging.LogRecord:
+        record = factory(*args, **kwargs)
+        slug = _serving.get()
+        record.context = f" [{slug}]" if slug else ""
+        return record
+
+    logging.setLogRecordFactory(record)
+
 
 Signature = tuple[int, int, int]
 """What tells one version of a settings file from the next: its inode, modification time and size."""
@@ -97,13 +115,18 @@ class CommunityRunner(Starlette):
         return Community(app=app, signature=signature)
 
     async def dispatch(self, scope: Scope, receive: Receive, send: Send) -> None:
-        community = self._served.get(scope["path_params"]["slug"])
+        slug = scope["path_params"]["slug"]
+        community = self._served.get(slug)
         if community is None:
             response = JSONResponse({"detail": "Not Found"}, status_code=404)
         elif community.app is None:
             response = JSONResponse({"detail": "Service Unavailable"}, status_code=503)
         else:
-            await community.app(scope, receive, send)
+            serving = _serving.set(slug)
+            try:
+                await community.app(scope, receive, send)
+            finally:
+                _serving.reset(serving)
             return
         await response(scope, receive, send)
 

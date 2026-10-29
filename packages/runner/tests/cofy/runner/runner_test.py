@@ -4,14 +4,20 @@ from __future__ import annotations
 
 import asyncio
 import datetime as dt
+import logging
 import time
 from pathlib import Path
 
 import pytest
 import yaml
 from fastapi.testclient import TestClient
+from starlette.applications import Starlette
+from starlette.requests import Request
+from starlette.responses import JSONResponse
+from starlette.routing import Route
 
 from cofy.runner import CommunityRunner
+from cofy.runner.runner import log_communities
 
 
 def write(directory: Path, slug: str, settings: dict) -> None:
@@ -139,6 +145,42 @@ def test_a_removed_community_is_no_longer_served(tmp_path: Path):
 
     assert client.get("/demo/health").status_code == 404
     assert client.get("/demo/openapi.json").status_code == 404
+
+
+@pytest.fixture
+def logging_communities():
+    factory = logging.getLogRecordFactory()
+    log_communities()
+    yield
+    logging.setLogRecordFactory(factory)
+
+
+def logging_api(settings: dict) -> Starlette:
+    """An API whose /health logs a warning."""
+
+    async def health(request: Request) -> JSONResponse:
+        logging.getLogger("test").warning("checked")
+        return JSONResponse({})
+
+    api = Starlette(routes=[Route("/health", health)])
+    api.revision = settings["revision"]  # ty: ignore[unresolved-attribute]
+    return api
+
+
+@pytest.mark.usefixtures("logging_communities")
+def test_records_say_which_communitys_request_they_were_logged_for(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+):
+    monkeypatch.setattr("cofy.runner.runner.CofyAPI.create", logging_api)
+    write(tmp_path, "demo", community(1))
+    client = refreshed(CommunityRunner(tmp_path))
+    logging.getLogger("test").warning("outside")
+
+    assert client.get("/demo/health").status_code == 200
+    assert [(r.getMessage(), r.context) for r in caplog.records if r.name == "test"] == [  # ty: ignore[unresolved-attribute]
+        ("outside", ""),
+        ("checked", " [demo]"),
+    ]
 
 
 def test_an_unknown_community_is_not_found(tmp_path: Path):

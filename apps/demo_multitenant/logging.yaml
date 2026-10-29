@@ -3,12 +3,15 @@
 # so a line that doesn't - such as a traceback's - is known to continue the record before it (`config.alloy`). All of
 # it goes to stderr: Docker keeps stdout and stderr apart, and a record logged on the one could land between a record
 # on the other and its traceback. Requests aren't logged here but by Caddy (`Caddyfile`), which has how long each took
-# and leaves out the API keys in their queries.
+# and leaves out the API keys in their queries. The runner gives the records it logs for a community's request a
+# `context` of ` [<slug>]`, after the logger.
 version: 1
 disable_existing_loggers: false
 formatters:
   default:
-    format: "%(asctime)s %(levelname)s %(name)s: %(message)s"
+    format: "%(asctime)s %(levelname)s %(name)s%(context)s: %(message)s"
+    defaults:
+      context: ""
 handlers:
   default:
     class: logging.StreamHandler

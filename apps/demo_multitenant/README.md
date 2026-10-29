@@ -82,7 +82,8 @@ the demo's own `.data/management` and `.data/communities`. The images bring no d
 and never seed or rewrite what is mounted there. Each runs plain uvicorn, which reads its options
 from `UVICORN_*` variables: they listen on `UVICORN_PORT` (`8080` by default), and the runner
 takes the path prefix a proxy strips in `UVICORN_ROOT_PATH`. Both log as `logging.yaml` says (`UVICORN_LOG_CONFIG`):
-every record to stderr, starting with its time, level and logger. Both honor a `VERSION` build arg for
+every record to stderr, starting with its time, level and logger, and for one the runner logs while serving a
+community's request, that community's slug, as in `cofy.modules.timeseries.cache [klimaan]:`. Both honor a `VERSION` build arg for
 `APP_VERSION`. `/data/access/users.yaml` is the file to edit to change who the system admins are.
 
 ## Production deploy
