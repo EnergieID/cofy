@@ -16,7 +16,7 @@ The Access tab lists who may manage this community. You see it if you are a comm
 
 They can log in right away. Until they do, their status is **Awaiting first login**; at their first login, access is tied to their account, and their status becomes **Account linked**. From then on, it stays theirs even if they change the email address of their account.
 
-The person needs an account at your Cofy host, with a verified email address.
+The person needs an account at your COFY host, with a verified email address.
 
 ## Roles
 

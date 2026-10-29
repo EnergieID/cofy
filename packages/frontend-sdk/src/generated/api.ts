@@ -2057,7 +2057,7 @@ export interface components {
             /**
              * Source
              * @description The source named in the data sent to Kiwatt.
-             * @default Cofy-API-Demo
+             * @default COFY-API-Demo
              */
             source?: string;
         };

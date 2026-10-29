@@ -5,7 +5,7 @@
 
 communityList:
   title: Communities
-  description: Each community is one Cofy configuration.
+  description: Each community is one COFY configuration.
   empty: There are no communities you have access to. Ask an administrator to grant you access.
   add: New community
   edit: Edit

@@ -1,11 +1,11 @@
 /*
- * The console's own branding, on top of the Cofy theme (`@cofy/web-components/theme/cofy.css`).
+ * The console's own branding, on top of the COFY theme (`@cofy/web-components/theme/cofy.css`).
  *
- * Empty by default: the console looks like Cofy. To brand it as your own, set the brand hue here,
+ * Empty by default: the console looks like COFY. To brand it as your own, set the brand hue here,
  * e.g. `:root { --cofy-hue-brand: 257; }` for blue, and Web Awesome derives every button, link
- * and focus ring from it, in both schemes. The other `--cofy-*` properties in the Cofy theme
+ * and focus ring from it, in both schemes. The other `--cofy-*` properties in the COFY theme
  * (the other hues, the lightness and chroma per step) can be redeclared here the same way. No
  * code, no build step.
  *
- * Declared unlayered and imported after the Cofy theme, so whatever is here wins.
+ * Declared unlayered and imported after the COFY theme, so whatever is here wins.
  */

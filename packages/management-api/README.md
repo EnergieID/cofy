@@ -1,6 +1,6 @@
-# Cofy Management API
+# COFY Management API
 
-Cofy Management API provides endpoints to manage one or more Cofy configurations.
+COFY Management API provides endpoints to manage one or more COFY configurations.
 
 It depends on cofy-api and uses its module settings models for polymorphic module configuration.
 

@@ -16,7 +16,7 @@ Apps, such as your community's website, an energy app or a home battery, read yo
 5. Copy the **key** and give it to the app's developer, or paste it into the app.
 
 :::caution
-The key is shown only once. Cofy doesn't store it, so it can never be shown again. If you lose it, delete the token and create a new one.
+The key is shown only once. COFY doesn't store it, so it can never be shown again. If you lose it, delete the token and create a new one.
 :::
 
 Once your community has a token, every request to its API needs one.

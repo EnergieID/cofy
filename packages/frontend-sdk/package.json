@@ -1,7 +1,7 @@
 {
   "name": "@cofy/frontend-sdk",
   "version": "0.0.0",
-  "description": "Typed client and reactive stores for the Cofy management API.",
+  "description": "Typed client and reactive stores for the COFY management API.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",

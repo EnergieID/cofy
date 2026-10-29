@@ -1,13 +1,13 @@
 ---
 title: Concepts
-description: The handful of ideas everything else in Cofy builds on.
+description: The handful of ideas everything else in COFY builds on.
 ---
 
-A few words come back everywhere in Cofy. This page explains them once, so the rest of the docs can use them.
+A few words come back everywhere in COFY. This page explains them once, so the rest of the docs can use them.
 
 ## Community
 
-A **community** is one energy community, or one supplier's setup. Each community gets its own **Cofy API**: a web API that serves only that community's data.
+A **community** is one energy community, or one supplier's setup. Each community gets its own **COFY API**: a web API that serves only that community's data.
 
 ## Module
 

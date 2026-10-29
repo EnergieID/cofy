@@ -29,7 +29,7 @@ describe("yamlBackend", () => {
   });
 
   it("honours a base path, for a console served under a prefix", async () => {
-    const fetch = vi.fn(serving({ "/console/i18n/en/app.yaml": "title: Cofy\n" }));
+    const fetch = vi.fn(serving({ "/console/i18n/en/app.yaml": "title: COFY\n" }));
 
     await read(yamlBackend({ basePath: "/console/i18n", fetch }), "en", "app");
 

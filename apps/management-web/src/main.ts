@@ -49,7 +49,7 @@ const i18n = await createI18n({
 });
 
 // Puts the colour scheme on the root element and keeps following the operating system while
-// the reader has not chosen otherwise. The brand colour is CSS (the Cofy theme, then `brand.css`), not code.
+// the reader has not chosen otherwise. The brand colour is CSS (the COFY theme, then `brand.css`), not code.
 const theme = new ThemeState();
 theme.start();
 

@@ -23,6 +23,7 @@ const { Content: Origins } = await render(home);
       <div class="wa-stack wa-gap-l">
         <h1 class="wa-heading-4xl">{hero.title}</h1>
         <p class="wa-body-xl wa-color-text-quiet">{hero.tagline}</p>
+        <p class="wa-body-l wa-color-text-quiet" style="font-style: italic;">{hero.note}</p>
         <div class="wa-cluster wa-gap-m">
           <wa-button variant="brand" size="large" pill href={hero.primary.href}>
             {hero.primary.label}

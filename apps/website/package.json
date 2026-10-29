@@ -1,7 +1,7 @@
 {
   "name": "@cofy/website",
   "version": "0.0.0",
-  "description": "The public Cofy website: marketing pages and documentation, served at cofy.cloud.",
+  "description": "The public COFY website: marketing pages and documentation, served at cofy.cloud.",
   "license": "MIT",
   "private": true,
   "type": "module",

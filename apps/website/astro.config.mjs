@@ -7,14 +7,14 @@ import { schemeScript } from "./src/scheme.mjs";
 
 // Starlight renders the documentation, under /docs/. The marketing pages around it are plain
 // Astro pages built with Web Awesome (src/pages/, with their words in src/content/home and
-// src/content/pages); both draw from the same Cofy theme.
+// src/content/pages); both draw from the same COFY theme.
 
 export default defineConfig({
   site: "https://cofy.cloud",
   integrations: [
     starlight({
-      title: "Cofy",
-      description: "Cofy is EnergyID's open-source energy engine for energy communities and suppliers.",
+      title: "COFY",
+      description: "COFY is EnergyID's open-source software infrastructure for energy communities and suppliers to manage and deliver flexibility services.",
       logo: { src: "./src/assets/logo.svg" },
       favicon: "/favicon.svg",
       social: [{ icon: "github", label: "GitHub", href: "https://github.com/EnergieID/cofy" }],
@@ -26,7 +26,7 @@ export default defineConfig({
         "@cofy/web-components/theme/syntax.css",
         "./src/styles/starlight-bridge.css",
       ],
-      // Code examples in the console's editor colours, from the Cofy theme (src/code-theme.mjs).
+      // Code examples in the console's editor colours, from the COFY theme (src/code-theme.mjs).
       expressiveCode: {
         themes: cofyCodeThemes,
         useStarlightUiThemeColors: true,

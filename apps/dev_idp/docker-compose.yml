@@ -38,7 +38,7 @@ services:
           {
             "ClientId": "cofy-management",
             "ClientSecrets": ["cofy-management-secret"],
-            "Description": "The Cofy management console",
+            "Description": "The COFY management console",
             "AllowedGrantTypes": ["authorization_code"],
             "RequirePkce": true,
             "RequireConsent": false,

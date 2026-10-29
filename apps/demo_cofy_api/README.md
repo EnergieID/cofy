@@ -1,4 +1,4 @@
-# Cofy API demo (Python)
+# COFY API demo (Python)
 
 A `cofy-api` instance assembled in Python: modules and sources are constructed directly and
 registered on a `CofyAPI()`. See [main.py](main.py).

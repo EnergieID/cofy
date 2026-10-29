@@ -5,7 +5,7 @@ authors = [
     { name="Jorg" }
 ]
 version = "0.0.0"
-description = "Serves a directory of community settings, each as the Cofy API it describes."
+description = "Serves a directory of community settings, each as the COFY API it describes."
 license = "MIT"
 readme = "README.md"
 requires-python = ">=3.11"

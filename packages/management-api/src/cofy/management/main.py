@@ -76,7 +76,7 @@ grants = FileGrantsPersistence(users_file)
 allowed_types = FileAllowedPersistence(data_dir() / "access" / "allowed.yaml")
 allowed = AllowedTypes(allowed_types)
 
-app = FastAPI(title="Cofy Management API", version="0.1.0", description="Management API for Cofy")
+app = FastAPI(title="COFY Management API", version="0.1.0", description="Management API for COFY")
 add_exception_handlers(app)
 install_session(app, oidc_config)
 install_users(app, users)

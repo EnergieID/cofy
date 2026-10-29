@@ -5,7 +5,7 @@ authors = [
     { name="Jorg" }
 ]
 version = "0.0.0"
-description = "Management API for configuring and operating one or more Cofy API instances."
+description = "Management API for configuring and operating one or more COFY API instances."
 license = "MIT"
 readme = "README.md"
 requires-python = ">=3.11"

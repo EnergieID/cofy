@@ -5,7 +5,7 @@ sidebar:
   order: 2
 ---
 
-A tariff says what each part of the energy costs over time. The supplier, the distributor and the fees in a [contract](/docs/energy-cost/contracts/) are all tariffs, and so is the `tariff` of Cofy's [`energy_cost` source](/docs/sources/energy-cost/).
+A tariff says what each part of the energy costs over time. The supplier, the distributor and the fees in a [contract](/docs/energy-cost/contracts/) are all tariffs, and so is the `tariff` of COFY's [`energy_cost` source](/docs/sources/energy-cost/).
 
 ## Versions
 
@@ -80,7 +80,7 @@ energy:
       scalar: 1.1
 ```
 
-This is 12 €/MWh plus 110% of the `belpex` index at that moment. An index has to be known by name before the tariff is read. In Python you [register it yourself](/docs/energy-cost/python/#indexes); a Cofy API knows the indexes whoever runs it has registered.
+This is 12 €/MWh plus 110% of the `belpex` index at that moment. An index has to be known by name before the tariff is read. In Python you [register it yourself](/docs/energy-cost/python/#indexes); a COFY API knows the indexes whoever runs it has registered.
 
 ### Fixed amounts
 

@@ -1,36 +1,36 @@
-# Cofy Cloud
+# COFY Cloud
 
-Cofy Cloud is an open-source platform for energy communities. It collects and standardises
+COFY Cloud is an open-source platform for energy communities. It collects and standardises
 energy data — meter readings, local production, tariffs — and turns it into the billing and
 reporting a community needs to run itself. It's free, it's yours to host, and it's modular: you
 switch on only the parts your community actually needs.
 
 ## Not sure where to start?
 
-The quickest way to find out if Cofy fits your community, or to get help setting it up, is to
+The quickest way to find out if COFY fits your community, or to get help setting it up, is to
 [open a GitHub issue](https://github.com/EnergieID/cofy/issues). That's true whether you
 have an IT team behind you or not — we'd rather help you get it right than have you guess.
 
 If you (or someone helping you) are comfortable running your own software, read on: there are
-three ways to run Cofy, roughly from least to most setup.
+three ways to run COFY, roughly from least to most setup.
 
 ## 1. One community, self-hosted
 
-Run a single Cofy API for your own energy community: you register the modules you need (a
+Run a single COFY API for your own energy community: you register the modules you need (a
 tariff, your members list, production data, ...) and get back a data API for that community.
 This is the simplest route and needs no separate database or UI.
 
 The fastest way to start is [cofy-api-template](https://github.com/EnergieID/cofy-api-template),
 a template repository set up to fork and run. To build it up yourself instead, or to see what a
-Cofy API actually looks like in code, start with the runtime package:
+COFY API actually looks like in code, start with the runtime package:
 [packages/api](packages/api) and its two worked examples,
 [apps/demo_cofy_api](apps/demo_cofy_api) (assembled directly in Python) and
 [apps/demo_cofy_api_settings](apps/demo_cofy_api_settings) (assembled from a settings file).
 
 ## 2. Several communities, with a management UI
 
-If you're hosting Cofy on behalf of more than one community — a federation, a cooperative, a
-software partner — Cofy also ships a management API and a web console to create and configure
+If you're hosting COFY on behalf of more than one community — a federation, a cooperative, a
+software partner — COFY also ships a management API and a web console to create and configure
 each community's setup without touching code per community.
 
 [apps/demo_multitenant](apps/demo_multitenant) shows how the management API, the console and the
@@ -45,7 +45,7 @@ Every piece above is its own package, so you can take only what you need and bui
 - [packages/management-api](packages/management-api) — CRUD API for one or more community
   configs, used by route 2
 - [packages/runner](packages/runner) — serves the community configs the management API keeps,
-  each as its own Cofy API, used by route 2
+  each as its own COFY API, used by route 2
 - [packages/frontend-sdk](packages/frontend-sdk) — a typed TypeScript client and reactive state
   stores for the management API
 - [packages/web-components](packages/web-components) — Lit UI building blocks (config forms, a

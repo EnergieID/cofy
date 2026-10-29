@@ -1,12 +1,12 @@
 ---
 title: Energy cost
-description: Model a complete energy bill, on its own or inside Cofy.
+description: Model a complete energy bill, on its own or inside COFY.
 sidebar:
   label: Overview
   order: 0
 ---
 
-[energy-cost](https://github.com/EnergieID/energy-cost) is an open-source Python library that calculates a complete energy bill from metered consumption and injection. It's what Cofy's [billing module](/docs/modules/billing/) and [`energy_cost` source](/docs/sources/energy-cost/) use, and it also works on its own.
+[energy-cost](https://github.com/EnergieID/energy-cost) is an open-source Python library that calculates a complete energy bill from metered consumption and injection. It's what COFY's [billing module](/docs/modules/billing/) and [`energy_cost` source](/docs/sources/energy-cost/) use, and it also works on its own.
 
 A bill is calculated from a **contract**, which brings together:
 
@@ -54,7 +54,7 @@ energy-cost works in euro, MWh and MW:
 
 **A positive cost is paid by the customer; a negative cost is received.** That holds for injection too: a price you pay for the energy you inject is positive, and a price you receive for it is negative.
 
-## Inside Cofy
+## Inside COFY
 
 - The [billing module](/docs/modules/billing/) calculates a bill from meter data and a contract sent with each request.
 - The [`energy_cost` source](/docs/sources/energy-cost/) serves the prices of a tariff through the [tariff module](/docs/modules/tariff/), for example your own dynamic tariff.

@@ -22,7 +22,7 @@ source:
   api_key: { type: "secret", name: "entsoe_key" }
 formats:
   - type: kiwatt
-    source: Cofy-API-Demo
+    source: COFY-API-Demo
 `;
 
 describe("locate", () => {
@@ -39,7 +39,7 @@ describe("locate", () => {
 
   it("finds a value inside a list", () => {
     const range = locate(document, "/formats/0/source")!;
-    expect(document.slice(range[0], range[1])).toBe("Cofy-API-Demo");
+    expect(document.slice(range[0], range[1])).toBe("COFY-API-Demo");
   });
 
   it("returns nothing for a path the document does not have", () => {

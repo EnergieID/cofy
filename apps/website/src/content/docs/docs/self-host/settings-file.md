@@ -5,7 +5,7 @@ sidebar:
   order: 2
 ---
 
-A community's settings describe its whole Cofy API: its modules, what they share, its credentials and who may call it. You write it yourself when you [run one community yourself](/docs/self-host/single-community/); in a hosted Cofy, the [console](/docs/console/) writes it for you.
+A community's settings describe its whole COFY API: its modules, what they share, its credentials and who may call it. You write it yourself when you [run one community yourself](/docs/self-host/single-community/); in a hosted COFY, the [console](/docs/console/) writes it for you.
 
 ```yaml
 type: cofy_api
@@ -47,7 +47,7 @@ auth:
 | Field | What it is |
 | --- | --- |
 | `type` | Always `cofy_api`. Required. |
-| `title` | The API's name, shown in its API docs. `Cofy API` if left out. |
+| `title` | The API's name, shown in its API docs. `COFY API` if left out. |
 | `description` | What the API is for, shown in its API docs |
 | `modules` | The [modules](/docs/modules/) it serves |
 | `resources` | Values used in several places; see [resources](#resources) |
@@ -55,7 +55,7 @@ auth:
 | `auth` | Who may call it; see [tokens](#tokens). Anyone may, if left out. |
 | `debug_mode` | Profiles every request, for finding out what makes one slow; see [debug mode](#debug-mode). `false` if left out. |
 | `debug_dir` | Where debug mode keeps its profiles. A temporary directory if left out. |
-| `revision` | A number that goes up with every change. The API reports it at `/health`, and in its version, such as `0.9.0+12`. In a hosted Cofy, the console keeps it for you. |
+| `revision` | A number that goes up with every change. The API reports it at `/health`, and in its version, such as `0.9.0+12`. In a hosted COFY, the console keeps it for you. |
 
 Every module, resource and source has a `type`, which says what it is and which other fields it takes. Each module's and source's page lists them. The examples on those pages show a single module: add it to the `modules` list as one entry, starting with `- type:`.
 
@@ -72,7 +72,7 @@ secrets:
 
 Every field that needs a credential refers to a secret instead of holding it: `{ type: secret, name: entsoe_key }`. That keeps credentials in one place, and out of the rest of the file.
 
-To keep them out of the file entirely, the `app.py` of [run one community yourself](/docs/self-host/single-community/#3-load-it) fills in `${VARIABLES}` from the environment before reading the file. That is up to the code loading the file: Cofy itself reads only YAML.
+To keep them out of the file entirely, the `app.py` of [run one community yourself](/docs/self-host/single-community/#3-load-it) fills in `${VARIABLES}` from the environment before reading the file. That is up to the code loading the file: COFY itself reads only YAML.
 
 ## Resources
 
@@ -133,4 +133,4 @@ Index.register(
 )
 ```
 
-See [indexes](/docs/energy-cost/python/#indexes) for the kinds of index there are. A hosted Cofy, run by the runner, can't register indexes yet ([#257](https://github.com/EnergieID/cofy/issues/257)).
+See [indexes](/docs/energy-cost/python/#indexes) for the kinds of index there are. A hosted COFY, run by the runner, can't register indexes yet ([#257](https://github.com/EnergieID/cofy/issues/257)).

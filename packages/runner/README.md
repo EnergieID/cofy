@@ -1,6 +1,6 @@
-# Cofy Runner
+# COFY Runner
 
-Serves a directory of community settings, each `<slug>.yaml` as the Cofy API it describes, under
+Serves a directory of community settings, each `<slug>.yaml` as the COFY API it describes, under
 `/<slug>/`. It is what runs the communities that the [management API](../management-api)
 configures, in route 2 of the [root README](../../README.md); the two only share the settings
 directory, which the runner never writes.

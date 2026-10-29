@@ -1,9 +1,9 @@
 /*
- * Starlight, drawn from the Cofy theme.
+ * Starlight, drawn from the COFY theme.
  *
  * Starlight has its own markup and its own `--sl-*` variables, so it can't use Web Awesome's
  * components or native styles - but every colour and font it uses can come from Web Awesome's
- * tokens, with the Cofy theme on top. That makes the docs follow the same brand, the same
+ * tokens, with the COFY theme on top. That makes the docs follow the same brand, the same
  * greys and the same dark background as the console and the marketing pages, from one source.
  *
  * Web Awesome's tokens switch scheme on a `wa-light` / `wa-dark` class, which the script in

@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     AnyResourceSettings = ResourceSettings
 
 DEFAULT_ARGS: dict[str, Any] = {
-    "title": "Cofy API",
+    "title": "COFY API",
     "version": get_installed_version(),
     "description": "Modular cloud API for energy data",
     "docs_url": None,

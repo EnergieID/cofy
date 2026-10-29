@@ -1,13 +1,13 @@
 ---
-title: Use Cofy with AI agents
-description: Let an AI agent help you with Cofy.
+title: Use COFY with AI agents
+description: Let an AI agent help you with COFY.
 sidebar:
   label: Overview
   badge:
     text: Soon
 ---
 
-We're working on letting AI agents help with Cofy: setting up a community through the management API, writing a settings file, or adding a source of your own.
+We're working on letting AI agents help with COFY: setting up a community through the management API, writing a settings file, or adding a source of your own.
 
 Until then, an agent can already read these docs in one go. Point it at:
 
