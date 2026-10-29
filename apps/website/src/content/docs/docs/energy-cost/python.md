@@ -111,4 +111,4 @@ prices = tariff.get_values(
 )
 ```
 
-This is what Cofy's [`energy_cost` source](/docs/sources/energy-cost/) serves.
+This is what COFY's [`energy_cost` source](/docs/sources/energy-cost/) serves.

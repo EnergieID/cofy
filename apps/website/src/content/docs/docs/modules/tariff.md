@@ -39,7 +39,7 @@ The `kiwatt` format serves prices in the shape Kiwatt expects:
   "generatedAtUTC": "…",
   "periodStartUTC": "…",
   "periodEndUTC": "…",
-  "source": "Cofy-API-Demo",
+  "source": "COFY-API-Demo",
   "unit": "EUR/MWh",
   "resolution": "PT15M",
   "prices": [{ "startUTC": "…", "value": 92.4 }]

@@ -1,5 +1,5 @@
 # The website, built to static files and served by Caddy on port 8080. Built from the repository root: the site takes
-# the Cofy theme from packages/web-components, which resolves packages/frontend-sdk through a `file:` path, so the three
+# the COFY theme from packages/web-components, which resolves packages/frontend-sdk through a `file:` path, so the three
 # are installed and built in that order - as in apps/demo_multitenant/management.Dockerfile.
 FROM node:24-alpine AS builder
 WORKDIR /app

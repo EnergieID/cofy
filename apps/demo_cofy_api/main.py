@@ -21,7 +21,7 @@ from demo_cofy_api.members.load_from_csv import example_load_members_from_file
 
 DATA_DIR = Path(__file__).resolve().parent / "data"
 
-# Initialize the Cofy API
+# Initialize the COFY API
 cofy = CofyAPI(
     auth=TokenAuth([TokenInfo(name="demo", description="Demo User", key=environ["COFY_API_TOKEN"])]),
     debug_mode=environ.get("COFY_DEBUG", "").lower() in ("1", "true", "yes"),

@@ -50,7 +50,7 @@ source:
           - { index: Belpex15min, scalar: -0.9876 }
 ```
 
-The index has to be known to the Cofy API; ask whoever runs it which indexes are available.
+The index has to be known to the COFY API; ask whoever runs it which indexes are available.
 
 ## Sharing a tariff
 

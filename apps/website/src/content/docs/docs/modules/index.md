@@ -52,7 +52,7 @@ modules:
 
 Each module is served at `/{type}/{name}/{version}`, for example `/tariff/entsoe/v1`. The version is `v1` for every module except billing, which is at `v2`.
 
-Every Cofy API also serves interactive API documentation at `/docs`, its OpenAPI description at `/openapi.json`, and a health check at `/health`.
+Every COFY API also serves interactive API documentation at `/docs`, its OpenAPI description at `/openapi.json`, and a health check at `/health`.
 
 ## Time series modules
 

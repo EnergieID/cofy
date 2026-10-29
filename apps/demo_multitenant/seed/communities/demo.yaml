@@ -13,7 +13,7 @@ modules:
     type: entsoe_day_ahead
   type: tariff
 - formats:
-  - source: Cofy-API-Demo
+  - source: COFY-API-Demo
     type: kiwatt
   name: kiwatt
   source:

@@ -1,6 +1,6 @@
 ---
 title: Demo sources
-description: Generated data of every kind, to try Cofy without any credentials.
+description: Generated data of every kind, to try COFY without any credentials.
 sidebar:
   label: Demo
   order: 7

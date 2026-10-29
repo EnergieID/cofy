@@ -1,11 +1,11 @@
 ---
 title: Run one community yourself
-description: Install and run your own Cofy API for a single community.
+description: Install and run your own COFY API for a single community.
 sidebar:
   order: 1
 ---
 
-Running your own Cofy API for one community is the simplest way to self-host. It needs no database and no console: you describe your community in a settings file, and Cofy serves it.
+Running your own COFY API for one community is the simplest way to self-host. It needs no database and no console: you describe your community in a settings file, and COFY serves it.
 
 You need Python 3.11 or newer.
 
@@ -15,7 +15,7 @@ You need Python 3.11 or newer.
 
 ## 1. Install
 
-Install Cofy with the extras of the modules and sources you use. For day-ahead prices from ENTSO-E:
+Install COFY with the extras of the modules and sources you use. For day-ahead prices from ENTSO-E:
 
 ```sh
 pip install "cofy-api[tariff,entsoe]"
@@ -79,7 +79,7 @@ Create a key for your app, and its hash:
 python -c "from cofy.api import generate_key, hash_key; key = generate_key(); print(key, hash_key(key))"
 ```
 
-Give the key to the app, and the hash to Cofy, with your ENTSO-E key:
+Give the key to the app, and the hash to COFY, with your ENTSO-E key:
 
 ```sh
 export ENTSOE_API_KEY=your-entsoe-key

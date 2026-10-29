@@ -4,7 +4,7 @@
 
 communityList:
   title: Gemeenschappen
-  description: Elke gemeenschap is één Cofy-configuratie.
+  description: Elke gemeenschap is één COFY-configuratie.
   empty: Er zijn geen gemeenschappen waar je toegang toe hebt. Vraag een beheerder om je toegang te geven.
   columns:
     community: Gemeenschap

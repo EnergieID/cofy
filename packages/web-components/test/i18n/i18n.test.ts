@@ -5,10 +5,10 @@ import { yamlBackend } from "../../src/i18n/yaml-backend.js";
 
 const FILES: Record<string, string> = {
   "/locales/en/components.yaml": "moduleList:\n  title: Modules\n  add: Add module\n",
-  "/locales/en/app.yaml": "title: Cofy management\n",
+  "/locales/en/app.yaml": "title: COFY management\n",
   // Deliberately partial: `add` is missing, which is what per-key fallback has to cover.
   "/locales/nl/components.yaml": "moduleList:\n  title: Modules NL\n",
-  "/locales/nl/app.yaml": "title: Cofy-beheer\n",
+  "/locales/nl/app.yaml": "title: COFY-beheer\n",
 };
 
 const fetch = ((url: string) =>
@@ -35,7 +35,7 @@ describe("createI18n", () => {
     const i18n = await createI18n({ language: "en", namespaces: ["app"], backend: backend(), storage: null });
 
     expect(i18n.t("moduleList.title")).toBe("Modules");
-    expect(i18n.t("title", { ns: "app" })).toBe("Cofy management");
+    expect(i18n.t("title", { ns: "app" })).toBe("COFY management");
     expect(i18n.options.ns).toContain(COMPONENTS_NAMESPACE);
   });
 

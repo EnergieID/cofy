@@ -1,6 +1,6 @@
-# Cofy API
+# COFY API
 
-Cofy API is an open-source modular framework for ingesting, standardising, storing, and computing energy-related data.
+COFY API is an open-source modular framework for ingesting, standardising, storing, and computing energy-related data.
 
 This package contains the runtime API and module system: the piece you need for route 1 in the
 [root README](../../README.md), running a single energy community yourself. If you'd rather
@@ -13,7 +13,7 @@ start from a ready-made repo than from this package directly, see
 pip install "cofy-api[all]"
 ```
 
-Cofy is modular — install only what you need via [extras](https://packaging.python.org/en/latest/specifications/dependency-specifiers/#extras).
+COFY is modular — install only what you need via [extras](https://packaging.python.org/en/latest/specifications/dependency-specifiers/#extras).
 Each module has an extra of its own name, and each integration providing data for those modules has one too, so
 you only install the libraries of the sources you use. Example — the tariff module with ENTSO-E prices:
 
@@ -27,7 +27,7 @@ pip install "cofy-api[tariff,entsoe]"
 
 ## Quick start
 
-Create an app.py file with a minimal Cofy API:
+Create an app.py file with a minimal COFY API:
 
 ```python
 from cofy.api import CofyAPI

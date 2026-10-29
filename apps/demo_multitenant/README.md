@@ -6,7 +6,7 @@ configured and operated through the UI, and the runner, which serves each commun
 behind a single management layer.
 
 This is a worked example of route 2 in the [root README](../../README.md) - several
-communities, with a management UI. It's the reference for anyone hosting Cofy on behalf of more
+communities, with a management UI. It's the reference for anyone hosting COFY on behalf of more
 than one community: what to run, how the pieces talk to each other, and how to package them.
 
 ## Running
@@ -87,7 +87,7 @@ build arg for `APP_VERSION`. `/data/access/users.yaml` is the file to edit to ch
 
 ## Hosting it
 
-EnergyID's hosted Cofy, at [cofy.cloud](https://cofy.cloud), builds its images the same way, in a private repository
+EnergyID's hosted COFY, at [cofy.cloud](https://cofy.cloud), builds its images the same way, in a private repository
 that adds EnergyID's own integrations to them, and runs them behind a TLS-terminating proxy, with their logs and
 metrics shipped to Grafana. To host your own, run both images the same way: the management API with `/data` and
 `/communities` mounted, the runner with `/communities` read-only, behind a proxy that sends `/communities/<slug>/...` to

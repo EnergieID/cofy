@@ -1,6 +1,6 @@
 # @cofy/web-components
 
-Lit components for building a Cofy management console: config forms generated from JSON
+Lit components for building a COFY management console: config forms generated from JSON
 Schema, a YAML editor, community and module lists, theming and translations. This is what
 [apps/management-web](../../apps/management-web) is built from, and what you'd reach for to
 build your own console instead (route 3 in the [root README](../../README.md)). It's built on
@@ -23,7 +23,7 @@ build your own console instead (route 3 in the [root README](../../README.md)). 
   anywhere else config needs hand-editing.
 - **Theming** (`theme/*`) - `ThemeState` (light/dark/system, persisted), plus shared styles
   (`nativeStyles`, `utilityStyles`, `tableStyles`) built on Web Awesome's `--wa-*` tokens.
-  `theme/cofy.css` is the Cofy theme - every colour built from one lightness and chroma ladder
+  `theme/cofy.css` is the COFY theme - every colour built from one lightness and chroma ladder
   and a hue per colour, and a softer dark background - shared by the console and the website. See
   [apps/management-web/src/brand.css](../../apps/management-web/src/brand.css) for how a
   deployment sets its own brand hue on top of it - a CSS custom property, no code or build step

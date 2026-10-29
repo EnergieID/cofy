@@ -12,13 +12,13 @@ export const collections = {
   docs: defineCollection({ loader: docsLoader(), schema: docsSchema() }),
 
   // The home page, one file per language: its sections in the frontmatter, and the closing
-  // "who's behind Cofy" story as the body.
+  // "who's behind COFY" story as the body.
   home: defineCollection({
     loader: glob({ pattern: "*.md", base: "./src/content/home" }),
     schema: z.object({
       title: z.string(),
       description: z.string(),
-      hero: z.object({ title: z.string(), tagline: z.string(), primary: link, secondary: link }),
+      hero: z.object({ title: z.string(), tagline: z.string(), note: z.string(), primary: link, secondary: link }),
       features: z.object({
         title: z.string(),
         // Each feature sits beside a mockup of it; `visual` picks which.

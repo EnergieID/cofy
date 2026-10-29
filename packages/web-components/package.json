@@ -1,7 +1,7 @@
 {
   "name": "@cofy/web-components",
   "version": "0.0.0",
-  "description": "Lit components for building a Cofy management console.",
+  "description": "Lit components for building a COFY management console.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",

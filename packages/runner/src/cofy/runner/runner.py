@@ -1,4 +1,4 @@
-"""Serves a directory of community settings, each as the Cofy API it describes, rebuilt whenever its settings change."""
+"""Serves a directory of community settings, each as the COFY API it describes, rebuilt whenever its settings change."""
 
 from __future__ import annotations
 

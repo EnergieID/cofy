@@ -1,7 +1,7 @@
-# Cofy management console
+# COFY management console
 
-The default management console for a Cofy deployment: a web UI for creating and configuring
-communities and their modules against the [Cofy Management API](../../packages/management-api).
+The default management console for a COFY deployment: a web UI for creating and configuring
+communities and their modules against the [COFY Management API](../../packages/management-api).
 It's built from [@cofy/web-components](../../packages/web-components) and
 [@cofy/frontend-sdk](../../packages/frontend-sdk); route 2 in the [root README](../../README.md)
 uses this app, and [apps/demo_multitenant](../demo_multitenant) packages it together with the
@@ -29,7 +29,7 @@ different API with `COFY_MANAGEMENT_API=http://host:port npm run dev`.
 
 ## Customising
 
-- **Branding** - the console uses the Cofy theme from `@cofy/web-components/theme/cofy.css`.
+- **Branding** - the console uses the COFY theme from `@cofy/web-components/theme/cofy.css`.
   [src/brand.css](src/brand.css) is where you replace it with your own: one CSS custom property
   (the brand hue), and Web Awesome derives every button, link and focus ring from it. No code,
   no build step.

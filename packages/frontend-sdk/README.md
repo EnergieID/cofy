@@ -1,6 +1,6 @@
 # @cofy/frontend-sdk
 
-A typed client and reactive state stores for the [Cofy Management API](../management-api), for
+A typed client and reactive state stores for the [COFY Management API](../management-api), for
 anyone building their own UI on top of it (route 3 in the [root README](../../README.md)). If
 you just want a management console, the default one -
 [apps/management-web](../../apps/management-web) - already uses this package; you likely only

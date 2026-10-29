@@ -1,18 +1,18 @@
 ---
 title: The management console
-description: Configure your community's Cofy API from your browser, without writing code.
+description: Configure your community's COFY API from your browser, without writing code.
 sidebar:
   label: Overview
   order: 0
 ---
 
-The management console is where you set up and change your community's Cofy API. Everything you change there is live within seconds; you never install or restart anything.
+The management console is where you set up and change your community's COFY API. Everything you change there is live within seconds; you never install or restart anything.
 
 ## Logging in
 
-Open the console's address and log in with your account at your Cofy host, such as your EnergyID account for the Cofy that EnergyID hosts. Use the email address you were given access with.
+Open the console's address and log in with your account at your COFY host, such as your EnergyID account for the COFY that EnergyID hosts. Use the email address you were given access with.
 
-If you see no communities after logging in, nobody has given you access yet: ask whoever manages your community, or your Cofy host, to [give you access](/docs/console/access/).
+If you see no communities after logging in, nobody has given you access yet: ask whoever manages your community, or your COFY host, to [give you access](/docs/console/access/).
 
 ## Your communities
 
@@ -26,8 +26,8 @@ At the top of a community's page you find:
   | Status | What it means |
   | --- | --- |
   | Live | The API runs your latest saved settings. |
-  | Changes pending | The API still runs the previous settings. Saved changes normally apply within a few seconds; if this stays, the new settings could not be applied: ask your Cofy host. |
-  | Unavailable | The API is not running. Ask your Cofy host. |
+  | Changes pending | The API still runs the previous settings. Saved changes normally apply within a few seconds; if this stays, the new settings could not be applied: ask your COFY host. |
+  | Unavailable | The API is not running. Ask your COFY host. |
 
 Below them, a community has these tabs:
 

@@ -23,7 +23,7 @@ class ResponseModel(BaseModel):
     generatedAtUTC: str = "2025-08-28T11:15:00"
     periodStartUTC: str = "2025-08-28T22:00:00"
     periodEndUTC: str = "2025-08-29T22:00:00"
-    source: str = "Cofy-API-Demo"
+    source: str = "COFY-API-Demo"
     unit: str = "EUR/MWh"
     resolution: ISODuration = timedelta(minutes=15)
     prices: list[PriceRecordModel]
@@ -32,7 +32,7 @@ class ResponseModel(BaseModel):
 class KiwattFormatSettings(TimeseriesFormatSettings):
     type: Literal["kiwatt"] = "kiwatt"
     source: str = Field(
-        default="Cofy-API-Demo",
+        default="COFY-API-Demo",
         description="The source named in the data sent to Kiwatt.",
         json_schema_extra={"x-advanced": True},
     )
@@ -43,7 +43,7 @@ class KiwattFormat(PriceFormat, settings=KiwattFormatSettings):
 
     name = "kiwatt"
 
-    def __init__(self, source: str = "Cofy-API-Demo"):
+    def __init__(self, source: str = "COFY-API-Demo"):
         super().__init__()
         self.source = source
 

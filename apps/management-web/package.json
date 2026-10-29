@@ -1,7 +1,7 @@
 {
   "name": "@cofy/management-web",
   "version": "0.0.0",
-  "description": "Default management console for a Cofy deployment.",
+  "description": "Default management console for a COFY deployment.",
   "license": "MIT",
   "private": true,
   "type": "module",

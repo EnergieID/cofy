@@ -1,4 +1,4 @@
-# Cofy API demo (settings file)
+# COFY API demo (settings file)
 
 The same instance as [demo-cofy-api](../demo_cofy_api), built instead from a declarative
 [settings.yaml](settings.yaml) via `CofyAPI.create(...)` (`FromSettingsMixin`). `${VAR}`

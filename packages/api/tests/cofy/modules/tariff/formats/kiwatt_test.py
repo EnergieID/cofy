@@ -77,7 +77,7 @@ class TestKiwattFormat:
         assert result.generatedAtUTC == "2026-01-01T11:15:00+00:00"
         assert result.periodStartUTC == "2026-01-01T00:00:00+00:00"
         assert result.periodEndUTC == "2026-01-01T03:00:00+00:00"
-        assert result.source == "Cofy-API-Demo"
+        assert result.source == "COFY-API-Demo"
         assert result.unit == "EUR/MWh"
         assert result.resolution == timedelta(hours=1)
 
