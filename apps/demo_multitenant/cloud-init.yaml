@@ -102,10 +102,12 @@ write_files:
       for file in docker-compose.yml Caddyfile config.alloy; do
         curl -fsSL -o "$file.new" "https://raw.githubusercontent.com/$repo/$sha/$app/$file"
       done
+      # Written over in place rather than replaced, so a container that mounts one sees the new version.
       changed=()
       for file in docker-compose.yml Caddyfile config.alloy; do
         cmp -s "$file.new" "$file" || changed+=("$file")
-        mv "$file.new" "$file"
+        cat "$file.new" > "$file"
+        rm "$file.new"
       done
 
       # The login lasts only as long as this deploy.
@@ -118,15 +120,28 @@ write_files:
       export COFY_VERSION=$sha
       docker image prune -af
       docker compose pull
+      # The services that change with every deploy are replaced without downtime: each new container starts beside the
+      # old one, which only stops once the new one is healthy. One that never gets healthy is removed again, and the
+      # deploy fails with the old one still running. The rest are only recreated when their service changed.
+      for service in app runner website; do
+        docker rollout --timeout 300 "$service"
+      done
       docker compose up -d --remove-orphans
-      # A container keeps the config file it started with, and `up` only recreates one whose service changed, so one
-      # whose config file changed restarts to read it.
-      if [[ " ${changed[*]} " == *" Caddyfile "* ]]; then docker compose restart caddy; fi
+      # A container keeps the config it started with, so one whose config file changed reads it again: Caddy without
+      # stopping, after checking it, and Alloy by restarting.
+      if [[ " ${changed[*]} " == *" Caddyfile "* ]]; then
+        docker compose exec -T caddy caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile
+      fi
       if [[ " ${changed[*]} " == *" config.alloy "* ]]; then docker compose restart alloy; fi
       docker image prune -af
 
 runcmd:
   - install -d -m 700 /opt/cofy
+  # docker-rollout, which cofy-deploy replaces services with, at a pinned version that must match its checksum.
+  - >-
+    curl -fsSL -o /tmp/docker-rollout https://github.com/wowu/docker-rollout/releases/download/v0.14/docker-rollout &&
+    echo "cdeaba6ae9eee3b0b606286e585bbda6787283d801a6ad6d9b9d2bc347fda05b  /tmp/docker-rollout" | sha256sum -c &&
+    install -D -m 755 /tmp/docker-rollout /usr/local/lib/docker/cli-plugins/docker-rollout
   - systemctl daemon-reload
   - systemctl restart ssh docker
 

@@ -2,13 +2,17 @@
 # it - `.env.example` lists them. `app` and `runner` have no published port - they're only reachable from `caddy` (and
 # each other) over the compose network, so the only way in from outside is through Caddy's TLS-terminated 80/443.
 # `config.alloy` ships the logs of this project's containers only, so it is named here rather than after the directory.
+# `app`, `runner` and `website` change with every deploy, which replaces each without downtime (`docker rollout`): the
+# new container starts beside the old one, which only stops once the new one is healthy. So they have no fixed
+# `container_name`, and `app` and `runner` get the time to finish the requests they're still answering, such as one
+# waiting on an upstream service, when they're stopped.
 name: cofy
 
 services:
   app:
     image: ghcr.io/energieid/cofy-api/management:${COFY_VERSION:-latest}
-    container_name: cofy-management
     restart: unless-stopped
+    stop_grace_period: 30s
     environment:
       COFY_MANAGEMENT_OIDC_ISSUER: ${COFY_MANAGEMENT_OIDC_ISSUER:?}
       COFY_MANAGEMENT_OIDC_CLIENT_ID: ${COFY_MANAGEMENT_OIDC_CLIENT_ID:?}
@@ -28,8 +32,8 @@ services:
   # Serves every community's API from its settings, which it only reads.
   runner:
     image: ghcr.io/energieid/cofy-api/runner:${COFY_VERSION:-latest}
-    container_name: cofy-runner
     restart: unless-stopped
+    stop_grace_period: 30s
     environment:
       # Caddy strips this prefix; told it, the communities' API docs point at where they really are.
       UVICORN_ROOT_PATH: /communities
@@ -41,13 +45,13 @@ services:
   # The public website: static files, served by Caddy of its own (apps/website).
   website:
     image: ghcr.io/energieid/cofy-api/website:${COFY_VERSION:-latest}
-    container_name: cofy-website
     restart: unless-stopped
     expose:
       - "8080"
 
+  # Pinned, as a new image recreates it on the next deploy, and nothing answers while it does.
   caddy:
-    image: caddy:2-alpine
+    image: caddy:2.11.7-alpine
     container_name: cofy-caddy
     restart: unless-stopped
     environment:
