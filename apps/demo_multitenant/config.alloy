@@ -132,13 +132,13 @@ prometheus.scrape "services" {
 
 // Whether the console, the communities' APIs and the website answer at their public URLs, through DNS, TLS and Caddy
 // as anyone would reach them. The runner has no route of its own, so its 404 is how it answers at /communities/ - Caddy answers 502
-// when it doesn't.
+// when it doesn't. Over IPv4, as Docker gives this container no IPv6: a domain with an AAAA record would always fail.
 prometheus.exporter.blackbox "checks" {
   config = `{
     modules: {
-      console: { prober: http, timeout: 10s },
-      communities: { prober: http, timeout: 10s, http: { valid_status_codes: [404] } },
-      website: { prober: http, timeout: 10s },
+      console: { prober: http, timeout: 10s, http: { preferred_ip_protocol: ip4 } },
+      communities: { prober: http, timeout: 10s, http: { preferred_ip_protocol: ip4, valid_status_codes: [404] } },
+      website: { prober: http, timeout: 10s, http: { preferred_ip_protocol: ip4 } },
     },
   }`
 
