@@ -25,6 +25,20 @@ def elia(handler):
     return patch(f"{MODULE}.httpx.AsyncClient", partial(httpx.AsyncClient, transport=httpx.MockTransport(handler)))
 
 
+def elia_datasets(responses: dict[str, list[dict]], requests: dict[str, httpx.Request], capacity: float = 1000.0):
+    """Replaces Elia Open Data with `responses` by dataset, recording the last request to each in `requests`."""
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.params["select"] == "monitoredcapacity":
+            requests["capacity"] = request
+            return httpx.Response(200, json=[{"monitoredcapacity": capacity}])
+        dataset = request.url.path.split("/")[-3]
+        requests[dataset] = request
+        return httpx.Response(200, json=responses[dataset])
+
+    return elia(handler)
+
+
 def test_build_frame_computes_share_of_capacity():
     frame = EliaSolarForecastSource._build_frame(
         [
@@ -62,25 +76,38 @@ def test_build_frame_empty():
 async def test_fetch_merges_datasets_preferring_near_real_time():
     start = dt.datetime(2026, 11, 2, 10, tzinfo=dt.UTC)
     responses = {
-        "ods210": [record("2026-11-02T10:15:00+00:00", 500.0), record("2026-11-02T10:30:00+00:00", 600.0)],
+        "ods210": [
+            {"datetime": "2026-11-02T10:15:00+00:00", "mostrecentforecast": 1000.0},
+            {"datetime": "2026-11-02T10:30:00+00:00", "mostrecentforecast": 1200.0},
+        ],
         "ods209": [record("2026-11-02T10:00:00+00:00", 400.0), record("2026-11-02T10:15:00+00:00", 1.0)],
     }
-    requests: list[httpx.Request] = []
+    requests: dict[str, httpx.Request] = {}
 
-    def handler(request: httpx.Request) -> httpx.Response:
-        requests.append(request)
-        dataset = request.url.path.split("/")[-3]
-        return httpx.Response(200, json=responses[dataset])
-
-    with elia(handler):
+    with elia_datasets(responses, requests, capacity=2000.0):
         timeseries = await EliaSolarForecastSource(region="Antwerpen").fetch_timeseries(
             start, start + dt.timedelta(hours=1), QUARTER_HOUR
         )
 
+    # ods209's own capacity for its records, its latest one for ods210's
     assert timeseries.frame["value"].to_list() == [40.0, 50.0, 60.0]
     assert timeseries.metadata["unit"] == "%"
-    assert len(requests) == 2
-    assert all('region="Antwerpen" and gridconnectiontype="Total"' in r.url.params["where"] for r in requests)
+    assert requests.keys() == {"ods210", "ods209", "capacity"}
+    assert 'region="Antwerpen" and gridconnectiontype="All"' in requests["ods210"].url.params["where"]
+    assert "monitoredcapacity" not in requests["ods210"].url.params["select"]
+    assert 'region="Antwerpen" and gridconnectiontype="Total"' in requests["ods209"].url.params["where"]
+    assert requests["capacity"].url.path.endswith("/ods209/exports/json")
+    assert requests["capacity"].url.params["where"].startswith('region="Antwerpen" and gridconnectiontype="Total"')
+    assert requests["capacity"].url.params["order_by"] == "datetime desc"
+
+
+@pytest.mark.asyncio
+async def test_fetch_raises_without_capacity():
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json=[])
+
+    with elia(handler), pytest.raises(ValueError, match="no monitored capacity"):
+        await EliaSolarForecastSource().fetch_timeseries(START, START + QUARTER_HOUR, QUARTER_HOUR)
 
 
 @pytest.mark.asyncio
@@ -93,12 +120,7 @@ async def test_fetch_includes_legacy_dataset_before_its_end():
     }
     requests: dict[str, httpx.Request] = {}
 
-    def handler(request: httpx.Request) -> httpx.Response:
-        dataset = request.url.path.split("/")[-3]
-        requests[dataset] = request
-        return httpx.Response(200, json=responses[dataset])
-
-    with elia(handler):
+    with elia_datasets(responses, requests):
         timeseries = await EliaSolarForecastSource(region="Antwerpen").fetch_timeseries(
             start, start + 2 * QUARTER_HOUR, QUARTER_HOUR
         )

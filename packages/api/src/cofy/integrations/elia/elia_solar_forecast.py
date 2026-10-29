@@ -10,10 +10,11 @@ from pydantic import Field
 from cofy.modules.timeseries import CacheSettings, ISODuration, NumericSource, NumericSourceSettings, Timeseries
 
 ELIA_BASE_URL = "https://opendata.elia.be/api/explore/v2.1/catalog/datasets"
-# Near-real-time dataset (today up to a week ahead) first, so it wins over the historical one on overlap.
-DATASETS = ("ods210", "ods209")
-# The total of the PV connected to the distribution and the transmission grid
-GRID_CONNECTION_TYPE = "Total"
+# Near-real-time dataset (today up to 10 days ahead) first, so it wins over the historical one on overlap. Each has its
+# own name for the total of the PV connected to the distribution and the transmission grid.
+NEAR_REAL_TIME_DATASET = "ods210"
+HISTORICAL_DATASET = "ods209"
+GRID_CONNECTION_TYPES = {NEAR_REAL_TIME_DATASET: "All", HISTORICAL_DATASET: "Total"}
 # Elia's discontinued historical dataset, up to where ods209 starts, with its own region names
 LEGACY_DATASET = "ods032"
 LEGACY_END = dt.datetime(2026, 10, 25, 23, tzinfo=dt.UTC)
@@ -83,33 +84,59 @@ class EliaSolarForecastSource(NumericSource, settings=EliaSolarForecastSourceSet
                 f"Supported resolutions are: {', '.join(self.SUPPORTED_RESOLUTIONS)}"
             )
 
-        region = f'region="{self.region}" and gridconnectiontype="{GRID_CONNECTION_TYPE}"'
-        queries = [(dataset, region) for dataset in DATASETS]
+        queries = [(dataset, self._where(dataset)) for dataset in GRID_CONNECTION_TYPES]
         if start < LEGACY_END:
             queries.append((LEGACY_DATASET, f'region="{LEGACY_REGIONS.get(self.region, self.region)}"'))
 
         async with httpx.AsyncClient(base_url=ELIA_BASE_URL, timeout=ELIA_TIMEOUT) as client:
-            responses = await asyncio.gather(
-                *(self._fetch_dataset(client, d, where, start, end) for d, where in queries)
+            capacity, responses = await asyncio.gather(
+                self._fetch_capacity(client),
+                asyncio.gather(*(self._fetch_dataset(client, d, where, start, end) for d, where in queries)),
             )
 
-        records = [record for response in responses for record in response]
+        # The near-real-time dataset has no capacity of its own, so its forecast is a share of the latest one
+        records = [{"monitoredcapacity": capacity, **record} for response in responses for record in response]
         return Timeseries(
             frame=self._build_frame(records, resolution),
             metadata={"unit": "%", "region": self.region, "source": "Elia Open Data"},
         )
 
+    def _where(self, dataset: str) -> str:
+        return f'region="{self.region}" and gridconnectiontype="{GRID_CONNECTION_TYPES[dataset]}"'
+
     async def _fetch_dataset(
         self, client: httpx.AsyncClient, dataset: str, where: str, start: dt.datetime, end: dt.datetime
     ) -> list[dict]:
-        response = await client.get(
-            f"/{dataset}/exports/json",
-            params={
-                "where": f'{where} and datetime>="{start.isoformat()}" and datetime<"{end.isoformat()}"',
-                "select": "datetime,mostrecentforecast,monitoredcapacity",
-                "order_by": "datetime",
-            },
+        fields = (
+            "datetime,mostrecentforecast"
+            if dataset == NEAR_REAL_TIME_DATASET
+            else "datetime,mostrecentforecast,monitoredcapacity"
         )
+        return await self._export(
+            client,
+            dataset,
+            where=f'{where} and datetime>="{start.isoformat()}" and datetime<"{end.isoformat()}"',
+            select=fields,
+            order_by="datetime",
+        )
+
+    async def _fetch_capacity(self, client: httpx.AsyncClient) -> float:
+        """The region's most recent monitored PV capacity, in MW."""
+        records = await self._export(
+            client,
+            HISTORICAL_DATASET,
+            where=f"{self._where(HISTORICAL_DATASET)} and monitoredcapacity is not null",
+            select="monitoredcapacity",
+            order_by="datetime desc",
+            limit=1,
+        )
+        if not records:
+            raise ValueError(f"Elia Open Data has no monitored capacity for {self.region}")
+        return records[0]["monitoredcapacity"]
+
+    @staticmethod
+    async def _export(client: httpx.AsyncClient, dataset: str, **params) -> list[dict]:
+        response = await client.get(f"/{dataset}/exports/json", params=params)
         if response.status_code != 200:
             raise ValueError(f"Failed to fetch {dataset} from Elia Open Data: {response.status_code} - {response.text}")
         return response.json()
