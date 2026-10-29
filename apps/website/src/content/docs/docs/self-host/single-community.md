@@ -115,4 +115,4 @@ app = CofyAPI()
 app.register_module(TariffModule(source=EntsoeDayAheadTariffSource(api_key="YOUR_ENTSOE_KEY"), name="day-ahead"))
 ```
 
-The repository has a worked example of each: [assembled in Python](https://github.com/EnergieID/cofy-api/tree/main/apps/demo_cofy_api) and [from a settings file](https://github.com/EnergieID/cofy-api/tree/main/apps/demo_cofy_api_settings).
+The repository has a worked example of each: [assembled in Python](https://github.com/EnergieID/cofy/tree/main/apps/demo_cofy_api) and [from a settings file](https://github.com/EnergieID/cofy/tree/main/apps/demo_cofy_api_settings).

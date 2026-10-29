@@ -133,4 +133,4 @@ Index.register(
 )
 ```
 
-See [indexes](/docs/energy-cost/python/#indexes) for the kinds of index there are. A hosted Cofy, run by the runner, can't register indexes yet ([#257](https://github.com/EnergieID/cofy-api/issues/257)).
+See [indexes](/docs/energy-cost/python/#indexes) for the kinds of index there are. A hosted Cofy, run by the runner, can't register indexes yet ([#257](https://github.com/EnergieID/cofy/issues/257)).
