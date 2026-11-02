@@ -2,6 +2,7 @@ name: test management container
 
 on:
   workflow_call:
+  workflow_dispatch:
   push:
     branches:
       - main

@@ -1,26 +1,74 @@
 version: 2
+
+# The Python and npm packages are libraries: their ranges say what they support, and their locks only make development
+# and CI reproducible. Those locks move all at once, indirect dependencies included, through the monthly `upgrade`
+# workflow, so Dependabot only opens security updates for them - a limit of 0 turns its version updates off, not its
+# security updates. Actions and base images have no other way to stay current, so they get monthly version updates.
 updates:
-  - package-ecosystem: "uv"
-    directory: "/"
+  - package-ecosystem: uv
+    directories:
+      - /packages/api
+      - /packages/management-api
+      - /packages/runner
     schedule:
-      interval: "weekly"
-      day: monday
-      time: "02:00"
-      timezone: Europe/Brussels
-    open-pull-requests-limit: 99
-    commit-message:
-      prefix: ""
+      interval: monthly
+    open-pull-requests-limit: 0
+    versioning-strategy: lockfile-only
     labels:
-      - "dependencies"
-  - package-ecosystem: "github-actions"
-    directory: "/"
+      - dependencies
+    groups:
+      security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+
+  - package-ecosystem: npm
+    directories:
+      - /packages/frontend-sdk
+      - /packages/web-components
+      - /apps/management-web
+      - /apps/website
     schedule:
-      interval: "weekly"
-      day: monday
-      time: "02:00"
-      timezone: Europe/Brussels
-    open-pull-requests-limit: 99
-    commit-message:
-      prefix: ""
+      interval: monthly
+    open-pull-requests-limit: 0
+    versioning-strategy: lockfile-only
     labels:
-      - "dependencies"
+      - dependencies
+    groups:
+      security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
+    labels:
+      - dependencies
+    groups:
+      actions:
+        patterns:
+          - "*"
+
+  - package-ecosystem: docker
+    directories:
+      - /apps/*
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
+    labels:
+      - dependencies
+    groups:
+      images:
+        patterns:
+          - "*"
+    ignore:
+      # The images run the Python CI tests with, and the Node LTS in .nvmrc: moving either is a decision of its own.
+      - dependency-name: python
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: node
+        update-types: ["version-update:semver-major"]

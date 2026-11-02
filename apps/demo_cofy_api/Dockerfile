@@ -1,7 +1,7 @@
 # --- Build stage ---
 FROM python:3.12-alpine AS builder
 
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.9.21 /uv /usr/local/bin/uv
 
 WORKDIR /app
 
