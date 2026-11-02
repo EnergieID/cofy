@@ -2,12 +2,15 @@ import datetime as dt
 from abc import ABC, abstractmethod
 from typing import Any, Literal
 
+from opentelemetry import trace
 from pydantic import Field
 
 from cofy.api import BaseSettingsModel, FromSettingsMixin, Referable
 
 from .cache import CacheSettings, TimeseriesCache
 from .model import ISODuration, Timeseries
+
+TRACER = trace.get_tracer(__name__)
 
 
 class TimeseriesSourceSettings(BaseSettingsModel):
@@ -41,9 +44,19 @@ class TimeseriesSource(FromSettingsMixin, ABC, settings=TimeseriesSourceSettings
         **kwargs,
     ) -> Timeseries:
         """Fetch timeseries data between start and end datetimes with the given resolution, from the cache if enabled."""
-        if self._cache is not None:
-            return await self._cache.fetch(start, end, resolution, **kwargs)
-        return await self._fetch_timeseries(start, end, resolution, **kwargs)
+        attributes = {
+            "cofy.source": type(self).__name__,
+            "cofy.timeseries.start": start.isoformat(),
+            "cofy.timeseries.end": end.isoformat(),
+            "cofy.timeseries.resolution": str(resolution),
+        }
+        with TRACER.start_as_current_span("fetch timeseries", attributes=attributes) as span:
+            if self._cache is not None:
+                timeseries = await self._cache.fetch(start, end, resolution, **kwargs)
+            else:
+                timeseries = await self._fetch_timeseries(start, end, resolution, **kwargs)
+            span.set_attributes(_summary(timeseries))
+            return timeseries
 
     @abstractmethod
     async def _fetch_timeseries(
@@ -74,6 +87,15 @@ class TimeseriesSource(FromSettingsMixin, ABC, settings=TimeseriesSourceSettings
     def max_age(self) -> dt.timedelta | None:
         """Optionally specify how long fetched data stays valid, used for caching. None means unknown."""
         return None
+
+
+def _summary(timeseries: Timeseries) -> dict[str, int | str]:
+    frame = timeseries.frame
+    summary: dict[str, int | str] = {"cofy.timeseries.rows": len(frame)}
+    if len(frame) > 0 and "timestamp" in frame.columns:
+        summary["cofy.timeseries.first"] = str(frame.item(0, "timestamp"))
+        summary["cofy.timeseries.last"] = str(frame.item(len(frame) - 1, "timestamp"))
+    return summary
 
 
 class NumericSourceSettings(TimeseriesSourceSettings):

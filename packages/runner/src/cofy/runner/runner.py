@@ -13,6 +13,7 @@ from pathlib import Path
 
 import yaml
 from cofy.api import CofyAPI
+from opentelemetry import trace
 from starlette.applications import Starlette
 from starlette.responses import JSONResponse
 from starlette.routing import Mount
@@ -25,13 +26,16 @@ _serving: ContextVar[str | None] = ContextVar("serving", default=None)
 
 
 def log_communities() -> None:
-    """Has every record say which community's request it was logged for, as its `context`: ` [<slug>]`, or empty."""
+    """Has every record say which community's request it was logged for, as its `context`: ` [<slug>]`, or empty;
+    and in which trace, as its `trace`: ` trace_id=<id>`, or empty."""
     factory = logging.getLogRecordFactory()
 
     def record(*args, **kwargs) -> logging.LogRecord:
         record = factory(*args, **kwargs)
         slug = _serving.get()
         record.context = f" [{slug}]" if slug else ""
+        span = trace.get_current_span().get_span_context()
+        record.trace = f" trace_id={trace.format_trace_id(span.trace_id)}" if span.is_valid else ""
         return record
 
     logging.setLogRecordFactory(record)

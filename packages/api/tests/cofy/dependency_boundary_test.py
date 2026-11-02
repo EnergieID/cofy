@@ -28,6 +28,7 @@ import pytest
 IMPORT_OVERRIDES: dict[str, set[str]] = {
     "entsoe-py": {"entsoe"},
     "google-auth": {"google"},
+    "opentelemetry-api": {"opentelemetry"},
     "PyYAML": {"yaml"},
 }
 
@@ -81,7 +82,10 @@ def _build_config() -> tuple[set[str], dict[str, set[str]], dict[str, set[str]]]
     project_name = cfg["project"]["name"]
 
     # Core third-party packages
-    core = {_normalise(_dep_name(d)) for d in cfg["project"].get("dependencies", [])}
+    core: set[str] = set()
+    for spec in cfg["project"].get("dependencies", []):
+        name = _dep_name(spec)
+        core |= {_normalise(name)} | IMPORT_OVERRIDES.get(name, set())
 
     # Optional packages and inter-extra dependencies
     extra_packages: dict[str, set[str]] = {}

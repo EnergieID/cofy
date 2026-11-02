@@ -5,16 +5,21 @@ import zlib
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime
 from typing import Literal, Self
+from urllib.parse import parse_qsl, urlencode
 
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import APIKeyHeader, APIKeyQuery
+from opentelemetry import trace
 from pydantic import BaseModel, Field, model_validator
 from starlette.status import HTTP_401_UNAUTHORIZED
+from starlette.types import ASGIApp, Receive, Scope, Send
 
 from .from_settings_mixin import BaseSettingsModel, FromSettingsMixin
 from .secret import NAME_PATTERN, SecretValue
 
 KEY_PREFIX = "cofy_"
+QUERY_PARAMETER = "token"
+"""The query parameter a client may pass its key in, instead of the Authorization header."""
 HASH_PATTERN = r"^sha256:[0-9a-f]{64}$"
 _BASE62 = string.digits + string.ascii_letters
 
@@ -102,7 +107,7 @@ class TokenAuth(Auth, settings=TokenAuthSettings):
         self,
         request: Request,
         header_token: str = Depends(APIKeyHeader(name="Authorization", auto_error=False, scheme_name="header")),
-        query_token: str = Depends(APIKeyQuery(name="token", auto_error=False, scheme_name="query")),
+        query_token: str = Depends(APIKeyQuery(name=QUERY_PARAMETER, auto_error=False, scheme_name="query")),
     ):
         token = None
         auth_info = None
@@ -133,3 +138,19 @@ class TokenAuth(Auth, settings=TokenAuthSettings):
             raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="Token expired")
         request.state.token = token
         request.state.auth_info = auth_info
+
+
+class RedactQueryToken:
+    """Keeps a key passed in the query out of the request's trace."""
+
+    def __init__(self, app: ASGIApp):
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        span = trace.get_current_span()
+        if scope["type"] == "http" and span.is_recording() and scope.get("query_string"):
+            query = parse_qsl(scope["query_string"].decode("latin-1"), keep_blank_values=True)
+            if any(key == QUERY_PARAMETER for key, _ in query):
+                redacted = [(key, "REDACTED" if key == QUERY_PARAMETER else value) for key, value in query]
+                span.set_attribute("url.query", urlencode(redacted))
+        await self.app(scope, receive, send)
