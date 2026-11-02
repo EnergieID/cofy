@@ -3,38 +3,21 @@ type: cofy_api
 # API tokens, each given as its key or, to keep the key itself out of the settings, as its hash.
 # Generate a key and its hash with:
 #   python -c "from cofy.api import generate_key, hash_key; key = generate_key(); print(key, hash_key(key))"
+# This demo serves generated data only, so its token is a fixed one.
 auth:
   type: token
   tokens:
     - name: demo
       description: Demo User
-      key: ${COFY_API_TOKEN}
-      # hash: ${COFY_API_TOKEN_HASH}
-
-# Credentials, referenced by name from every field that needs one. This app fills them in from its own
-# environment, see `${...}`.
-secrets:
-  - name: entsoe_key
-    value: ${ENTSOE_API_KEY}
-
-  - name: energyid_key
-    value: ${ENERGY_ID_API_KEY}
-
-  - name: acc_credentials
-    value: '${ACC_CREDENTIALS}'
+      key: demo
 
 # Values configured once and referenced by name with `{type: resource, name: ...}` wherever one of their kind fits.
-# Any source caches what it fetches when given a `cache`, with max_age defaulting to the source's own.
 resources:
-  # A shared source is built once, so the modules referencing it share its cache.
+  # A shared source is built once, so the modules referencing it share its data.
   - type: source
-    name: entsoe_be
-    description: Belgian day-ahead prices.
-    value:
-      type: entsoe_day_ahead
-      api_key: { type: secret, name: entsoe_key }
-      # caches in chunks of a day, for 1 hour: ENTSO-E's own max_age
-      cache: {}
+    name: demo_prices
+    description: Generated day-ahead prices.
+    value: { type: demo_price, noise: 0.1 }
 
   # Example members, shared by every members module referencing them.
   - type: member_source
@@ -42,96 +25,12 @@ resources:
     value: { type: demo_members }
 
 modules:
-  - type: tariff
-    name: entsoe
-    source: { type: resource, name: entsoe_be }
-
-  - type: tariff
-    name: kiwatt
-    source:
-      type: entsoe_day_ahead
-      country_code: NL
-      api_key: { type: secret, name: entsoe_key }
-      cache: {}
-    formats:
-      - type: kiwatt
-
-  - type: tariff
-    name: dynamic
-    description: Our dynamic tariff tracking the Belpex.
-    source:
-      type: energy_cost
-      # see https://github.com/EnergieID/energy-cost for more details on the tariff configuration format
-      tariff:
-        - start: 2024-01-01T00:00:00+01:00
-          consumption:
-            constant_cost: 10.0
-            variable_costs:
-              - index: Belpex15min
-                scalar: 1.05
-          injection:
-            constant_cost: 14.56
-            variable_costs:
-              - index: Belpex15min
-                scalar: -0.9876
-        - start: 2026-01-01T00:00:00+01:00
-          consumption:
-            constant_cost: 12.0
-            variable_costs:
-              - index: Belpex15min
-                scalar: 1.10
-          injection:
-            constant_cost: 14.56
-            variable_costs:
-              - index: Belpex15min
-                scalar: -0.9876
-
-  - type: billing
-
-  - type: production
-    name: wind
-    source:
-      type: energyid_production
-      api_key: { type: secret, name: energyid_key }
-      record_id: ${ENERGY_ID_RECORD_ID}
-
-  - type: directive
-    name: entsoe
-    description: A directive module based on the entsoe day-ahead prices, with custom boundaries.
-    source:
-      type: directive
-      source: { type: resource, name: entsoe_be }
-      boundaries: [0, 10, 25, 50]
-      reverse: true
-    formats:
-      - type: directive
-
-  - type: directive
-    name: deltawind
-    description: Simultaneity directive for the Deltawind pilot, based on EvO forecasts. Low simultaneity encourages consumption.
-    source:
-      type: directive
-      # simultaneity is total consumption as a percentage of total production; 80-120% is neutral.
-      # The outer boundaries are placeholders until the pilot partners settle the policy.
-      boundaries: [60, 80, 120, 140]
-      reverse: true
-      source:
-        type: simultaneity
-        sources:
-          - type: acc_forecast
-            ean: '${ACC_EAN_1}'
-            credentials: { type: secret, name: acc_credentials }
-            cache:
-              max_age: PT15M
-    formats:
-      - type: directive
-
   # Generated data, to try the modules without any credentials. Each demo source has realistic defaults, or give
   # your own `pattern` of values to repeat each `period` (a day by default), randomly varied by a fraction `noise`.
   - type: tariff
     name: demo
     description: Generated day-ahead prices.
-    source: { type: demo_price, noise: 0.1 }
+    source: { type: resource, name: demo_prices }
 
   - type: production
     name: demo
@@ -148,8 +47,45 @@ modules:
     description: A directive following generated prices, between boundaries that change during the day.
     source:
       type: dynamic_boundary_directive
-      signal_source: { type: demo_price, noise: 0.1 }
+      signal_source: { type: resource, name: demo_prices }
       boundary_source: { type: demo_boundary }
+    formats:
+      - type: directive
+
+  - type: tariff
+    name: kiwatt
+    source: { type: resource, name: demo_prices }
+    formats:
+      - type: kiwatt
+
+  - type: tariff
+    name: fixed
+    description: Our fixed tariff.
+    source:
+      type: energy_cost
+      # see https://github.com/EnergieID/energy-cost for more details on the tariff configuration format
+      tariff:
+        - start: 2024-01-01T00:00:00+01:00
+          consumption:
+            constant_cost: 100.0
+          injection:
+            constant_cost: -20.0
+        - start: 2026-01-01T00:00:00+01:00
+          consumption:
+            constant_cost: 120.0
+          injection:
+            constant_cost: -25.0
+
+  - type: billing
+
+  - type: directive
+    name: reversed
+    description: A directive module based on the generated prices, with custom boundaries.
+    source:
+      type: directive
+      source: { type: resource, name: demo_prices }
+      boundaries: [0, 10, 25, 50]
+      reverse: true
     formats:
       - type: directive
 

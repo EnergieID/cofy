@@ -1,9 +1,8 @@
 # COFY API demo (settings file)
 
 The same instance as [demo-cofy-api](../demo_cofy_api), built instead from a declarative
-[settings.yaml](settings.yaml) via `CofyAPI.create(...)` (`FromSettingsMixin`). `${VAR}`
-placeholders in the file are filled in from the environment before it's parsed, so secrets
-stay out of the committed config. See [main.py](main.py).
+[settings.yaml](settings.yaml) via `CofyAPI.create(...)` (`FromSettingsMixin`). See
+[main.py](main.py).
 
 This is a worked example of route 1 in the [root README](../../README.md) - one community,
 self-hosted, configured through a settings file rather than Python code. To start your own,
@@ -16,16 +15,7 @@ fork [cofy-api-template](https://github.com/EnergieID/cofy-api-template), or see
 task demo-cofy-api-settings
 ```
 
-The API is available at http://127.0.0.1:8000 with docs at `/docs`.
-
-## Deltawind simultaneity directive
-
-The `deltawind` directive module is the proof of concept for the Deltawind pilot. It fetches
-forecasts per EAN from the Connection Usage Service of EvO (Energie van Ons) (`acc_forecast`),
-turns them into how well consumption matches production (`simultaneity`), and encodes that as
-directive steps. It needs `ACC_CREDENTIALS` (the service-account JSON from EvO, on a single line)
-and `ACC_EAN_1`;
-add more entries to `sources` in [settings.yaml](settings.yaml) for more connections.
+The API is available at http://127.0.0.1:8000 with docs at `/docs`, using the token `demo`.
 
 ## Data
 

@@ -6,20 +6,6 @@ auth:
   type: token
 description: Modular cloud API for energy data
 modules:
-- name: entsoe
-  source:
-    api_key: { type: secret, name: entsoe_key }
-    type: entsoe_day_ahead
-  type: tariff
-- formats:
-  - source: COFY-API-Demo
-    type: kiwatt
-  name: kiwatt
-  source:
-    api_key: { type: secret, name: entsoe_key }
-    country_code: NL
-    type: entsoe_day_ahead
-  type: tariff
 - description: Our dynamic tariff tracking the Belpex.
   name: dynamic
   source:
@@ -40,6 +26,14 @@ modules:
   type: billing
 - description: Generated day-ahead prices.
   name: demo
+  source:
+    noise: 0.1
+    type: demo_price
+  type: tariff
+- formats:
+  - source: COFY-API-Demo
+    type: kiwatt
+  name: kiwatt
   source:
     noise: 0.1
     type: demo_price
@@ -70,7 +64,3 @@ modules:
   type: members
 title: demo
 type: cofy_api
-secrets:
-- description: ENTSO-E transparency platform API key.
-  name: entsoe_key
-  value: '***'
