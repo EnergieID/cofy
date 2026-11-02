@@ -8,8 +8,8 @@ import { cofyStoreContext, i18nContext } from "../../src/context.js";
 import { testI18n } from "../support/i18n.js";
 
 const communities: CommunityInfo[] = [
-  { slug: "demo", title: "Demo Energy Community", description: "", debug_mode: false, module_count: 2, revision: 4, api_url: "http://localhost/demo/" },
-  { slug: "riverside", title: "", description: "", debug_mode: false, module_count: 0, revision: null, api_url: "http://localhost/riverside/" },
+  { slug: "demo", title: "Demo Energy Community", description: "", module_count: 2, revision: 4, api_url: "http://localhost/demo/" },
+  { slug: "riverside", title: "", description: "", module_count: 0, revision: null, api_url: "http://localhost/riverside/" },
 ];
 
 type Permission = { action: string; subject: string };
@@ -222,7 +222,7 @@ describe("cofy-community-list", () => {
       {
         method: "POST",
         path: "/management/communities",
-        body: { slug: "harbour", title: "Harbour Energy", description: "By the sea", debug_mode: false },
+        body: { slug: "harbour", title: "Harbour Energy", description: "By the sea" },
       },
     ]);
     expect(rows(element)).toContain("harbour");
@@ -248,7 +248,7 @@ describe("cofy-community-list", () => {
       {
         method: "PUT",
         path: "/management/communities/demo",
-        body: { title: "Renamed", description: "", debug_mode: false },
+        body: { title: "Renamed", description: "" },
       },
     ]);
     expect(dialog(element).open).toBe(false);

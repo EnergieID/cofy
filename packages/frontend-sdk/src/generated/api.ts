@@ -673,12 +673,6 @@ export interface components {
              * @default
              */
             description?: string;
-            /**
-             * Debug Mode
-             * @description Whether the runtime records debug traces.
-             * @default false
-             */
-            debug_mode?: boolean;
         };
         /** CommunityCreate */
         CommunityCreate: {
@@ -693,12 +687,6 @@ export interface components {
              * @default
              */
             description?: string;
-            /**
-             * Debug Mode
-             * @description Whether the runtime records debug traces.
-             * @default false
-             */
-            debug_mode?: boolean;
             /**
              * Slug
              * @description Machine name, and the community's identity in every other route.
@@ -721,12 +709,6 @@ export interface components {
              * @default
              */
             description?: string;
-            /**
-             * Debug Mode
-             * @description Whether the runtime records debug traces.
-             * @default false
-             */
-            debug_mode?: boolean;
             /**
              * Slug
              * @description Machine name, and the community's identity in every other route.

@@ -8,9 +8,8 @@ from ..communities import CommunitiesPersistence
 from .base import CommunityFileStore
 
 #: Community-level fields a client may set. Everything else in a stored config either belongs
-#: to another endpoint (`modules`, `auth`), is a local operational detail (`debug_dir`), or
-#: is kept by the store itself (`revision`).
-WRITABLE_FIELDS = ("title", "description", "debug_mode")
+#: to another endpoint (`modules`, `auth`) or is kept by the store itself (`revision`).
+WRITABLE_FIELDS = ("title", "description")
 
 logger = logging.getLogger(__name__)
 

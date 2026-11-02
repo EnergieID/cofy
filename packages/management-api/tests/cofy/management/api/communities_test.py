@@ -148,7 +148,7 @@ def test_get_unknown_community_returns_404(client: TestClient):
 def test_update_changes_the_community_fields(client: TestClient, tmp_data: Path):
     r = client.put(
         "/management/communities/test",
-        json={"title": "Renamed", "description": "Updated", "debug_mode": True},
+        json={"title": "Renamed", "description": "Updated"},
     )
 
     assert r.status_code == 200
@@ -156,7 +156,6 @@ def test_update_changes_the_community_fields(client: TestClient, tmp_data: Path)
     stored = _stored(tmp_data)
     assert stored["title"] == "Renamed"
     assert stored["description"] == "Updated"
-    assert stored["debug_mode"] is True
 
 
 def test_update_leaves_modules_untouched(client: TestClient, tmp_data: Path):
@@ -210,7 +209,6 @@ def test_create_writes_a_new_community(client: TestClient, tmp_data: Path):
         "slug": "fresh",
         "title": "Fresh",
         "description": "",
-        "debug_mode": False,
         "module_count": 0,
         "revision": 1,
         "api_url": "https://cofy.example/communities/fresh/",

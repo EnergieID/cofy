@@ -1,5 +1,4 @@
 type: cofy_api
-debug_mode: true
 
 # API tokens, each given as its key or, to keep the key itself out of the settings, as its hash.
 # Generate a key and its hash with:

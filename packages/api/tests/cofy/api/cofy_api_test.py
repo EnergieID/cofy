@@ -14,33 +14,6 @@ def test_cofy_initialization():
     assert cofy.description == "Test desc"
 
 
-def test_debug_mode_registers_debug_routes(tmp_path):
-    """CofyAPI with debug_mode=True must register the /debug/* endpoints."""
-    cofy = CofyAPI(debug_mode=True, debug_dir=tmp_path)
-    client = TestClient(cofy)
-    response = client.get("/debug/nonexistent-id/profile")
-    assert response.status_code == 404
-    assert "nonexistent-id" in response.json()["detail"]
-
-
-def test_debug_mode_uses_tempdir_when_no_dir_given():
-    """CofyAPI with debug_mode=True and no debug_dir must not raise."""
-    cofy = CofyAPI(debug_mode=True)
-    client = TestClient(cofy)
-    response = client.get("/health")
-    assert response.status_code == 200
-
-
-def test_debug_mode_adds_profiling_headers(tmp_path):
-    """Requests through a debug-enabled CofyAPI must carry profiling headers."""
-    cofy = CofyAPI(debug_mode=True, debug_dir=tmp_path)
-    client = TestClient(cofy)
-    response = client.get("/health")
-    assert response.status_code == 200
-    assert "X-Debug-Id" in response.headers
-    assert "X-Debug-Url" in response.headers
-
-
 def test_constructor_registers_provided_modules():
     module = DummyModule("test_module")
     cofy = CofyAPI(modules=[module])
@@ -55,7 +28,6 @@ def test_constructor_registers_provided_modules():
 def test_creation_from_settings():
     settings = {
         "type": "cofy_api",
-        "debug_mode": True,
         "modules": [
             {
                 "type": "dummy",
