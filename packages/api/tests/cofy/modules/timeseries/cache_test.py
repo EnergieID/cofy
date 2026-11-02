@@ -7,6 +7,10 @@ import polars as pl
 import pytest
 import yaml
 from isodate import Duration
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
 from pydantic import ValidationError
 
 from cofy.api import finalize
@@ -470,3 +474,29 @@ async def test_stale_reuse_expires_immediately(clock):
     result = await source.fetch_timeseries(T0, T0 + DAY, HOUR)
 
     assert seconds_until(result.metadata["expires"]) == pytest.approx(0, abs=5)
+
+
+@pytest.fixture(scope="session")
+def spans() -> InMemorySpanExporter:
+    # Once: the global provider can only be set once, and tracers keep the first they get.
+    exporter = InMemorySpanExporter()
+    provider = TracerProvider()
+    provider.add_span_processor(SimpleSpanProcessor(exporter))
+    trace.set_tracer_provider(provider)
+    return exporter
+
+
+def test_fetches_are_traced(spans: InMemorySpanExporter):
+    spans.clear()
+    source = DummyTimeseriesSource(cache=CacheSettings(max_age=HOUR))
+    start = dt.datetime(2026, 1, 1, tzinfo=dt.UTC)
+
+    for _ in range(2):
+        asyncio.run(source.fetch_timeseries(start, start + 3 * HOUR, HOUR))
+
+    fetched = [span.attributes or {} for span in spans.get_finished_spans() if span.name == "fetch timeseries"]
+    assert [(a["cofy.source"], a["cofy.timeseries.rows"]) for a in fetched] == [("DummyTimeseriesSource", 3)] * 2
+    assert fetched[0]["cofy.timeseries.first"] == str(start)
+    assert fetched[0]["cofy.timeseries.last"] == str(start + 2 * HOUR)
+    cached = [span.attributes or {} for span in spans.get_finished_spans() if span.name == "cache"]
+    assert [a["cofy.cache.result"] for a in cached] == ["miss", "hit"]

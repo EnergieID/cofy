@@ -7,6 +7,7 @@ import isodate
 from cofy.modules.discovery import discover_all_types
 
 from .runner import CommunityRunner, log_communities
+from .tracing import setup_tracing
 
 DIRECTORY_ENV_VAR = "COFY_RUNNER_DIRECTORY"
 COMMUNITIES_ENV_VAR = "COFY_RUNNER_COMMUNITIES"
@@ -41,8 +42,9 @@ def poll_interval_from_env() -> dt.timedelta:
     return interval
 
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s%(context)s: %(message)s")
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s%(context)s: %(message)s%(trace)s")
 log_communities()
+setup_tracing()
 
 # Register every installed module, source and format type, so the settings can use any of them.
 discover_all_types()

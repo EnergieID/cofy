@@ -11,6 +11,8 @@ from pathlib import Path
 import pytest
 import yaml
 from fastapi.testclient import TestClient
+from opentelemetry import trace
+from opentelemetry.trace import NonRecordingSpan, SpanContext
 from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import JSONResponse
@@ -180,6 +182,18 @@ def test_records_say_which_communitys_request_they_were_logged_for(
     assert [(r.getMessage(), r.context) for r in caplog.records if r.name == "test"] == [  # ty: ignore[unresolved-attribute]
         ("outside", ""),
         ("checked", " [demo]"),
+    ]
+
+
+@pytest.mark.usefixtures("logging_communities")
+def test_records_say_which_trace_they_were_logged_in(caplog: pytest.LogCaptureFixture):
+    with trace.use_span(NonRecordingSpan(SpanContext(trace_id=0xABC, span_id=0x1, is_remote=False))):
+        logging.getLogger("test").warning("inside")
+    logging.getLogger("test").warning("outside")
+
+    assert [(r.getMessage(), r.trace) for r in caplog.records if r.name == "test"] == [  # ty: ignore[unresolved-attribute]
+        ("inside", f" trace_id={0xABC:032x}"),
+        ("outside", ""),
     ]
 
 

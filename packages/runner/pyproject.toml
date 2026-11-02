@@ -12,6 +12,10 @@ requires-python = ">=3.11"
 dependencies = [
     "cofy-api[all]>=0.0.0",
     "isodate>=0.7.2",
+    "opentelemetry-exporter-otlp-proto-http>=1.44.0",
+    "opentelemetry-instrumentation-httpx>=0.66b1",
+    "opentelemetry-instrumentation-requests>=0.66b1",
+    "opentelemetry-sdk>=1.44.0",
     "PyYAML>=6.0.0",
 ]
 

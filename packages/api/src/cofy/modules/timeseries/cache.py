@@ -8,12 +8,14 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass
 
 import narwhals as nw
+from opentelemetry import trace
 from pydantic import BaseModel, Field
 
 from .alignment import floor_datetime
 from .model import ISODuration, ISOTimedelta, Timeseries
 
 LOGGER = logging.getLogger(__name__)
+TRACER = trace.get_tracer(__name__)
 
 Segment = tuple[dt.datetime, dt.datetime]
 Fetch = Callable[..., Awaitable[Timeseries]]
@@ -93,12 +95,20 @@ class TimeseriesCache:
         series = (str(resolution), frozenset(kwargs.items()))
         segments = self._segments(start, end, resolution)
 
-        async with self._series_lock(series):
-            entries = {segment: entry for segment in segments if (entry := self._fresh_entry(series, segment))}
-            runs = _consecutive_runs([segment for segment in segments if segment not in entries])
-            fetched = await asyncio.gather(*(self._fetch_run(series, run, resolution, kwargs) for run in runs))
-            for run_entries in fetched:
-                entries.update(run_entries)
+        with TRACER.start_as_current_span("cache", attributes={"cofy.cache.chunks": len(segments)}) as span:
+            async with self._series_lock(series):
+                entries = {segment: entry for segment in segments if (entry := self._fresh_entry(series, segment))}
+                missing = [segment for segment in segments if segment not in entries]
+                span.set_attributes(
+                    {
+                        "cofy.cache.result": "hit" if not missing else "miss" if not entries else "partial",
+                        "cofy.cache.missing_chunks": len(missing),
+                    }
+                )
+                runs = _consecutive_runs(missing)
+                fetched = await asyncio.gather(*(self._fetch_run(series, run, resolution, kwargs) for run in runs))
+                for run_entries in fetched:
+                    entries.update(run_entries)
 
         ordered = [entries[segment] for segment in segments]
         frames = [entry.frame for entry in ordered if len(entry.frame) > 0]
@@ -162,6 +172,7 @@ class TimeseriesCache:
             if any(entry is None for entry in stale.values()):
                 raise
             LOGGER.warning("Fetching [%s, %s) failed, serving stale data", run_start, run_end, exc_info=True)
+            trace.get_current_span().add_event("serving stale data", {"start": str(run_start), "end": str(run_end)})
             return {segment: entry for segment, entry in stale.items() if entry is not None}
 
         fetched_at = time.monotonic()

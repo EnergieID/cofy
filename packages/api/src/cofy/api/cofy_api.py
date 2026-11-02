@@ -10,7 +10,7 @@ from .module import Module, ModuleSettings
 from .references import check_references, resolving
 from .resource import ResourceSettings
 from .secret import SecretSettings
-from .token_auth import Auth, AuthSettings
+from .token_auth import Auth, AuthSettings, RedactQueryToken
 from .version import get_installed_version
 
 if TYPE_CHECKING:
@@ -74,6 +74,7 @@ class CofyAPI(FastAPI, FromSettingsMixin, settings=CofyAPISettings):
             kwargs["version"] = f"{kwargs.get('version', DEFAULT_ARGS['version'])}+{revision}"
         super().__init__(**(DEFAULT_ARGS | kwargs))
         self.revision = revision
+        self.add_middleware(RedactQueryToken)
         self._modules: list[Module] = []
         self.include_router(DocsRouter(self.openapi))
         self.add_route("/health", self.health_check, methods=["GET"])

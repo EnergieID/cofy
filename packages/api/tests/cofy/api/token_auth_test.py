@@ -6,10 +6,14 @@ from datetime import timedelta, timezone
 import pytest
 from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
+from opentelemetry.trace import SpanKind
 from pydantic import ValidationError
 from starlette.status import HTTP_401_UNAUTHORIZED
 
-from cofy.api import TokenAuth, TokenAuthSettings, TokenInfo, generate_key, hash_key
+from cofy.api import CofyAPI, TokenAuth, TokenAuthSettings, TokenInfo, generate_key, hash_key
 from cofy.api.token_auth import _base62
 
 # Example tokens for testing
@@ -153,3 +157,17 @@ def test_generated_keys_differ():
 
 def test_hash_key():
     assert hash_key("demo") == "sha256:2a97516c354b68848cdbd8f54a226a0a55b21ed138e207ad6c5cbb9c00aa5aea"
+
+
+@pytest.mark.parametrize("key", ["validtoken", "wrongtoken"])
+def test_a_key_in_the_query_stays_out_of_the_trace(key: str):
+    exporter = InMemorySpanExporter()
+    provider = TracerProvider()
+    provider.add_span_processor(SimpleSpanProcessor(exporter))
+    app = CofyAPI(auth=TokenAuth(tokens), telemetry={"tracer_provider": provider})
+    app.add_api_route("/protected", lambda: {})
+
+    TestClient(app).get("/protected", params={"token": key, "other": "kept"})
+
+    [request] = [span for span in exporter.get_finished_spans() if span.kind == SpanKind.SERVER]
+    assert (request.attributes or {})["url.query"] == "token=REDACTED&other=kept"
