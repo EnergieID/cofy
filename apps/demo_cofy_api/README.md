@@ -14,7 +14,7 @@ self-hosted. To start your own instead of reading this one, fork
 task demo-cofy-api
 ```
 
-The API is available at http://127.0.0.1:8000 with docs at `/docs`.
+The API is available at http://127.0.0.1:8000 with docs at `/docs`, using the token `demo`.
 
 ## Data
 
