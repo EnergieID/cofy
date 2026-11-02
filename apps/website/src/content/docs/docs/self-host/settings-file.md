@@ -53,8 +53,6 @@ auth:
 | `resources` | Values used in several places; see [resources](#resources) |
 | `secrets` | Credentials; see [secrets](#secrets) |
 | `auth` | Who may call it; see [tokens](#tokens). Anyone may, if left out. |
-| `debug_mode` | Profiles every request, for finding out what makes one slow; see [debug mode](#debug-mode). `false` if left out. |
-| `debug_dir` | Where debug mode keeps its profiles. A temporary directory if left out. |
 | `revision` | A number that goes up with every change. The API reports it at `/health`, and in its version, such as `0.9.0+12`. In a hosted COFY, the console keeps it for you. |
 
 Every module, resource and source has a `type`, which says what it is and which other fields it takes. Each module's and source's page lists them. The examples on those pages show a single module: add it to the `modules` list as one entry, starting with `- type:`.
@@ -115,10 +113,6 @@ python -c "from cofy.api import generate_key, hash_key; key = generate_key(); pr
 ```
 
 An app sends its key in a header, `Authorization: Bearer <key>`, or in the address, `?token=<key>`.
-
-## Debug mode
-
-With `debug_mode: true`, the API profiles every request, keeps the profiles of the last hundred, and adds a `/debug/{id}/profile` address to fetch one. It needs the `debug` extra: `pip install "cofy-api[debug]"`. It slows every request down, so only switch it on while looking into a problem.
 
 ## Tariffs that follow an index
 

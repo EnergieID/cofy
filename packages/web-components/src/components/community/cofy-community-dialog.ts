@@ -6,7 +6,6 @@ import type { CommunityBody, CommunityInfo, ProblemError } from "@cofy/frontend-
 import "@awesome.me/webawesome/dist/components/button/button.js";
 import "@awesome.me/webawesome/dist/components/dialog/dialog.js";
 import "@awesome.me/webawesome/dist/components/input/input.js";
-import "@awesome.me/webawesome/dist/components/switch/switch.js";
 import "@awesome.me/webawesome/dist/components/textarea/textarea.js";
 import "../cofy-problem-details.js";
 
@@ -42,7 +41,6 @@ export class CofyCommunityDialog extends CofyElement {
   @state() private slug = "";
   @state() private communityTitle = "";
   @state() private description = "";
-  @state() private debugMode = false;
   @state() private saving = false;
   @state() private error: ProblemError | null = null;
 
@@ -52,7 +50,6 @@ export class CofyCommunityDialog extends CofyElement {
       this.slug = this.community?.slug ?? "";
       this.communityTitle = this.community?.title ?? "";
       this.description = this.community?.description ?? "";
-      this.debugMode = this.community?.debug_mode ?? false;
       this.error = null;
     }
   }
@@ -93,15 +90,6 @@ export class CofyCommunityDialog extends CofyElement {
               this.description = this.inputValue(event);
             }}
           ></wa-textarea>
-          <wa-switch
-            hint=${this.t("communityDialog.debugModeHint")}
-            .checked=${this.debugMode}
-            @change=${(event: Event): void => {
-              this.debugMode = (event.target as HTMLElement & { checked?: boolean }).checked ?? false;
-            }}
-          >
-            ${this.t("communityDialog.debugMode")}
-          </wa-switch>
         </div>
         <wa-button slot="footer" appearance="plain" @click=${(): void => this.close()}>
           ${this.t("communityDialog.cancel")}
@@ -127,7 +115,7 @@ export class CofyCommunityDialog extends CofyElement {
   }
 
   private body(): CommunityBody {
-    return { title: this.communityTitle, description: this.description, debug_mode: this.debugMode };
+    return { title: this.communityTitle, description: this.description };
   }
 
   private async save(): Promise<void> {

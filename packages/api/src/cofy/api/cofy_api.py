@@ -1,5 +1,3 @@
-import tempfile
-from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar, Literal
 
 from fastapi import Depends, FastAPI, Request
@@ -38,8 +36,6 @@ class CofyAPISettings(BaseSettingsModel):
     type: Literal["cofy_api"] = "cofy_api"
     title: str = DEFAULT_ARGS["title"]
     description: str = DEFAULT_ARGS["description"]
-    debug_mode: bool = False
-    debug_dir: Path | None = None
     revision: int | None = None
     modules: "list[AnyModuleSettings]" = []
     auth: "AnyAuthSettings | None" = None
@@ -64,8 +60,6 @@ class CofyAPI(FastAPI, FromSettingsMixin, settings=CofyAPISettings):
         self,
         *,
         auth: Auth | None = None,
-        debug_mode: bool = False,
-        debug_dir: Path | None = None,
         revision: int | None = None,
         modules: list[Module] | None = None,
         **kwargs,
@@ -83,14 +77,6 @@ class CofyAPI(FastAPI, FromSettingsMixin, settings=CofyAPISettings):
         self._modules: list[Module] = []
         self.include_router(DocsRouter(self.openapi))
         self.add_route("/health", self.health_check, methods=["GET"])
-
-        if debug_mode:
-            from .debug_middleware import DebugMiddleware  # noqa: PLC0415
-            from .debug_router import DebugRouter  # noqa: PLC0415
-
-            resolved_debug_dir = debug_dir or Path(tempfile.mkdtemp(prefix="cofy_debug_"))
-            self.add_middleware(DebugMiddleware, debug_dir=resolved_debug_dir)
-            self.include_router(DebugRouter(debug_dir=resolved_debug_dir), include_in_schema=False)
 
         if modules is not None:
             for module in modules:

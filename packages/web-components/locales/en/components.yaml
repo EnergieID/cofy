@@ -26,8 +26,6 @@ communityDialog:
   slugHint: The community's name in its API address. Letters, digits, - and _ only; it cannot be changed later.
   name: Name
   description: Description
-  debugMode: Debug mode
-  debugModeHint: Records debug traces of what the API computes.
   create: Create
   save: Save
   saving: Saving…

@@ -5,8 +5,6 @@ The wire models here deliberately expose less than a stored config holds:
 - `modules` belongs to `ModulesRouter`. Editing a title should not require sending, or be
   able to disturb, every module in the community.
 - `auth` belongs to `TokensRouter`, which never reports a token's key or hash.
-- `debug_dir` is a local operational detail, and accepting a filesystem path from a client is
-  a capability this API has no reason to hand out.
 
 The listing answers "which communities may I see", so a client never has to work that out for
 itself; what it may do in each is reported by `/auth/me`.
@@ -40,7 +38,6 @@ class CommunityBody(BaseModel):
 
     title: str = Field(description="Human-readable name of the community.")
     description: str = Field("", description="What this community is for.")
-    debug_mode: bool = Field(False, description="Whether the runtime records debug traces.")
 
     def to_settings(self) -> CofyAPISettings:
         """Carry the writable fields into a settings object.
@@ -51,7 +48,6 @@ class CommunityBody(BaseModel):
         return CofyAPISettings(
             title=self.title,
             description=self.description,
-            debug_mode=self.debug_mode,
         )
 
 
@@ -73,7 +69,6 @@ class CommunityInfo(CommunityBody):
             slug=slug,
             title=settings.title,
             description=settings.description,
-            debug_mode=settings.debug_mode,
             module_count=len(settings.modules),
             revision=settings.revision,
             api_url=api_url,
