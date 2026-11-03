@@ -17,6 +17,7 @@ dependencies = [
     "opentelemetry-instrumentation-requests>=0.66b1",
     "opentelemetry-sdk>=1.44.0",
     "PyYAML>=6.0.0",
+    "uvicorn[standard]>=0.30.0",
 ]
 
 [tool.uv.sources]
@@ -37,6 +38,7 @@ namespaces = true
 [dependency-groups]
 dev = [
     "cofy-runner",
+    "httpx>=0.28.0",
     "poethepoet>=0.37.0",
     "pytest-cov>=7.0.0",
     "pytest>=9.0.2",

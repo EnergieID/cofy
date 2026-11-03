@@ -99,13 +99,13 @@ tasks:
     desc: Run the Python-defined cofy-api demo locally
     dotenv: ['.env.local']
     cmds:
-      - uv run --project packages/api fastapi dev apps/demo_cofy_api/main.py
+      - uv run --project packages/api uvicorn demo_cofy_api.main:app --app-dir apps --reload
 
   demo-cofy-api-settings:
     desc: Run the settings-file cofy-api demo locally
     dotenv: ['.env.local']
     cmds:
-      - uv run --project packages/api fastapi dev apps/demo_cofy_api_settings/main.py
+      - uv run --project packages/api uvicorn demo_cofy_api_settings.main:app --app-dir apps --reload
 
   demo-multitenant-reset:
     desc: Reset the multitenant demo's local data back to its committed seed

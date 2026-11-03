@@ -38,9 +38,10 @@ app = CofyAPI()
 app.register_module(TariffModule(source=EntsoeDayAheadTariffSource(api_key="YOUR_ENTSOE_KEY"), name="entsoe"))
 ```
 
-Run it:
+Run it, with FastAPI's development server - `fastapi[standard]` brings it, COFY doesn't:
 
 ```sh
+pip install "fastapi[standard]"
 fastapi dev app.py
 ```
 
