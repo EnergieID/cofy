@@ -24,7 +24,7 @@ RUN cd apps/management-web && npm run build
 # --- API build stage ---
 FROM python:3.12-alpine AS api-builder
 
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.9.21 /uv /usr/local/bin/uv
 
 WORKDIR /app
 

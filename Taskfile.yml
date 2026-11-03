@@ -82,6 +82,19 @@ tasks:
           (cd "$pkg" && npm install) || exit 1
         done'
 
+  upgrade:
+    desc: Move every package's lock to the newest versions its ranges allow, indirect dependencies included
+    cmds:
+      - uv lock --project packages/api --upgrade
+      - uv lock --project packages/management-api --upgrade
+      - uv lock --project packages/runner --upgrade
+      - |
+        bash -c '{{.WITH_NODE}}
+        for pkg in {{.NODE_PACKAGES}}; do
+          echo "--- $pkg"
+          (cd "$pkg" && npm update) || exit 1
+        done'
+
   demo-cofy-api:
     desc: Run the Python-defined cofy-api demo locally
     dotenv: ['.env.local']
