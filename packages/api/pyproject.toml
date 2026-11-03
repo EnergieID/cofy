@@ -27,14 +27,14 @@ tariff = [
 ]
 billing = [
     "cofy-api[timeseries]",
-    "energy-cost>=0.8.5,<0.9",
-    "pandas>=3.0.0"
+    "energy-cost>=0.9.0,<0.10",
+    "pandas>=2.2.0"
 ]
 production = [
     "cofy-api[timeseries]",
 ]
 members = [
-    "energy-cost>=0.8.5,<0.9",
+    "energy-cost>=0.9.0,<0.10",
 ]
 directive = [
     "cofy-api[timeseries]",
@@ -51,8 +51,8 @@ entsoe = [
 ]
 energy-cost = [
     "cofy-api[tariff]",
-    "energy-cost>=0.8.5,<0.9",
-    "pandas>=3.0.0"
+    "energy-cost>=0.9.0,<0.10",
+    "pandas>=2.2.0"
 ]
 energyid = [
     "cofy-api[production]",
