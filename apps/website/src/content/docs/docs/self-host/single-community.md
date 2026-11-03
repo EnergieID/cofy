@@ -18,10 +18,10 @@ You need Python 3.11 or newer.
 Install COFY with the extras of the modules and sources you use. For day-ahead prices from ENTSO-E:
 
 ```sh
-pip install "cofy-api[tariff,entsoe]"
+pip install "cofy-api[tariff,entsoe]" "fastapi[standard]"
 ```
 
-Each [module](/docs/modules/) and [source](/docs/sources/) page names its extra. `cofy-api[all]` installs everything.
+Each [module](/docs/modules/) and [source](/docs/sources/) page names its extra. `cofy-api[all]` installs everything. `fastapi[standard]` brings the `fastapi dev` and `fastapi run` commands used below; COFY doesn't need it, so leave it out if you run COFY with an ASGI server of your own.
 
 ## 2. Describe your community
 
