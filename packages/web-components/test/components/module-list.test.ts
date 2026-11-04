@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ApiClient, CofyStore, type ModuleSettings } from "@cofy/frontend-sdk";
+import { ApiClient, CofyStore, type Action, type ModuleSettings } from "@cofy/frontend-sdk";
 
 import { CofyModuleList } from "../../src/components/module/cofy-module-list.js";
 import { testI18n } from "../support/i18n.js";
@@ -10,9 +10,25 @@ const modules: ModuleSettings[] = [
   { type: "billing", name: "default" },
 ];
 
-function stubApi(state: { modules: ModuleSettings[] }): ApiClient {
+type Permission = { action: Action; subject: "modules" };
+
+/** What a community admin may do to modules: everything. */
+const ADMIN: Permission[] = (["create", "read", "update", "delete"] as const).map((action) => ({ action, subject: "modules" }));
+/** What a community editor may do to modules: see and change them, but not add or remove any. */
+const EDITOR: Permission[] = (["read", "update"] as const).map((action) => ({ action, subject: "modules" }));
+
+interface State {
+  modules: ModuleSettings[];
+  permissions?: Permission[];
+}
+
+function stubApi(state: State): ApiClient {
   const fetchStub = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const request = input instanceof Request ? input : new Request(input, init);
+    if (new URL(request.url).pathname === "/auth/me") {
+      const me = { email: "ann@example.com", name: "Ann", system_admin: false, permissions: [{ slug: "test", permissions: state.permissions ?? ADMIN }] };
+      return Promise.resolve(new Response(JSON.stringify(me), { status: 200, headers: { "content-type": "application/json" } }));
+    }
     if (request.method === "DELETE") {
       const name = new URL(request.url).pathname.split("/").pop()!;
       state.modules = state.modules.filter((module) => module.name !== name);
@@ -25,7 +41,7 @@ function stubApi(state: { modules: ModuleSettings[] }): ApiClient {
   return new ApiClient({ fetch: fetchStub, baseUrl: "http://localhost" });
 }
 
-async function mount(state: { modules: ModuleSettings[] }): Promise<CofyModuleList> {
+async function mount(state: State): Promise<CofyModuleList> {
   const element = new CofyModuleList();
   element.i18n = await testI18n();
   element.cofy = new CofyStore(stubApi(state));
@@ -157,5 +173,14 @@ describe("cofy-module-list", () => {
     await new Promise((resolve) => setTimeout(resolve, 10));
 
     expect(confirm.mock.calls[0]![0]).toContain("Delete entsoe? Its configuration");
+  });
+
+  it("offers neither adding nor deleting to whoever may only change modules", async () => {
+    const element = await mount({ modules: [...modules], permissions: EDITOR });
+    const root = element.shadowRoot!;
+
+    expect(rowNames(element)).toEqual(["tariff:entsoe", "tariff:kiwatt", "billing:default"]);
+    expect(root.querySelector('cofy-heading [slot="actions"]')).toBeNull();
+    expect(root.querySelector("tr[data-key] .actions wa-button")).toBeNull();
   });
 });

@@ -30,11 +30,12 @@ whether a community's API runs its latest settings.
 Opening the console sends you to the local identity provider ([`apps/dev_idp`](../dev_idp/docker-compose.yml))
 to log in. Its users all have the password `pwd`:
 
-| User         | Can                                                       |
-|--------------|-----------------------------------------------------------|
-| `admin`      | everything: a system admin                                |
-| `demo-admin` | manage the `demo` community                               |
-| `nobody`     | log in, and see that there is nothing for them            |
+| User          | Can                                                        |
+|---------------|------------------------------------------------------------|
+| `admin`       | everything: a system admin                                 |
+| `demo-admin`  | manage the `demo` community                                |
+| `demo-editor` | edit the `demo` community's modules, resources and secrets |
+| `nobody`      | log in, and see that there is nothing for them             |
 
 ## Data
 

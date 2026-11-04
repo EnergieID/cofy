@@ -30,7 +30,7 @@ const ADMIN: Me = {
     {
       slug: null,
       permissions: [
-        { action: "write", subject: "community" },
+        { action: "create", subject: "community" },
         { action: "read", subject: "allowed_types" },
       ],
     },

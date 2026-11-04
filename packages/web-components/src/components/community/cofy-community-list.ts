@@ -1,7 +1,7 @@
 import { css, html, nothing } from "lit";
 import type { TemplateResult } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import type { CommunityInfo, ProblemError } from "@cofy/frontend-sdk";
+import type { Action, CommunityInfo, ProblemError } from "@cofy/frontend-sdk";
 
 import "@awesome.me/webawesome/dist/components/button/button.js";
 import "@awesome.me/webawesome/dist/components/skeleton/skeleton.js";
@@ -66,7 +66,7 @@ export class CofyCommunityList extends CofyElement {
         <cofy-heading>
           <span slot="title">${this.t("communityList.title")}</span>
           <span slot="description">${this.t("communityList.description")}</span>
-          ${this.mayManage()
+          ${this.may("create")
             ? html`<wa-button
                 slot="actions"
                 variant="brand"
@@ -141,36 +141,38 @@ export class CofyCommunityList extends CofyElement {
 
   /** Each button stops its click, or the row's own handler would also open the community. */
   private actions(community: CommunityInfo): TemplateResult {
-    if (!this.mayManage()) return html``;
-
     return html`
-      <wa-button
-        appearance="plain"
-        size="small"
-        @click=${(event: MouseEvent): void => {
-          event.stopPropagation();
-          this.editing = community;
-        }}
-      >
-        ${this.t("communityList.edit")}
-      </wa-button>
-      <wa-button
-        appearance="plain"
-        size="small"
-        ?disabled=${this.deleting}
-        @click=${(event: MouseEvent): void => {
-          event.stopPropagation();
-          void this.deleteCommunity(community);
-        }}
-      >
-        ${this.deleting ? this.t("communityList.deleting") : this.t("communityList.delete")}
-      </wa-button>
+      ${this.may("update")
+        ? html`<wa-button
+            appearance="plain"
+            size="small"
+            @click=${(event: MouseEvent): void => {
+              event.stopPropagation();
+              this.editing = community;
+            }}
+          >
+            ${this.t("communityList.edit")}
+          </wa-button>`
+        : nothing}
+      ${this.may("delete")
+        ? html`<wa-button
+            appearance="plain"
+            size="small"
+            ?disabled=${this.deleting}
+            @click=${(event: MouseEvent): void => {
+              event.stopPropagation();
+              void this.deleteCommunity(community);
+            }}
+          >
+            ${this.deleting ? this.t("communityList.deleting") : this.t("communityList.delete")}
+          </wa-button>`
+        : nothing}
     `;
   }
 
-  /** Whether the person logged in may create and delete communities - outside any one of them. */
-  private mayManage(): boolean {
-    return this.cofy.session.can("write", "community", null);
+  /** Whether the person logged in may do *action* to communities - outside any one of them. */
+  private may(action: Action): boolean {
+    return this.cofy.session.can(action, "community", null);
   }
 
   private onSaved(slug: string): void {

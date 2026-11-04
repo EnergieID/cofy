@@ -113,7 +113,7 @@ tasks:
       - python3 apps/demo_multitenant/scripts/reset.py
 
   dev-idp:
-    desc: Run a local identity provider to log into the management console with (users admin, demo-admin, nobody; password pwd)
+    desc: Run a local identity provider to log into the management console with (users admin, demo-admin, demo-editor, nobody; password pwd)
     cmds:
       - docker compose -f apps/dev_idp/docker-compose.yml up
 

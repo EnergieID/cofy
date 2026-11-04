@@ -17,7 +17,7 @@ import { communitySlugContext } from "../../context.js";
 import { utilityStyles } from "../../theme/utility-styles.js";
 
 /** The roles a person can be granted. */
-export const ROLES: readonly Role[] = ["community_admin"];
+export const ROLES: readonly Role[] = ["community_admin", "community_editor"];
 
 /**
  * Grants a role on the community to a person, by email.
