@@ -15,7 +15,12 @@ import { themeStateContext } from "../../context.js";
 import { COLOR_SCHEMES, type ColorScheme, type ThemeState } from "../../theme/theme-state.js";
 
 /** The icon each scheme is shown with, on the button and in the menu. */
-const ICONS: Record<ColorScheme, string> = { system: "circle-half-stroke", light: "sun", dark: "moon" };
+const ICONS: Record<ColorScheme, string> = {
+  system: "circle-half-stroke",
+  light: "sun",
+  dark: "moon",
+  energyid: "palette",
+};
 
 /**
  * Chooses the colour scheme for the whole page, from an icon button. The button shows the same

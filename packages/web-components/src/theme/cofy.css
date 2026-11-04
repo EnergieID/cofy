@@ -286,3 +286,30 @@
   --wa-color-danger-on-quiet: var(--wa-color-danger-70);
   --wa-color-danger-on-normal: var(--wa-color-danger-80);
 }
+
+/*
+ * The console's header, as its own tokens so a theme can colour it apart from the page. By
+ * default it is the page: the brand in the brand colour, the controls and the trail as anywhere
+ * else.
+ */
+:root {
+  --cofy-header-background: var(--wa-color-surface-default);
+  --cofy-header-brand: var(--wa-color-brand-50);
+  --cofy-header-text: var(--wa-color-text-quiet);
+  --cofy-header-link: var(--wa-color-text-link);
+  --cofy-header-control: var(--wa-color-neutral-on-quiet);
+  --cofy-header-control-hover: var(--wa-color-neutral-fill-quiet);
+}
+
+/*
+ * The console's page and tables, as their own tokens so a theme can set them apart from the
+ * surface, and the surface a panel nested in another alternates with. By default they are all one
+ * surface: the page is the surface, a table sits flat on it, and a nested panel looks like the
+ * one around it.
+ */
+:root {
+  --cofy-page-background: var(--wa-color-surface-default);
+  --cofy-panel-background: transparent;
+  --cofy-panel-radius: 0;
+  --cofy-surface-alt: var(--wa-color-surface-default);
+}

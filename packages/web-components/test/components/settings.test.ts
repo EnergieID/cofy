@@ -27,7 +27,7 @@ describe("cofy-theme-picker", () => {
     document.body.replaceChildren();
   });
 
-  it("offers system, light and dark, named in the reader's language", async () => {
+  it("offers system, light, dark and EnergyID, named in the reader's language", async () => {
     const element = new CofyThemePicker();
     element.i18n = await testI18n();
     element.theme = new ThemeState({ storage: memoryStorage(), media: null });
@@ -35,8 +35,8 @@ describe("cofy-theme-picker", () => {
 
     const options = Array.from(element.shadowRoot!.querySelectorAll("wa-dropdown-item"));
 
-    expect(options.map((option) => option.getAttribute("value"))).toEqual(["system", "light", "dark"]);
-    expect(options.map((option) => option.textContent.trim())).toEqual(["System", "Light", "Dark"]);
+    expect(options.map((option) => option.getAttribute("value"))).toEqual(["system", "light", "dark", "energyid"]);
+    expect(options.map((option) => option.textContent.trim())).toEqual(["System", "Light", "Dark", "EnergyID"]);
   });
 
   it("switches the page's scheme when an item is picked", async () => {

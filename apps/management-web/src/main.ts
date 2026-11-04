@@ -36,6 +36,7 @@ import { RouteState } from "./states/route-state.js";
 import { MENU_FOOTER_GROUPS, MENU_GROUPS, routes } from "./routes.js";
 import "./styles.css";
 import "@cofy/web-components/theme/cofy.css";
+import "@cofy/web-components/theme/energyid.css";
 import "./brand.css";
 import "@cofy/web-components/theme/syntax.css";
 
@@ -86,6 +87,7 @@ export class CofyApp extends LitElement {
       wa-page {
         --menu-width-desktop: 16rem;
         --menu-width: 0px;
+        background-color: var(--cofy-page-background);
       }
       wa-page:has(> [slot="navigation"]) {
         --menu-width: var(--menu-width-desktop);
@@ -96,13 +98,22 @@ export class CofyApp extends LitElement {
       wa-page[view="desktop"]:has(> [slot="navigation"])::part(menu) {
         border-inline-end: var(--wa-border-width-s) solid var(--wa-color-surface-border);
       }
-      /* As high as the docs' header: Starlight's 3.5rem, and 4rem from 50rem on. */
+      /* As high as the docs' header, Starlight's 3.5rem and 4rem from 50rem on, unless the theme sets a height. */
       [slot="header"] {
         inline-size: 100%;
-        block-size: 3.5rem;
+        block-size: var(--cofy-header-height, 3.5rem);
         padding-block: 0;
         padding-inline: var(--wa-space-l);
         border-block-end: var(--wa-border-width-s) solid var(--wa-color-surface-border);
+        background-color: var(--cofy-header-background);
+        /* What the plain buttons in it are drawn with. Their menus draw nothing with these but a
+           submenu's arrow, so they keep the page's colours. */
+        --wa-color-neutral-on-quiet: var(--cofy-header-control);
+        --wa-color-neutral-fill-quiet: var(--cofy-header-control-hover);
+      }
+      [slot="header"] cofy-breadcrumbs {
+        --wa-color-text-link: var(--cofy-header-link);
+        --wa-color-text-quiet: var(--cofy-header-text);
       }
       /* On a short screen the menu scrolls above its foot, rather than running under it. */
       [slot="navigation"] {
@@ -120,23 +131,23 @@ export class CofyApp extends LitElement {
       /* The brand at the size the docs give it, on the website too: COFY in the brand colour, what
          this is beside it. */
       .brand {
-        color: var(--wa-color-brand-50);
+        color: var(--cofy-header-brand);
         font-size: var(--wa-font-size-xl);
         font-weight: var(--wa-font-weight-bold);
         text-decoration: none;
         white-space: nowrap;
       }
       .brand wa-icon {
-        font-size: var(--wa-space-2xl);
+        font-size: var(--cofy-header-logo-size, var(--wa-space-2xl));
       }
       .brand .sub-brand {
-        color: var(--wa-color-text-quiet);
+        color: var(--cofy-header-text);
         font-size: var(--wa-font-size-l);
         font-weight: var(--wa-font-weight-normal);
       }
       @media (min-width: 50rem) {
         [slot="header"] {
-          block-size: var(--wa-space-4xl);
+          block-size: var(--cofy-header-height, var(--wa-space-4xl));
         }
       }
       wa-page[view="mobile"] [slot="header"] {
@@ -157,7 +168,7 @@ export class CofyApp extends LitElement {
         font-size: var(--wa-font-size-l);
       }
       wa-page[view="mobile"] .brand wa-icon {
-        font-size: var(--wa-space-xl);
+        font-size: var(--cofy-header-logo-size, var(--wa-space-xl));
       }
       wa-page[view="mobile"] .brand .sub-brand {
         font-size: var(--wa-font-size-m);

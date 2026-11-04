@@ -43,7 +43,7 @@ function appliedScheme(): string {
 
 describe("ThemeState", () => {
   beforeEach(() => {
-    document.documentElement.classList.remove("wa-dark", "wa-light");
+    document.documentElement.classList.remove("wa-dark", "wa-light", "cofy-energyid");
     vi.restoreAllMocks();
   });
 
@@ -112,8 +112,28 @@ describe("ThemeState", () => {
     expect(() => new ThemeState({ media: fakeMedia(false) }).select("dark")).not.toThrow();
   });
 
-  it("offers exactly the three choices a picker renders", () => {
-    expect([...COLOR_SCHEMES]).toEqual(["system", "light", "dark"]);
+  it("offers exactly the four choices a picker renders", () => {
+    expect([...COLOR_SCHEMES]).toEqual(["system", "light", "dark", "energyid"]);
+  });
+
+  it("shows EnergyID as light, whatever the system asks for", () => {
+    const state = new ThemeState({ storage: memoryStorage("energyid"), media: fakeMedia(true) });
+    state.start();
+
+    expect(state.resolved).toBe("light");
+    expect(appliedScheme()).toBe("light");
+    expect(document.documentElement.classList.contains("cofy-energyid")).toBe(true);
+    state.stop();
+  });
+
+  it("drops EnergyID's class when another scheme is chosen", () => {
+    const state = new ThemeState({ storage: memoryStorage("energyid"), media: fakeMedia(false) });
+    state.start();
+
+    state.select("light");
+
+    expect(document.documentElement.classList.contains("cofy-energyid")).toBe(false);
+    state.stop();
   });
 });
 

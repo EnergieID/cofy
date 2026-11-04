@@ -129,6 +129,7 @@ settings:
       system: Systeem
       light: Licht
       dark: Donker
+      energyid: EnergieID
   language:
     legend: Taal
     choose: Kies een taal

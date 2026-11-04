@@ -16,7 +16,8 @@
       "default": "./dist/components/*.js"
     },
     "./theme/syntax.css": "./dist/theme/syntax.css",
-    "./theme/cofy.css": "./dist/theme/cofy.css"
+    "./theme/cofy.css": "./dist/theme/cofy.css",
+    "./theme/energyid.css": "./dist/theme/energyid.css"
   },
   "files": [
     "dist",
@@ -31,7 +32,7 @@
     "node": ">=24"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && vite build --config vite.build.config.ts && cp src/theme/syntax.css src/theme/cofy.css dist/theme/",
+    "build": "tsc -p tsconfig.build.json && vite build --config vite.build.config.ts && cp src/theme/syntax.css src/theme/cofy.css src/theme/energyid.css dist/theme/",
     "check": "tsc -p tsconfig.json",
     "lint": "eslint .",
     "format": "eslint . --fix",
