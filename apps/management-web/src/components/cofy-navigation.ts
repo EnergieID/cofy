@@ -10,7 +10,7 @@ import "@awesome.me/webawesome/dist/components/icon/icon.js";
 
 import { routeStateContext } from "../context.js";
 import { APP_NAMESPACE } from "../i18n.js";
-import { MENU_GROUPS, type RouteName } from "../routes.js";
+import { type RouteName } from "../routes.js";
 import type { MenuItem, RouteState } from "../states/route-state.js";
 
 /**
