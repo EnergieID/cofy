@@ -7,9 +7,12 @@ import "@cofy/web-components";
 
 import { CofyPage } from "./cofy-page.js";
 
-/** Which communities may use each type - for a system admin. */
-@customElement("cofy-allowed-page")
-export class CofyAllowedPage extends CofyPage {
+/**
+ * Home, for someone with no community to go to: what to do about it. Everyone else is sent on to
+ * their communities by the route.
+ */
+@customElement("cofy-home-page")
+export class CofyHomePage extends CofyPage {
   public static override styles = css`
     :host {
       display: block;
@@ -17,17 +20,21 @@ export class CofyAllowedPage extends CofyPage {
   `;
 
   protected override crumbs(): Crumb[] {
-    return [{ label: this.t("allowed.crumb") }];
+    return [];
   }
 
   protected override content(): TemplateResult {
-    // The table carries its own title, so the page adds no chrome of its own.
-    return html`<cofy-availability-list></cofy-availability-list>`;
+    return html`
+      <cofy-heading>
+        <span slot="title">${this.t("home.title")}</span>
+        <span slot="description">${this.t("home.noAccess")}</span>
+      </cofy-heading>
+    `;
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    "cofy-allowed-page": CofyAllowedPage;
+    "cofy-home-page": CofyHomePage;
   }
 }

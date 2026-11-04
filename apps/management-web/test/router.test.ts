@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { html } from "lit";
 import type { TemplateResult } from "lit";
 
-import { buildHash, buildPath, matchRoute, pathFromHash, type RouteTable } from "../src/router.js";
+import { buildHash, buildPath, isWithin, paramsFor, matchRoute, pathFromHash, type RouteTable } from "../src/router.js";
 
 const routes = {
   communities: { path: "/", render: (): TemplateResult => html`root` },
@@ -86,5 +86,29 @@ describe("hashes", () => {
     ["", "/"],
   ])("reads %s as %s", (hash, path) => {
     expect(pathFromHash(hash)).toBe(path);
+  });
+});
+
+describe("paramsFor", () => {
+  it("takes the parameters a pattern names, and only those", () => {
+    expect(paramsFor("/", { slug: "foo" })).toEqual({});
+    expect(paramsFor("/communities/:slug", { slug: "foo", name: "bar" })).toEqual({ slug: "foo" });
+  });
+
+  it("gives nothing when a parameter is missing", () => {
+    expect(paramsFor("/communities/:slug", {})).toBeUndefined();
+    expect(paramsFor("/communities/:slug/modules/:type/:name", { slug: "foo" })).toBeUndefined();
+  });
+});
+
+describe("isWithin", () => {
+  it.each([
+    ["/communities/foo", "/communities/foo", true],
+    ["/communities/foo/secrets", "/communities/foo", true],
+    ["/communities/foo", "/", true],
+    ["/communities/foobar", "/communities/foo", false],
+    ["/communities/foo", "/communities/foo/secrets", false],
+  ])("finds %s within %s: %s", (path, prefix, within) => {
+    expect(isWithin(path, prefix)).toBe(within);
   });
 });

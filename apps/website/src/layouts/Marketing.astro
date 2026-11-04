@@ -7,9 +7,9 @@
 import "@awesome.me/webawesome/dist/styles/webawesome.css";
 import "@cofy/web-components/theme/cofy.css";
 import "../styles/site.css";
+import Brand from "../components/Brand.astro";
 import Credits from "../components/Credits.astro";
 import ThemePicker from "../components/ThemePicker.astro";
-import logo from "../assets/logo.svg";
 import { appUrl } from "../site";
 import { schemeScript } from "../scheme.mjs";
 
@@ -41,10 +41,7 @@ const links = [
   <body>
     <wa-page>
       <header slot="header" class="wa-split site-header">
-        <a href="/" class="brand wa-cluster wa-gap-xs">
-          <img src={logo.src} alt="" />
-          COFY
-        </a>
+        <Brand part=".cloud" href="/" />
         <div class="wa-cluster wa-gap-m">
           <nav class="wa-desktop-only wa-cluster wa-gap-l" aria-label="Main">
             {links.map((link) => <a href={link.href}>{link.label}</a>)}
@@ -95,27 +92,27 @@ const links = [
     display: none;
   }
 
+  /* As high as the docs' header: Starlight's 3.5rem, and 4rem from 50rem on. */
   .site-header {
     inline-size: 100%;
+    block-size: 3.5rem;
+    padding-block: 0;
     padding-inline: var(--wa-space-xl);
     border-block-end: var(--wa-border-width-s) solid var(--wa-color-surface-border);
   }
-  .site-header a,
+  @media (min-width: 50rem) {
+    .site-header {
+      block-size: var(--wa-space-4xl);
+    }
+  }
+  .site-header nav a,
   [slot="navigation"] a {
     color: var(--wa-color-text-normal);
     text-decoration: none;
   }
-  .site-header a:hover,
+  .site-header nav a:hover,
   [slot="navigation"] a:hover {
     color: var(--wa-color-text-link);
-  }
-  .site-header .brand {
-    font-size: var(--wa-font-size-l);
-    font-weight: var(--wa-font-weight-bold);
-    color: var(--wa-color-brand-50);
-  }
-  .brand img {
-    block-size: var(--wa-font-size-2xl);
   }
 
   /* Each section runs full width, and lines its content up in one centred column. */

@@ -3,15 +3,18 @@ import type { TemplateResult } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { repeat } from "lit/directives/repeat.js";
 
-import "@awesome.me/webawesome/dist/components/option/option.js";
-import "@awesome.me/webawesome/dist/components/select/select.js";
+import "@awesome.me/webawesome/dist/components/button/button.js";
+import "@awesome.me/webawesome/dist/components/dropdown/dropdown.js";
+import "@awesome.me/webawesome/dist/components/dropdown-item/dropdown-item.js";
+import "@awesome.me/webawesome/dist/components/icon/icon.js";
+import "../../icons.js";
 
 import { CofyElement } from "../../cofy-element.js";
 
 /**
- * Chooses the language for the whole page.
+ * Chooses the language for the whole page, from an icon button beside `cofy-theme-picker`.
  *
- * A select rather than radio buttons: the list of languages grows with the deployment, and a
+ * A menu rather than radio buttons: the list of languages grows with the deployment, and a
  * European product will not stop at two. With only one language there is nothing to choose, and
  * the element hides itself, so a layout around it doesn't leave room for it either.
  */
@@ -19,7 +22,7 @@ import { CofyElement } from "../../cofy-element.js";
 export class CofyLocalePicker extends CofyElement {
   public static override styles = css`
     :host {
-      display: block;
+      display: inline-block;
     }
     :host([hidden]) {
       display: none;
@@ -36,22 +39,25 @@ export class CofyLocalePicker extends CofyElement {
   public override render(): TemplateResult | typeof nothing {
     if (this.i18n === undefined || !this.offersAChoice()) return nothing;
     const languages = this.languages ?? this.configured();
+    const current = this.i18n.resolvedLanguage ?? this.i18n.language;
+    const label = `${this.t("settings.language.legend", { defaultValue: "Language" })}: ${this.nameOf(current)}`;
 
     return html`
-      <wa-select
-        label=${this.t("settings.language.legend", { defaultValue: "Language" })}
-        placeholder=${this.t("settings.language.choose", { defaultValue: "Choose a language" })}
-        .value=${this.i18n.resolvedLanguage ?? this.i18n.language}
+      <wa-dropdown
+        placement="bottom-end"
         lang=${this.i18n.resolvedLanguage ?? "en"}
-        @change=${(event: Event): void =>
-          this.select((event.target as HTMLElement & { value?: string }).value)}
+        @wa-select=${(event: CustomEvent<{ item: { value: string } }>): void => this.select(event.detail.item.value)}
       >
+        <wa-button slot="trigger" appearance="plain" title=${label}>
+          <wa-icon name="language" library="cofy" label=${label}></wa-icon>
+        </wa-button>
         ${repeat(
           languages,
           (language) => language,
-          (language): TemplateResult => html`<wa-option value=${language}>${this.nameOf(language)}</wa-option>`,
+          (language): TemplateResult =>
+            html`<wa-dropdown-item value=${language} lang=${language}>${this.nameOf(language)}</wa-dropdown-item>`,
         )}
-      </wa-select>
+      </wa-dropdown>
     `;
   }
 
@@ -72,8 +78,8 @@ export class CofyLocalePicker extends CofyElement {
     return supported.filter((language): language is string => typeof language === "string" && language !== "cimode");
   }
 
-  private select(language: string | undefined): void {
-    if (language === undefined || language === this.i18n?.resolvedLanguage) return;
+  private select(language: string): void {
+    if (language === this.i18n?.resolvedLanguage) return;
     void this.i18n?.changeLanguage(language);
   }
 }

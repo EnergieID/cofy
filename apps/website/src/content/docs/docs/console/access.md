@@ -5,11 +5,11 @@ sidebar:
   order: 4
 ---
 
-The Access tab lists who may manage this community. You see it if you are a community admin.
+The Access page lists who may manage this community. You see it if you are a community admin.
 
 ## Giving someone access
 
-1. On the Access tab, click **Grant access**.
+1. On the Access page, click **Grant access**.
 2. Enter the **email** address the person logs in with.
 3. Choose their **role**.
 4. Click **Grant**.

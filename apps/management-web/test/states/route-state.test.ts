@@ -15,7 +15,7 @@ const routes = {
 } satisfies RouteTable;
 
 /** Someone who may see the community "foo", and nothing else. */
-const access: Access = { can: (_action, _subject, slug) => slug === "foo" };
+const access: Access = { can: (_action, _subject, slug) => slug === "foo", get: () => undefined };
 
 describe("RouteState", () => {
   let state: RouteState;
@@ -108,5 +108,88 @@ describe("RouteState", () => {
     const rendered = JSON.stringify(state.render()!.values);
     expect(rendered).toContain("403");
     expect(rendered).not.toContain("modules");
+  });
+
+  describe("menu", () => {
+    const menuRoutes = {
+      communities: { path: "/", render: (): TemplateResult => html`root`, menu: { group: "top", icon: "home" } },
+      admin: {
+        path: "/admin",
+        render: (): TemplateResult => html`admin`,
+        // As the console's own rules do: about the community in the parameters, or none without one.
+        allows: (access: Access, { slug }): boolean => access.can("read", "allowed_types", slug ?? null),
+        menu: { group: "admin", icon: "sliders" },
+      },
+      modules: { path: "/communities/:slug", render: (): TemplateResult => html`modules`, menu: { group: "community", icon: "cubes" } },
+      secrets: {
+        path: "/communities/:slug/secrets",
+        render: (): TemplateResult => html`secrets`,
+        menu: { group: "community", icon: "lock" },
+      },
+      module: { path: "/communities/:slug/modules/:type/:name", render: (): TemplateResult => html`module` },
+    } satisfies RouteTable;
+
+    function menuAt(hash: string): ReturnType<RouteState["menu"]> {
+      window.location.hash = hash;
+      return new RouteState(menuRoutes, access).menu();
+    }
+
+    it("lists the pages with a place in it that may be seen, leaving out a community's outside one", () => {
+      expect(menuAt("#/").map((item) => item.name)).toEqual(["communities"]);
+    });
+
+    it("lists a community's pages inside it, addressed to it", () => {
+      const items = menuAt("#/communities/foo");
+
+      expect(items.map((item) => [item.name, item.group, item.icon, item.hash])).toEqual([
+        ["communities", "top", "home", "#/"],
+        ["modules", "community", "cubes", "#/communities/foo"],
+        ["secrets", "community", "lock", "#/communities/foo/secrets"],
+      ]);
+    });
+
+    it("marks the page showing as current", () => {
+      expect(menuAt("#/communities/foo/secrets").filter((item) => item.current).map((item) => item.name)).toEqual([
+        "secrets",
+      ]);
+    });
+
+    it("marks the page a page off the menu is reached from as current", () => {
+      const current = menuAt("#/communities/foo/modules/tariff/spot").filter((item) => item.current);
+
+      expect(current.map((item) => item.name)).toEqual(["modules"]);
+    });
+
+    it("asks a page's rule only about the parameters its own path has", () => {
+      // Inside "foo" only: may read allowed types there, but not outside any community.
+      expect(menuAt("#/communities/foo").map((item) => item.name)).not.toContain("admin");
+    });
+
+    it("leaves out a page its rule refuses", () => {
+      expect(menuAt("#/communities/bar").map((item) => item.name)).toEqual(["communities", "modules", "secrets"]);
+      const admin = new RouteState(menuRoutes, { can: (): boolean => true, get: (): undefined => undefined });
+      expect(admin.menu().map((item) => item.name)).toContain("admin");
+    });
+  });
+
+  describe("redirect", () => {
+    const homeRoutes = {
+      home: {
+        path: "/",
+        render: (): TemplateResult => html`list`,
+        redirect: (): string => "/communities/foo",
+        menu: { group: "top", icon: "home" },
+      },
+      modules: { path: "/communities/:slug", render: (): TemplateResult => html`modules`, menu: { group: "community", icon: "cubes" } },
+    } satisfies RouteTable;
+
+    it("shows the page a route sends to, as if it were the path", () => {
+      window.location.hash = "#/";
+      const home = new RouteState(homeRoutes, access);
+
+      expect(home.match()?.name).toBe("modules");
+      expect(home.match()?.params).toEqual({ slug: "foo" });
+      expect(home.menu().filter((item) => item.current).map((item) => item.name)).toEqual(["modules"]);
+    });
   });
 });

@@ -45,6 +45,10 @@ runs it beside them on the same server.
   Awesome's `wa-light` / `wa-dark` class in step with Starlight's theme switch. Both halves
   remember the reader's choice in the same place. The logo is
   [src/assets/logo.svg](src/assets/logo.svg), the favicon [public/favicon.svg](public/favicon.svg).
+- **Brand** - [src/components/Brand.astro](src/components/Brand.astro) is the logo and name in
+  the header: "COFY.cloud" on the marketing pages, and "COFY docs" in the docs through
+  [src/components/SiteTitle.astro](src/components/SiteTitle.astro). The console draws "COFY
+  console" at the same size.
 - **Footer** - [src/components/Credits.astro](src/components/Credits.astro): links, the EU
   co-funding line and EnergyID's legal details, on every page: across the bottom of the docs
   through [src/components/PageFrame.astro](src/components/PageFrame.astro), and in the marketing

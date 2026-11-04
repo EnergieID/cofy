@@ -4,14 +4,21 @@ import type { TemplateResult } from "lit";
 /** The values a path's `:name` segments captured. */
 export type RouteParams = Record<string, string>;
 
-/** What a route's rule asks of who is logged in: what they may do. */
-export type Access = Pick<SessionStore, "can">;
+/** What a route's rules ask of who is logged in: what they may do, and where. */
+export type Access = Pick<SessionStore, "can" | "get">;
+
+/** Where a page is listed in the menu: under which group, with which icon. */
+export interface MenuEntry {
+  group: string;
+  /** A Font Awesome icon name, bundled in `icons.ts`. */
+  icon: string;
+}
 
 /**
  * One route.
  *
  * The shape follows `@lit-labs/router`'s route config: a path pattern, and a render function
- * taking the captured parameters - and, beside them, who may see it.
+ * taking the captured parameters - and, beside them, who may see it and where the menu lists it.
  */
 export interface RouteDefinition {
   /** A pattern such as `/communities/:slug/modules/:type/:name`. Segments starting with `:` capture. */
@@ -19,6 +26,10 @@ export interface RouteDefinition {
   render: (params: RouteParams) => TemplateResult;
   /** Whether the person logged in may see the page; anyone logged in may, without a rule. */
   allows?: (access: Access, params: RouteParams) => boolean;
+  /** The page's place in the menu; a page reached only from another one has none. */
+  menu?: MenuEntry;
+  /** Another path to show instead, for some: their own home, say. Without one, or when it gives none, this page shows. */
+  redirect?: (access: Access) => string | undefined;
 }
 
 /** A set of routes, keyed by name. */
@@ -47,6 +58,28 @@ export function matchRoute<Name extends string>(
     if (params !== undefined) return { name: name as Name, route, params };
   }
   return undefined;
+}
+
+/**
+ * The parameters *pattern* names, taken from *params* - or `undefined` when one is missing.
+ *
+ * Only those: a rule asking about a page outside any community must not be answered for the
+ * community the reader happens to be in.
+ */
+export function paramsFor(pattern: string, params: RouteParams): RouteParams | undefined {
+  const own: RouteParams = {};
+  for (const segment of split(pattern).filter((part) => part.startsWith(":"))) {
+    const value = params[segment.slice(1)];
+    if (value === undefined) return undefined;
+    own[segment.slice(1)] = value;
+  }
+  return own;
+}
+
+/** Whether *path* is *prefix* or lies under it, segment by segment: `/communities/foo/secrets` lies under `/communities/foo`. */
+export function isWithin(path: string, prefix: string): boolean {
+  const segments = split(path);
+  return split(prefix).every((segment, index) => segments[index] === segment);
 }
 
 /** Fill a pattern's parameters, e.g. `/communities/:slug` with `{slug: "foo"}` gives `/communities/foo`. */
