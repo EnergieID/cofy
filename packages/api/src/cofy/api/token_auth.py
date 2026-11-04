@@ -7,13 +7,13 @@ from datetime import UTC, datetime
 from typing import Literal, Self
 from urllib.parse import parse_qsl, urlencode
 
-from fastapi import Depends, HTTPException, Request
+from fastapi import Depends, Request
 from fastapi.security import APIKeyHeader, APIKeyQuery
 from opentelemetry import trace
 from pydantic import BaseModel, Field, model_validator
-from starlette.status import HTTP_401_UNAUTHORIZED
 from starlette.types import ASGIApp, Receive, Scope, Send
 
+from .errors import NotAuthenticatedError
 from .from_settings_mixin import BaseSettingsModel, FromSettingsMixin
 from .secret import NAME_PATTERN, SecretValue
 
@@ -125,17 +125,17 @@ class TokenAuth(Auth, settings=TokenAuthSettings):
             }
         if not token:
             if header_token:
-                raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="Invalid token format")
+                raise NotAuthenticatedError("Invalid token format")
 
-            raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="Missing token")
+            raise NotAuthenticatedError("Missing token")
 
         # Looked up by hash, which an attacker can't steer, so the lookup's timing reveals nothing of the stored keys.
         token_info = self.tokens.get(hash_key(token))
         if not token_info:
-            raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="Invalid token")
+            raise NotAuthenticatedError("Invalid token")
 
         if token_info.is_expired():
-            raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="Token expired")
+            raise NotAuthenticatedError("Token expired")
         request.state.token = token
         request.state.auth_info = auth_info
 

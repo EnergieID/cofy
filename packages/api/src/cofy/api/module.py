@@ -5,6 +5,7 @@ from typing import Any, Literal
 from fastapi import APIRouter
 from pydantic import Field
 
+from .errors import problem_response
 from .from_settings_mixin import BaseSettingsModel, FromSettingsMixin
 
 
@@ -53,11 +54,20 @@ class Module(APIRouter, FromSettingsMixin, ABC, settings=ModuleSettings, abstrac
     def init_routes(self):
         """Initialize the routes of the module."""
 
-    def add_api_route(self, path: str, endpoint: Any, *args, operation_id: str | None = None, **kwargs):
-        """Add an API route to the module."""
+    def add_api_route(
+        self,
+        path: str,
+        endpoint: Any,
+        *args,
+        operation_id: str | None = None,
+        responses: dict[int | str, dict[str, Any]] | None = None,
+        **kwargs,
+    ):
+        """Add an API route to the module, documenting the problem document of a request that failed validation."""
         operation_id = f"{self.id}:{operation_id or endpoint.__name__}"
+        responses = {422: problem_response("Validation failed"), **(responses or {})}
 
-        super().add_api_route(path, endpoint, *args, operation_id=operation_id, **kwargs)
+        super().add_api_route(path, endpoint, *args, operation_id=operation_id, responses=responses, **kwargs)
 
     @property
     def name(self) -> str:

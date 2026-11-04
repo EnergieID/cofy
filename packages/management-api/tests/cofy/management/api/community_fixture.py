@@ -11,7 +11,7 @@ from fastapi.testclient import TestClient
 from cofy.management.api.modules import ModulesRouter
 from cofy.management.api.resources import ResourcesRouter
 from cofy.management.api.secrets import SecretsRouter
-from cofy.management.errors import add_exception_handlers
+from cofy.management.errors import EXCEPTION_HANDLERS
 from cofy.management.persitance.file.modules import FileModulesPersistence
 from cofy.management.persitance.file.resources import FileResourcesPersistence
 from cofy.management.persitance.file.secrets import FileSecretsPersistence
@@ -56,8 +56,7 @@ def write_community(path: Path) -> None:
 
 
 def client_for(path: Path) -> TestClient:
-    app = FastAPI()
-    add_exception_handlers(app)
+    app = FastAPI(exception_handlers=EXCEPTION_HANDLERS)
     log_in_as_system_admin(app)
     modules, resources, secrets = (
         FileModulesPersistence(path),

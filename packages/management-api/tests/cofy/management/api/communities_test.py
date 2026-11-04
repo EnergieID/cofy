@@ -20,7 +20,7 @@ from cofy.management.auth.access import Grant, Role
 from cofy.management.auth.user import User
 from cofy.management.community_api import CommunityApi
 from cofy.management.domain.availability import Availability
-from cofy.management.errors import add_exception_handlers
+from cofy.management.errors import EXCEPTION_HANDLERS
 from cofy.management.persitance.file.communities import FileCommunitiesPersistence
 from cofy.management.persitance.file.grants import FileGrantsPersistence
 
@@ -60,8 +60,7 @@ def tmp_data(tmp_path: Path) -> Path:
 
 @pytest.fixture()
 def client(tmp_data: Path) -> TestClient:
-    app = FastAPI()
-    add_exception_handlers(app)
+    app = FastAPI(exception_handlers=EXCEPTION_HANDLERS)
     log_in_as_system_admin(app)
     app.include_router(
         CommunitiesRouter(
@@ -96,8 +95,7 @@ def test_listing_reports_module_counts(client: TestClient):
 
 
 def test_listing_is_empty_when_no_communities_exist(tmp_path: Path):
-    app = FastAPI()
-    add_exception_handlers(app)
+    app = FastAPI(exception_handlers=EXCEPTION_HANDLERS)
     log_in_as_system_admin(app)
     app.include_router(
         CommunitiesRouter(
@@ -233,8 +231,7 @@ def test_create_duplicate_slug_returns_409(client: TestClient, tmp_data: Path):
 
 def test_create_in_a_missing_data_directory_creates_it(tmp_path: Path):
     data_dir = tmp_path / "not-yet"
-    app = FastAPI()
-    add_exception_handlers(app)
+    app = FastAPI(exception_handlers=EXCEPTION_HANDLERS)
     log_in_as_system_admin(app)
     app.include_router(
         CommunitiesRouter(
@@ -332,8 +329,7 @@ def test_an_empty_config_file_is_reported_as_broken_rather_than_a_blank_communit
 
 
 def client_as(tmp_data: Path, logged_in: User) -> TestClient:
-    app = FastAPI()
-    add_exception_handlers(app)
+    app = FastAPI(exception_handlers=EXCEPTION_HANDLERS)
     log_in(app, logged_in)
     app.include_router(
         CommunitiesRouter(
@@ -408,8 +404,7 @@ def test_a_failed_delete_leaves_the_community_without_access_rather_than_access_
         raise OSError("disk full")
 
     monkeypatch.setattr(FileCommunitiesPersistence, "delete", failing_delete)
-    app = FastAPI()
-    add_exception_handlers(app)
+    app = FastAPI(exception_handlers=EXCEPTION_HANDLERS)
     log_in_as_system_admin(app)
     app.include_router(
         CommunitiesRouter(FileCommunitiesPersistence(tmp_data), grants, allowed_types_in(tmp_data), API).router

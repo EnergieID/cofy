@@ -1,5 +1,13 @@
 from .cofy_api import CofyAPI
 from .docs_router import DocsRouter
+from .errors import (
+    CofyError,
+    NotAuthenticatedError,
+    NotFoundError,
+    SourceError,
+    SourceUnauthorizedError,
+    ValidationFailedError,
+)
 from .from_settings_mixin import BaseSettingsModel, FromSettingsMixin, finalize
 from .json_schema import schema_without
 from .module import Module, ModuleSettings
@@ -12,6 +20,12 @@ from .version import __version__
 __all__ = [
     "CofyAPI",
     "DocsRouter",
+    "CofyError",
+    "NotAuthenticatedError",
+    "NotFoundError",
+    "SourceError",
+    "SourceUnauthorizedError",
+    "ValidationFailedError",
     "BaseSettingsModel",
     "FromSettingsMixin",
     "finalize",

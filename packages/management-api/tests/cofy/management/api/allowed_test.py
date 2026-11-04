@@ -15,7 +15,7 @@ from cofy.management.api.community_allowed_types import CommunityAllowedTypesRou
 from cofy.management.api.modules import ModulesRouter
 from cofy.management.api.resources import ResourcesRouter
 from cofy.management.auth.access import Role
-from cofy.management.errors import add_exception_handlers
+from cofy.management.errors import EXCEPTION_HANDLERS
 from cofy.management.persitance.file.communities import FileCommunitiesPersistence
 from cofy.management.persitance.file.modules import FileModulesPersistence
 from cofy.management.persitance.file.resources import FileResourcesPersistence
@@ -36,8 +36,7 @@ def tmp_data(tmp_path: Path) -> Path:
 
 
 def app_for(tmp_data: Path) -> FastAPI:
-    app = FastAPI()
-    add_exception_handlers(app)
+    app = FastAPI(exception_handlers=EXCEPTION_HANDLERS)
     allowed = allowed_in(tmp_data)
     modules, resources = FileModulesPersistence(tmp_data), FileResourcesPersistence(tmp_data)
     app.include_router(AllowedTypesRouter(allowed, FileCommunitiesPersistence(tmp_data)).router)

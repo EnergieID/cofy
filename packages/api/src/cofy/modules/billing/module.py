@@ -1,9 +1,8 @@
 from typing import Literal
 
 from energy_cost import PowerDirection
-from fastapi import HTTPException
 
-from cofy.api import Module, ModuleSettings
+from cofy.api import Module, ModuleSettings, ValidationFailedError
 
 from .models.billing_request import BillingRequest
 from .models.billing_response import BillingMetadata, BillingResponse
@@ -28,10 +27,10 @@ class BillingModule(Module, settings=BillingModuleSettings):
                     output_resolution=body.resolution,
                 )
             except ValueError as e:
-                raise HTTPException(status_code=400, detail=str(e)) from e
+                raise ValidationFailedError(str(e)) from e
 
             if df is None:
-                raise HTTPException(status_code=400, detail="No cost data could be calculated for the given period.")
+                raise ValidationFailedError("No cost data could be calculated for the given period.")
 
             return BillingResponse.from_df(
                 df,

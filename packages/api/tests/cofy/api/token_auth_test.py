@@ -14,6 +14,7 @@ from pydantic import ValidationError
 from starlette.status import HTTP_401_UNAUTHORIZED
 
 from cofy.api import CofyAPI, TokenAuth, TokenAuthSettings, TokenInfo, generate_key, hash_key
+from cofy.api.errors import EXCEPTION_HANDLERS
 from cofy.api.token_auth import _base62
 
 # Example tokens for testing
@@ -31,7 +32,7 @@ class TestTokenAuth:
         return {"message": "Access granted"}
 
     def setup_method(self):
-        self.app = FastAPI(dependencies=[Depends(TokenAuth(tokens).verify)])
+        self.app = FastAPI(dependencies=[Depends(TokenAuth(tokens).verify)], exception_handlers=EXCEPTION_HANDLERS)
         self.app.add_api_route("/protected", self.protected)
         self.client = TestClient(self.app)
 

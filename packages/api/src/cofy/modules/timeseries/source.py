@@ -5,7 +5,7 @@ from typing import Any, Literal
 from opentelemetry import trace
 from pydantic import Field
 
-from cofy.api import BaseSettingsModel, FromSettingsMixin, Referable
+from cofy.api import BaseSettingsModel, CofyError, FromSettingsMixin, Referable, SourceError, SourceUnauthorizedError
 
 from .cache import CacheSettings, TimeseriesCache
 from .model import ISODuration, Timeseries
@@ -43,7 +43,10 @@ class TimeseriesSource(FromSettingsMixin, ABC, settings=TimeseriesSourceSettings
         resolution: ISODuration,
         **kwargs,
     ) -> Timeseries:
-        """Fetch timeseries data between start and end datetimes with the given resolution, from the cache if enabled."""
+        """Fetch timeseries data between start and end datetimes with the given resolution, from the cache if enabled.
+
+        Anything the source raises other than a `CofyError` is a `SourceError`, its cause logged rather than shown.
+        """
         attributes = {
             "cofy.source": type(self).__name__,
             "cofy.timeseries.start": start.isoformat(),
@@ -51,10 +54,15 @@ class TimeseriesSource(FromSettingsMixin, ABC, settings=TimeseriesSourceSettings
             "cofy.timeseries.resolution": str(resolution),
         }
         with TRACER.start_as_current_span("fetch timeseries", attributes=attributes) as span:
-            if self._cache is not None:
-                timeseries = await self._cache.fetch(start, end, resolution, **kwargs)
-            else:
-                timeseries = await self._fetch_timeseries(start, end, resolution, **kwargs)
+            try:
+                if self._cache is not None:
+                    timeseries = await self._cache.fetch(start, end, resolution, **kwargs)
+                else:
+                    timeseries = await self._fetch_timeseries(start, end, resolution, **kwargs)
+            except CofyError:
+                raise
+            except Exception as exc:
+                raise _source_error(exc) from exc
             span.set_attributes(_summary(timeseries))
             return timeseries
 
@@ -87,6 +95,14 @@ class TimeseriesSource(FromSettingsMixin, ABC, settings=TimeseriesSourceSettings
     def max_age(self) -> dt.timedelta | None:
         """Optionally specify how long fetched data stays valid, used for caching. None means unknown."""
         return None
+
+
+def _source_error(exc: Exception) -> SourceError:
+    # httpx and requests both raise for an error status with the response attached
+    response = getattr(exc, "response", None)
+    if getattr(response, "status_code", None) in (401, 403):
+        return SourceUnauthorizedError("The service this source fetches from rejected its credentials.")
+    return SourceError("The source failed to deliver its data.")
 
 
 def _summary(timeseries: Timeseries) -> dict[str, int | str]:

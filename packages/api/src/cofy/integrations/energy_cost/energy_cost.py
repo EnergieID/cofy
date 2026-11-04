@@ -7,7 +7,7 @@ from fastapi import Query
 from isodate import Duration
 from pydantic import Field
 
-from cofy.api import Referable
+from cofy.api import Referable, ValidationFailedError
 from cofy.modules.tariff import PriceSource, PriceSourceSettings
 from cofy.modules.timeseries import CacheSettings, ISODuration, Timeseries
 from energy_cost import CostGroup, Tariff
@@ -39,12 +39,13 @@ class EnergyCostTariffSource(PriceSource, settings=EnergyCostTariffSourceSetting
         **kwargs,
     ) -> Timeseries:
         if isinstance(resolution, Duration):
-            raise ValueError(
-                "Resolution only support time components, not years or months, as they cannot be converted to a fixed number of seconds."
+            raise ValidationFailedError(
+                "Resolution only support time components, not years or months, as they cannot be converted to a fixed number of seconds.",
+                loc=("query", "resolution"),
             )
         cost_group = cost_group or self.cost_group
         if cost_group is None:
-            raise ValueError("Cost group must be provided.")
+            raise ValidationFailedError("Cost group must be provided.", loc=("query", "cost_group"))
         series = await asyncio.to_thread(
             self.tariff.get_values,
             start=start,
@@ -53,7 +54,12 @@ class EnergyCostTariffSource(PriceSource, settings=EnergyCostTariffSourceSetting
             cost_group=cost_group,
         )
         if series is None:
-            raise ValueError("No tariff data available for the given parameters.")
+            return Timeseries(
+                frame=pd.DataFrame(
+                    {"timestamp": pd.Series(dtype="datetime64[ns, UTC]"), "value": pd.Series(dtype=float)}
+                ),
+                metadata={"unit": "EUR/MWh"},
+            )
         df = series.rename(columns={"total": "value"})
         df = df[df["value"].notna()].copy()
         df["timestamp"] = pd.to_datetime(df["timestamp"])

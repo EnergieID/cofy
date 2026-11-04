@@ -3,9 +3,9 @@ import datetime as dt
 from typing import Literal
 
 import energy_cost as ec
-from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from cofy.api import CofyAPI
 from cofy.modules.members import (
     Address,
     ConnectionType,
@@ -99,7 +99,7 @@ class DummyMemberSource(MemberSource[Member], settings=DummyMemberSourceSettings
 
 
 def test_members_module_list_and_verify_routes():
-    app = FastAPI()
+    app = CofyAPI()
     module = MembersModule(source=DummyMemberSource(), name="dummy")
     app.include_router(module)
     client = TestClient(app)
@@ -117,7 +117,7 @@ def test_members_module_list_and_verify_routes():
 
 
 def test_members_module_get_by_id():
-    app = FastAPI()
+    app = CofyAPI()
     module = MembersModule(source=DummyMemberSource(), name="dummy")
     app.include_router(module)
     client = TestClient(app)
@@ -131,7 +131,7 @@ def test_members_module_get_by_id():
 
 
 def test_removed_activation_get_endpoints_return_404():
-    app = FastAPI()
+    app = CofyAPI()
     module = MembersModule(source=DummyMemberSource(), name="dummy")
     app.include_router(module)
     client = TestClient(app)
@@ -145,7 +145,7 @@ def test_removed_activation_get_endpoints_return_404():
 
 class TestGetContractHistory:
     def setup_method(self):
-        app = FastAPI()
+        app = CofyAPI()
         module = MembersModule(source=DummyMemberSource(), name="dummy")
         app.include_router(module)
         self.client = TestClient(app)
@@ -197,7 +197,7 @@ class TestGetContractHistory:
         )
         source.members[0].addresses[0].contracts = [variant_contract]
 
-        app = FastAPI()
+        app = CofyAPI()
         module = MembersModule(source=source, name="variant")
         app.include_router(module)
         client = TestClient(app)

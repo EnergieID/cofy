@@ -11,6 +11,8 @@ import narwhals as nw
 from opentelemetry import trace
 from pydantic import BaseModel, Field
 
+from cofy.api import ValidationFailedError
+
 from .alignment import floor_datetime
 from .model import ISODuration, ISOTimedelta, Timeseries
 
@@ -167,6 +169,9 @@ class TimeseriesCache:
         LOGGER.debug("Fetching [%s, %s)", run_start, run_end)
         try:
             timeseries = await self._fetch(run_start, run_end, resolution, **kwargs)
+        except ValidationFailedError:
+            # the request is wrong, which older data doesn't make right
+            raise
         except Exception:
             stale = {segment: self._entries.get((series, *segment)) for segment in run}
             if any(entry is None for entry in stale.values()):

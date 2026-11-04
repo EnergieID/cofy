@@ -7,6 +7,7 @@ import polars as pl
 from isodate import strftime
 from pydantic import Field
 
+from cofy.api import SourceError, ValidationFailedError
 from cofy.modules.timeseries import CacheSettings, ISODuration, NumericSource, NumericSourceSettings, Timeseries
 
 ELIA_BASE_URL = "https://opendata.elia.be/api/explore/v2.1/catalog/datasets"
@@ -79,9 +80,10 @@ class EliaSolarForecastSource(NumericSource, settings=EliaSolarForecastSourceSet
     ) -> Timeseries:
         resolution_iso = strftime(resolution, "P%P")
         if resolution_iso not in self.SUPPORTED_RESOLUTIONS:
-            raise ValueError(
+            raise ValidationFailedError(
                 f"Resolution {resolution_iso} is not supported. "
-                f"Supported resolutions are: {', '.join(self.SUPPORTED_RESOLUTIONS)}"
+                f"Supported resolutions are: {', '.join(self.SUPPORTED_RESOLUTIONS)}",
+                loc=("query", "resolution"),
             )
 
         queries = [(dataset, self._where(dataset)) for dataset in GRID_CONNECTION_TYPES]
@@ -131,14 +133,13 @@ class EliaSolarForecastSource(NumericSource, settings=EliaSolarForecastSourceSet
             limit=1,
         )
         if not records:
-            raise ValueError(f"Elia Open Data has no monitored capacity for {self.region}")
+            raise SourceError(f"Elia Open Data has no monitored capacity for {self.region}")
         return records[0]["monitoredcapacity"]
 
     @staticmethod
     async def _export(client: httpx.AsyncClient, dataset: str, **params) -> list[dict]:
         response = await client.get(f"/{dataset}/exports/json", params=params)
-        if response.status_code != 200:
-            raise ValueError(f"Failed to fetch {dataset} from Elia Open Data: {response.status_code} - {response.text}")
+        response.raise_for_status()
         return response.json()
 
     @staticmethod

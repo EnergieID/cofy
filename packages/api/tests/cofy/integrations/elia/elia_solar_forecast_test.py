@@ -7,6 +7,7 @@ import polars as pl
 import pytest
 from pydantic import ValidationError
 
+from cofy.api import SourceError
 from cofy.integrations.elia import EliaSolarForecastSource
 from cofy.modules.directive import DirectiveModule, DirectiveSource
 from cofy.modules.timeseries import TimeseriesSource
@@ -106,7 +107,7 @@ async def test_fetch_raises_without_capacity():
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(200, json=[])
 
-    with elia(handler), pytest.raises(ValueError, match="no monitored capacity"):
+    with elia(handler), pytest.raises(SourceError, match="no monitored capacity"):
         await EliaSolarForecastSource().fetch_timeseries(START, START + QUARTER_HOUR, QUARTER_HOUR)
 
 
@@ -131,7 +132,7 @@ async def test_fetch_includes_legacy_dataset_before_its_end():
 
 @pytest.mark.asyncio
 async def test_fetch_raises_on_error():
-    with elia(lambda _: httpx.Response(500, text="boom")), pytest.raises(ValueError, match="500"):
+    with elia(lambda _: httpx.Response(500, text="boom")), pytest.raises(SourceError, match="failed to deliver"):
         await EliaSolarForecastSource().fetch_timeseries(START, START + QUARTER_HOUR, QUARTER_HOUR)
 
 

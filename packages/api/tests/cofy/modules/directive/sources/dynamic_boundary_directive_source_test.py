@@ -3,6 +3,7 @@ import datetime as dt
 import pandas as pd
 import pytest
 
+from cofy.api import SourceError
 from cofy.modules.directive import BoundarySource, DynamicBoundaryDirectiveSource
 from cofy.modules.timeseries import ISODuration, NumericSource, Timeseries
 
@@ -97,7 +98,7 @@ async def test_fetch_timeseries_reversed():
 
 
 @pytest.mark.asyncio
-async def test_raises_value_error_when_boundaries_are_not_ascending():
+async def test_raises_source_error_when_boundaries_are_not_ascending():
     boundary_source = DummyBoundarySource(
         boundaries=[
             (5, 15, 25, 35),  # valid
@@ -106,7 +107,7 @@ async def test_raises_value_error_when_boundaries_are_not_ascending():
     )
     source = DynamicBoundaryDirectiveSource(DummyNumericSource(), boundary_source)
 
-    with pytest.raises(ValueError, match="ascending order"):
+    with pytest.raises(SourceError, match="ascending order"):
         await source.fetch_timeseries(
             dt.datetime(2026, 1, 1, 0, 0, tzinfo=dt.UTC),
             dt.datetime(2026, 1, 1, 2, 0, tzinfo=dt.UTC),

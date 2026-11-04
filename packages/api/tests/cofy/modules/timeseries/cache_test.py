@@ -13,7 +13,7 @@ from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
 from pydantic import ValidationError
 
-from cofy.api import finalize
+from cofy.api import SourceError, ValidationFailedError, finalize
 from cofy.modules.timeseries import (
     CacheSettings,
     Timeseries,
@@ -43,6 +43,7 @@ class CountingSource(TimeseriesSource):
         super().__init__(cache=cache)
         self.calls: list[tuple[dt.datetime, dt.datetime]] = []
         self.fail = False
+        self.error: Exception = RuntimeError("upstream down")
         self.delay = 0.0
         self._max_age = max_age
         self.backend = backend
@@ -52,7 +53,7 @@ class CountingSource(TimeseriesSource):
         self.calls.append((start, end))
         await asyncio.sleep(self.delay)
         if self.fail:
-            raise RuntimeError("upstream down")
+            raise self.error
 
         timestamps = []
         current = start - self.margin
@@ -255,7 +256,7 @@ async def test_locks_are_removed_after_use(clock):
         source.fetch_timeseries(T0, T0 + DAY, HOUR, country_code="NL"),
     )
     upstream.fail = True
-    with pytest.raises(RuntimeError):
+    with pytest.raises(SourceError):
         await source.fetch_timeseries(T0, T0 + DAY, HOUR, country_code="DE")
 
     assert source.cache is not None
@@ -277,13 +278,29 @@ async def test_stale_chunks_are_served_when_upstream_fails(clock):
 
 
 @pytest.mark.asyncio
+async def test_stale_chunks_are_not_served_for_a_request_that_failed_validation(clock):
+    upstream = CountingSource(cache=CacheSettings())
+    source = upstream
+
+    await source.fetch_timeseries(T0, T0 + DAY, HOUR)
+    clock[0] += 7200
+    upstream.fail = True
+    upstream.error = ValidationFailedError("not like this")
+
+    with pytest.raises(ValidationFailedError):
+        await source.fetch_timeseries(T0, T0 + DAY, HOUR)
+
+
+@pytest.mark.asyncio
 async def test_upstream_error_is_raised_without_cached_data(clock):
     upstream = CountingSource(cache=CacheSettings())
     upstream.fail = True
     source = upstream
 
-    with pytest.raises(RuntimeError, match="upstream down"):
+    with pytest.raises(SourceError) as error:
         await source.fetch_timeseries(T0, T0 + DAY, HOUR)
+
+    assert str(error.value.__cause__) == "upstream down"
 
 
 @pytest.mark.asyncio
@@ -367,8 +384,10 @@ async def test_max_age_is_required_when_the_source_has_none(clock):
     """Looked up on first use, since a source's own max_age may depend on what its constructor sets after the base's."""
     source = CountingSource(max_age=None, cache=CacheSettings())
 
-    with pytest.raises(ValueError, match="max_age"):
+    with pytest.raises(SourceError) as error:
         await source.fetch_timeseries(T0, T0 + DAY, HOUR)
+
+    assert "max_age" in str(error.value.__cause__)
 
 
 def test_a_source_is_uncached_without_cache_settings():

@@ -2,11 +2,11 @@ import datetime as dt
 from typing import TYPE_CHECKING, Annotated, Generic, Literal, TypeVar
 
 from fastapi import Depends, Query, Request, Response
-from fastapi.exceptions import RequestValidationError
 from isodate import ISO8601Error, parse_duration
 from pydantic import Field, create_model
 
-from cofy.api import Module, ModuleSettings
+from cofy.api import Module, ModuleSettings, ValidationFailedError
+from cofy.api.errors import problem_response
 
 from .alignment import ceil_datetime, floor_datetime
 from .format import GenericTimeseriesFormatSettings, TimeseriesFormat
@@ -113,18 +113,20 @@ class TimeseriesModule(Module, Generic[S], settings=TimeseriesModuleSettings):
             ] = self.merged_default_args["resolution"],
         ) -> ISODuration | None:
             if resolution is None:
-                raise RequestValidationError("Resolution must be provided.")
+                raise ValidationFailedError("Resolution must be provided.", loc=("query", "resolution"))
 
             if supported_resolutions and resolution not in supported_resolutions:
-                raise RequestValidationError(
-                    f"Resolution {resolution} is not supported. Supported resolutions are: {', '.join(supported_resolutions)}"
+                raise ValidationFailedError(
+                    f"Resolution {resolution} is not supported. Supported resolutions are: {', '.join(supported_resolutions)}",
+                    loc=("query", "resolution"),
                 )
 
             try:
                 return parse_duration(resolution) if resolution is not None else None
             except ISO8601Error as e:
-                raise RequestValidationError(
-                    f"Invalid resolution format: {resolution}. Must be a valid ISO8601 duration string."
+                raise ValidationFailedError(
+                    f"Invalid resolution format: {resolution}. Must be a valid ISO8601 duration string.",
+                    loc=("query", "resolution"),
                 ) from e
 
         # ty doesn't allow defining these inside the function definitions
@@ -162,7 +164,7 @@ class TimeseriesModule(Module, Generic[S], settings=TimeseriesModuleSettings):
         ):
             # validate inputs
             if start is None:
-                raise RequestValidationError("Start datetime must be provided.")
+                raise ValidationFailedError("Start datetime must be provided.", loc=("query", "start"))
             # If no timezone is provided, assume UTC
             if start.tzinfo is None:
                 start = start.replace(tzinfo=dt.UTC)
@@ -190,9 +192,9 @@ class TimeseriesModule(Module, Generic[S], settings=TimeseriesModuleSettings):
             )
 
             if end is None:
-                raise RequestValidationError("Either end datetime or limit must be provided.")
+                raise ValidationFailedError("Either end datetime or limit must be provided.")
             if start >= end:
-                raise RequestValidationError("Start datetime must be before end datetime.")
+                raise ValidationFailedError("Start datetime must be before end datetime.", loc=("query", "end"))
 
             assert end is not None  # for type checker, we know end is not None here
 
@@ -227,7 +229,7 @@ class TimeseriesModule(Module, Generic[S], settings=TimeseriesModuleSettings):
             "" if default else f".{format.name}",
             get_timeseries,
             methods=["GET"],
-            responses=format.responses,
+            responses={**format.responses, 502: problem_response("The source failed to deliver its data")},
             response_class=format.response_class,
             operation_id=(None if default else f"{get_timeseries.__name__}:{format.name}"),
         )

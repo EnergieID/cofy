@@ -3,7 +3,10 @@ import json
 from unittest.mock import MagicMock, patch
 
 import pytest
+import requests
+from google.auth.exceptions import RefreshError
 
+from cofy.api import SourceError, SourceUnauthorizedError
 from cofy.integrations.acc import AccForecastSource
 from cofy.integrations.acc.acc_forecast import ACC_TIMEOUT
 from cofy.modules.timeseries import TimeseriesSource
@@ -31,6 +34,8 @@ LAST_PAGE = {
 def response(status_code: int, payload: dict | None = None) -> MagicMock:
     mock = MagicMock(status_code=status_code, text="error")
     mock.json.return_value = payload
+    if status_code >= 400:
+        mock.raise_for_status.side_effect = requests.HTTPError(response=mock)
     return mock
 
 
@@ -95,13 +100,41 @@ async def test_empty_response_gives_empty_timeseries(id_token):
 
 
 @pytest.mark.asyncio
-async def test_error_response_raises(id_token):
+async def test_rejected_credentials_raise(id_token):
     source = AccForecastSource(ean="541234567890123456", credentials=CREDENTIALS)
 
     with (
         patch(f"{MODULE}.requests.get", return_value=response(403)),
-        pytest.raises(ValueError, match="403"),
+        pytest.raises(SourceUnauthorizedError),
     ):
+        await source.fetch_timeseries(START, END, dt.timedelta(minutes=15))
+
+
+@pytest.mark.asyncio
+async def test_a_refused_key_raises(id_token):
+    id_token.from_service_account_info.return_value.refresh.side_effect = RefreshError("invalid_grant")
+    source = AccForecastSource(ean="541234567890123456", credentials=CREDENTIALS)
+
+    with pytest.raises(SourceUnauthorizedError):
+        await source.fetch_timeseries(START, END, dt.timedelta(minutes=15))
+
+
+@pytest.mark.asyncio
+async def test_an_unreachable_token_service_is_a_source_failure(id_token):
+    id_token.from_service_account_info.return_value.refresh.side_effect = RefreshError("unavailable", retryable=True)
+    source = AccForecastSource(ean="541234567890123456", credentials=CREDENTIALS)
+
+    with pytest.raises(SourceError) as error:
+        await source.fetch_timeseries(START, END, dt.timedelta(minutes=15))
+
+    assert type(error.value) is SourceError
+
+
+@pytest.mark.asyncio
+async def test_an_unreadable_key_raises():
+    source = AccForecastSource(ean="541234567890123456", credentials="not json")
+
+    with pytest.raises(SourceUnauthorizedError):
         await source.fetch_timeseries(START, END, dt.timedelta(minutes=15))
 
 

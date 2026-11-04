@@ -82,17 +82,17 @@ async def test_fetch_timeseries_raises_for_missing_cost_group():
 
 
 @pytest.mark.asyncio
-async def test_fetch_timeseries_raises_when_series_is_none():
+async def test_fetch_timeseries_is_empty_when_series_is_none():
     mock_tariff = MagicMock()
     src = EnergyCostTariffSource(mock_tariff)
     mock_tariff.get_values.return_value = None
-    with pytest.raises(ValueError, match="No tariff data available"):
-        await src.fetch_timeseries(
-            dt.datetime(2026, 1, 1, tzinfo=dt.UTC),
-            dt.datetime(2026, 1, 2, tzinfo=dt.UTC),
-            resolution=dt.timedelta(hours=1),
-            cost_group=CostGroup.CONSUMPTION,
-        )
+    result = await src.fetch_timeseries(
+        dt.datetime(2026, 1, 1, tzinfo=dt.UTC),
+        dt.datetime(2026, 1, 2, tzinfo=dt.UTC),
+        resolution=dt.timedelta(hours=1),
+        cost_group=CostGroup.CONSUMPTION,
+    )
+    assert result.to_arr() == []
 
 
 def test_supported_resolutions():

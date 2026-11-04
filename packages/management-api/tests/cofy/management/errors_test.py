@@ -5,16 +5,15 @@ from __future__ import annotations
 from typing import Annotated
 
 import pytest
+from cofy.api.errors import CONTENT_TYPE, CofyError
 from fastapi import Body, FastAPI
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
 
 from cofy.management.errors import (
-    CONTENT_TYPE,
-    ManagementError,
+    EXCEPTION_HANDLERS,
     ResourceAlreadyExistsError,
     ResourceNotFoundError,
-    add_exception_handlers,
 )
 
 
@@ -26,8 +25,7 @@ class Payload(BaseModel):
 @pytest.fixture()
 def client() -> TestClient:
     """An app whose routes raise each error kind on demand."""
-    app = FastAPI()
-    add_exception_handlers(app)
+    app = FastAPI(exception_handlers=EXCEPTION_HANDLERS)
 
     @app.get("/not-found")
     def not_found() -> None:
@@ -43,7 +41,7 @@ def client() -> TestClient:
 
     @app.get("/unmapped")
     def unmapped() -> None:
-        raise ManagementError("something went wrong")
+        raise CofyError("something went wrong")
 
     @app.post("/body")
     def body(payload: Annotated[Payload, Body()]) -> Payload:
