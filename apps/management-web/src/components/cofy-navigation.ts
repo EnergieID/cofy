@@ -31,7 +31,6 @@ export class CofyNavigation extends CofyElement {
       }
       h2 {
         margin: 0;
-        padding-inline: var(--wa-space-s);
         color: var(--wa-color-text-quiet);
         font-size: var(--wa-font-size-xs);
         font-weight: var(--wa-font-weight-semibold);
@@ -94,7 +93,7 @@ export class CofyNavigation extends CofyElement {
     if (listed.length === 0) return nothing;
     return html`
       <section class="wa-stack wa-gap-3xs">
-        ${group === MENU_GROUPS[0] ? nothing : html`<h2>${this.t(`menu.groups.${group}`)}</h2>`}
+        <h2>${this.t(`menu.groups.${group}`)}</h2>
         ${repeat(
           listed,
           (item) => item.name,

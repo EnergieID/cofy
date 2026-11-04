@@ -16,6 +16,7 @@ menu:
   open: Open the menu
   # The first group, the console's top level, has no heading.
   groups:
+    console: General
     configuration: Configuration
     permissions: Permissions
     administration: Administration
