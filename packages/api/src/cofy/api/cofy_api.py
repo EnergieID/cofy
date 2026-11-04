@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 from pydantic import ConfigDict, model_validator
 
 from .docs_router import DocsRouter
+from .errors import EXCEPTION_HANDLERS
 from .from_settings_mixin import BaseSettingsModel, FromSettingsMixin
 from .module import Module, ModuleSettings
 from .references import check_references, resolving
@@ -72,6 +73,8 @@ class CofyAPI(FastAPI, FromSettingsMixin, settings=CofyAPISettings):
         if revision is not None:
             # As semver build metadata, so the version changes with both the software and the configuration.
             kwargs["version"] = f"{kwargs.get('version', DEFAULT_ARGS['version'])}+{revision}"
+        # Problem documents for every failure, unless the caller handles an exception class its own way.
+        kwargs["exception_handlers"] = EXCEPTION_HANDLERS | kwargs.get("exception_handlers", {})
         super().__init__(**(DEFAULT_ARGS | kwargs))
         self.revision = revision
         self.add_middleware(RedactQueryToken)

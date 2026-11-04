@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 
 from cofy.management.api.status import StatusRouter
 from cofy.management.community_api import CommunityApi
-from cofy.management.errors import add_exception_handlers
+from cofy.management.errors import EXCEPTION_HANDLERS
 from cofy.management.persitance.file.communities import FileCommunitiesPersistence
 
 from ..access_fixture import log_in_as_system_admin
@@ -22,8 +22,7 @@ STATUS = "/management/communities/test/status"
 
 def client_for(tmp_path: Path, api: httpx.MockTransport) -> TestClient:
     (tmp_path / "test.yaml").write_text(yaml.safe_dump({"type": "cofy_api", "revision": 3}))
-    app = FastAPI()
-    add_exception_handlers(app)
+    app = FastAPI(exception_handlers=EXCEPTION_HANDLERS)
     log_in_as_system_admin(app)
     client = CommunityApi(httpx.Client(base_url="https://cofy.example/communities", transport=api))
     app.include_router(StatusRouter(FileCommunitiesPersistence(tmp_path), client).router)

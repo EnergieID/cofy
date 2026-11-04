@@ -1,10 +1,10 @@
 from typing import TYPE_CHECKING, Any, Literal
 
 from energy_cost import Contract
-from fastapi import HTTPException
 from pydantic import Field
 
-from cofy.api import Module, ModuleSettings
+from cofy.api import Module, ModuleSettings, NotFoundError
+from cofy.api.errors import problem_response
 
 from .model import ECContractResponse, MeterType, VerifyMemberRequest
 from .source import MemberSource, MemberSourceSettings
@@ -43,7 +43,7 @@ class MembersModule(Module, settings=MembersModuleSettings):
             methods=["POST"],
             summary="Verify member activation code",
             response_model=self.source.response_model,
-            responses={404: {"description": "Member not found"}},
+            responses={404: problem_response("Member not found")},
         )
         self.add_api_route(
             "/{member_id}",
@@ -51,7 +51,7 @@ class MembersModule(Module, settings=MembersModuleSettings):
             methods=["GET"],
             summary="Get member by ID",
             response_model=self.source.response_model,
-            responses={404: {"description": "Member not found"}},
+            responses={404: problem_response("Member not found")},
         )
         self.add_api_route(
             "/{member_id}/contracts/{ean}",
@@ -59,26 +59,26 @@ class MembersModule(Module, settings=MembersModuleSettings):
             methods=["GET"],
             summary="Get contract history for a specific meter (identified by EAN) belonging to a member",
             response_model=list[ECContractResponse],
-            responses={404: {"description": "Member or contract not found"}},
+            responses={404: problem_response("Member or contract not found")},
         )
 
     def get_by_id(self, member_id: str) -> Any:
         member = self.source.get(member_id)
         if member is None:
-            raise HTTPException(status_code=404, detail="Member not found")
+            raise NotFoundError("Member not found")
         return member
 
     def verify(self, body: VerifyMemberRequest) -> Any:
         member = self.source.verify(body.activation_code)
         if member is None:
-            raise HTTPException(status_code=404, detail="Member not found")
+            raise NotFoundError("Member not found")
         return member
 
     def get_contract_history(self, member_id: str, ean: str, meter_type: MeterType | None = None) -> list[Contract]:
         member = self.source.get(member_id)
         if member is None:
-            raise HTTPException(status_code=404, detail="Member not found")
+            raise NotFoundError("Member not found")
         history = member.get_contract_history_for_ean(ean, meter_type)
         if history is not None:
             return history
-        raise HTTPException(status_code=404, detail="No contract history found for the specified EAN")
+        raise NotFoundError("No contract history found for the specified EAN")

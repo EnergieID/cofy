@@ -8,10 +8,10 @@ from __future__ import annotations
 
 import datetime as dt
 
+from cofy.api.errors import NotAuthenticatedError
 from fastapi import FastAPI, Request
 from starlette.middleware.sessions import SessionMiddleware
 
-from ..errors import NotAuthenticatedError
 from .access import Identity
 from .config import OidcConfig
 

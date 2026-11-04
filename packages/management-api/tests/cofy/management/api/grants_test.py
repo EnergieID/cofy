@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 from cofy.management.api.grants import GrantsRouter
 from cofy.management.auth.access import Role
 from cofy.management.auth.session import install_session
-from cofy.management.errors import add_exception_handlers
+from cofy.management.errors import EXCEPTION_HANDLERS
 from cofy.management.persitance.file.communities import FileCommunitiesPersistence
 from cofy.management.persitance.file.grants import FileGrantsPersistence
 
@@ -32,8 +32,7 @@ def tmp_data(tmp_path: Path) -> Path:
 
 
 def app_for(tmp_data: Path) -> FastAPI:
-    app = FastAPI()
-    add_exception_handlers(app)
+    app = FastAPI(exception_handlers=EXCEPTION_HANDLERS)
     grants = FileGrantsPersistence(tmp_data / "access" / "users.yaml")
     app.include_router(GrantsRouter(grants, FileCommunitiesPersistence(tmp_data)).router)
     return app

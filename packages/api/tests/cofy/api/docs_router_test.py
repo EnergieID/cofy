@@ -3,6 +3,7 @@ from fastapi.testclient import TestClient
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from cofy.api import DocsRouter
+from cofy.api.errors import EXCEPTION_HANDLERS
 from cofy.api.token_auth import TokenAuth, TokenInfo
 
 
@@ -71,6 +72,7 @@ class TestDocsRouter:
             docs_url=None,
             redoc_url=None,
             openapi_url=None,
+            exception_handlers=EXCEPTION_HANDLERS,
         )
 
         app.include_router(self.docs_router)

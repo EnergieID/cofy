@@ -8,9 +8,10 @@ from pathlib import Path
 from typing import ClassVar, Generic, Literal, TypeVar
 
 import yaml
+from cofy.api.errors import CofyError
 from pydantic import BaseModel
 
-from ....errors import ManagementError, ResourceNotFoundError
+from ....errors import ResourceNotFoundError
 
 DATA_DIR_ENV_VAR = "COFY_MANAGEMENT_DATA_DIR"
 
@@ -45,7 +46,7 @@ class FileStore(ABC, Generic[Document]):
         into text, so every write path stays byte-for-byte consistent instead of quietly drifting
         apart."""
 
-    def _not_found(self, path: Path) -> ManagementError:
+    def _not_found(self, path: Path) -> CofyError:
         """The error for a document that doesn't exist."""
         return ResourceNotFoundError(f"{path.name} not found")
 

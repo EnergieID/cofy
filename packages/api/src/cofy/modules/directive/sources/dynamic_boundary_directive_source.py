@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Literal
 import narwhals as nw
 from pydantic import Field
 
+from cofy.api import SourceError
 from cofy.modules.timeseries import CacheSettings, ISODuration, NumericSource, NumericSourceSettings, Timeseries
 
 from ..formats.directive import DIRECTIVE_STEPS
@@ -74,7 +75,7 @@ class DynamicBoundaryDirectiveSource(DirectiveSeriesSource, settings=DynamicBoun
             (nw.col("b0") > nw.col("b1")) | (nw.col("b1") > nw.col("b2")) | (nw.col("b2") > nw.col("b3"))
         )
         if len(invalid) > 0:
-            raise ValueError("Boundary columns must be in ascending order (b0 ≤ b1 ≤ b2 ≤ b3). ")
+            raise SourceError("Boundary columns must be in ascending order (b0 ≤ b1 ≤ b2 ≤ b3).")
 
         combined = signal_ts.frame.join(boundary_ts.frame, on="timestamp", how="inner")
 

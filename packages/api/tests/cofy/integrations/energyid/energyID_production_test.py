@@ -5,7 +5,9 @@ from unittest.mock import MagicMock, patch
 
 import narwhals as nw
 import pytest
+import requests
 
+from cofy.api import SourceError
 from cofy.integrations.energyid import EnergyIDProduction
 
 EXAMPLE_JSON_NAME = "energyID_production_example.json"
@@ -90,11 +92,12 @@ async def test_fetch_timeseries_api_error(mock_requests_get):
             mock_resp = MagicMock()
             mock_resp.status_code = 500
             mock_resp.text = "Internal Server Error"
+            mock_resp.raise_for_status.side_effect = requests.HTTPError(response=mock_resp)
             return mock_resp
 
     with (
         patch("requests.get", side_effect=_mocked_requests_get),
-        pytest.raises(ValueError, match="Failed to fetch data from EnergyID API"),
+        pytest.raises(SourceError, match="failed to deliver"),
     ):
         await source.fetch_timeseries(start, end, resolution)
 

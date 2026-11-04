@@ -2,10 +2,11 @@ import datetime as dt
 from typing import Annotated
 
 import pytest
-from fastapi import FastAPI, Query
+from fastapi import Query
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
 
+from cofy.api import CofyAPI
 from cofy.api.module import Module
 from cofy.modules.timeseries import CSVFormat, DefaultDataType, JSONFormat, TimeseriesModule
 from tests.cofy.modules.timeseries.dummy_source import DummyTimeseriesSource
@@ -43,7 +44,7 @@ class TestTimeseriesModule:
         self.module = TimeseriesModule(source=DummyTimeseriesSource(), default_args={"limit": None})
         self.start = dt.datetime(2026, 1, 1, 0, 0, tzinfo=dt.UTC)
         self.end = dt.datetime(2026, 1, 1, 3, 0, tzinfo=dt.UTC)
-        self.app = FastAPI()
+        self.app = CofyAPI()
         self.app.include_router(self.module)
         self.client = TestClient(self.app)
 
@@ -79,7 +80,7 @@ class TestTimeseriesModule:
         assert actual_time == expected_time
 
     def test_can_create_extra_args(self):
-        app = FastAPI()
+        app = CofyAPI()
 
         class CustomMetadataType(BaseModel):
             foo: str
@@ -105,7 +106,7 @@ class TestTimeseriesModule:
         assert result["metadata"] == {"foo": "baz", "fas": 42}
 
     def test_no_end_or_limit_should_fail(self):
-        app = FastAPI()
+        app = CofyAPI()
         module = TimeseriesModule(
             source=DummyTimeseriesSource(),
             default_args={"limit": None, "end": lambda: None},
@@ -130,7 +131,7 @@ class TestTimeseriesModule:
         assert response.status_code == 422
 
     def test_no_start_should_fail(self):
-        app = FastAPI()
+        app = CofyAPI()
         module = TimeseriesModule(
             source=DummyTimeseriesSource(),
             default_args={"limit": None, "start": lambda: None},
@@ -145,7 +146,7 @@ class TestTimeseriesModule:
         assert response.status_code == 422
 
     def test_no_resolution_should_fail(self):
-        app = FastAPI()
+        app = CofyAPI()
         module = TimeseriesModule(
             source=DummyTimeseriesSource(),
             default_args={"limit": None, "resolution": None},
@@ -163,7 +164,7 @@ class TestTimeseriesModule:
         assert response.status_code == 422
 
     def test_resolution_should_be_in_supported_resolutions(self):
-        app = FastAPI()
+        app = CofyAPI()
         module = TimeseriesModule(
             source=DummyTimeseriesSource(),
             supported_resolutions=["PT15M", "PT1H"],
@@ -182,7 +183,7 @@ class TestTimeseriesModule:
         assert response.status_code == 422
 
     def test_should_use_defaults_if_not_provided(self):
-        app = FastAPI()
+        app = CofyAPI()
         module = TimeseriesModule(
             source=DummyTimeseriesSource(),
             default_args={
@@ -362,7 +363,7 @@ class TestTimeseriesModule:
         assert response.status_code == 422
 
     def test_a_specific_end_date_allows_returning_more_entries_than_the_default_limit(self):
-        app = FastAPI()
+        app = CofyAPI()
         module = TimeseriesModule(
             source=DummyTimeseriesSource(),
             default_args={"limit": 288},
@@ -431,7 +432,7 @@ class MaxAgeSource(DummyTimeseriesSource):
 
 def _client(source) -> tuple[TestClient, TimeseriesModule]:
     module = TimeseriesModule(source=source, default_args={"limit": None})
-    app = FastAPI()
+    app = CofyAPI()
     app.include_router(module)
     return TestClient(app), module
 
@@ -514,7 +515,7 @@ def test_cache_control_header_uses_expires_from_metadata(expires_in, expected):
 def test_expires_metadata_is_derived_from_source_max_age():
     fmt = RecordingFormat()
     module = TimeseriesModule(source=MaxAgeSource(), formats=[fmt], default_args={"limit": None})
-    app = FastAPI()
+    app = CofyAPI()
     app.include_router(module)
 
     TestClient(app).get(module.prefix)

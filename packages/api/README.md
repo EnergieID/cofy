@@ -115,6 +115,31 @@ From Python, pass `cache=CacheSettings(...)` to the source's constructor. A sour
 takes `cache` and passes it on to `super().__init__`; the public `fetch_timeseries` serves from the cache when there is
 one, and a source can override it to cache differently.
 
+## Errors
+
+Every failure is answered with an [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) `application/problem+json`
+document: a `title` and `detail` for a person, and a stable `code` for a client to act on.
+
+| `code` | Status | Meaning |
+|---|---|---|
+| `validation-failed` | 422 | The request can't be served as asked; `errors` names the parts at fault |
+| `not-found` | 404 | What was asked for doesn't exist |
+| `not-authenticated` | 401 | A missing, invalid or expired token |
+| `source-failed` | 502 | The source couldn't deliver its data; retrying later may help |
+| `source-unauthorized` | 502 | The source's credentials don't give it access: refused, or unreadable |
+| `internal-error` | 500 | Anything else |
+
+A source raises `ValidationFailedError` for a request it can't serve, and nothing else: anything else it raises -
+`response.raise_for_status()`, a timeout, a parse error - is a `source-failed`, or a `source-unauthorized` for a 401 or
+403 from upstream, without showing its message. Raise `SourceError` with a message of your own to explain a failure
+to the caller. No data for the requested range is an empty timeseries, not an error.
+
+To answer an exception class your own way, pass a handler for it to the app, as FastAPI takes them; the others stay:
+
+```python
+app = CofyAPI(exception_handlers={SourceError: my_source_error_handler})
+```
+
 ## Secrets
 
 Credentials live in a community's `secrets`, and every field needing one references a secret with

@@ -7,7 +7,7 @@ import polars as pl
 from isodate import strftime
 from pydantic import BaseModel, Field, model_validator
 
-from cofy.api import Secret
+from cofy.api import Secret, ValidationFailedError
 from cofy.modules.timeseries import CacheSettings, ISODuration, NumericSource, NumericSourceSettings, Timeseries
 
 NED_BASE_URL = "https://api.ned.nl/v1"
@@ -112,9 +112,10 @@ class NedProductionForecastSource(NumericSource, settings=NedProductionForecastS
     ) -> Timeseries:
         resolution_iso = strftime(resolution, "P%P")
         if resolution_iso not in self.SUPPORTED_RESOLUTIONS:
-            raise ValueError(
+            raise ValidationFailedError(
                 f"Resolution {resolution_iso} is not supported. "
-                f"Supported resolutions are: {', '.join(self.SUPPORTED_RESOLUTIONS)}"
+                f"Supported resolutions are: {', '.join(self.SUPPORTED_RESOLUTIONS)}",
+                loc=("query", "resolution"),
             )
         assert isinstance(resolution, dt.timedelta)
 
@@ -157,8 +158,7 @@ class NedProductionForecastSource(NumericSource, settings=NedProductionForecastS
         page = 1
         while True:
             response = await client.get("/utilizations", params={**params, "page": page})
-            if response.status_code != 200:
-                raise ValueError(f"Failed to fetch forecast from NED: {response.status_code} - {response.text}")
+            response.raise_for_status()
             batch = response.json()
             records.extend(batch)
             if len(batch) < PAGE_SIZE:

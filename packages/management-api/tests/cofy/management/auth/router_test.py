@@ -17,7 +17,7 @@ from cofy.management.auth.config import OidcConfig
 from cofy.management.auth.router import AuthRouter, safe_return_to
 from cofy.management.auth.session import install_session
 from cofy.management.auth.user import install_users
-from cofy.management.errors import add_exception_handlers
+from cofy.management.errors import EXCEPTION_HANDLERS
 from cofy.management.persitance.file.communities import FileCommunitiesPersistence
 from cofy.management.persitance.file.users import FileUsersPersistence
 
@@ -102,8 +102,7 @@ def client_for(
     monkeypatch.setattr(router.client, "authorize_access_token", authorize_access_token)
     monkeypatch.setattr(router.client, "userinfo", fetch_userinfo)
 
-    app = FastAPI()
-    add_exception_handlers(app)
+    app = FastAPI(exception_handlers=EXCEPTION_HANDLERS)
     install_session(app, OIDC_CONFIG)
     install_users(app, users)
     app.include_router(router.router)

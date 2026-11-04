@@ -6,7 +6,7 @@ import pandas as pd
 from fastapi.params import Query
 from pydantic import Field
 
-from cofy.api import Secret
+from cofy.api import Secret, ValidationFailedError
 from cofy.modules.tariff import PriceSource, PriceSourceSettings
 from cofy.modules.timeseries import CacheSettings, ISODuration, Timeseries
 from entsoe import EntsoePandasClient
@@ -41,11 +41,13 @@ class EntsoeDayAheadTariffSource(PriceSource, settings=EntsoeDayAheadTariffSourc
         **kwargs,
     ) -> Timeseries:
         if resolution != dt.timedelta(minutes=15):
-            raise ValueError("Only 15-minute resolution is supported for EntsoeDayAheadTariffSource")
+            raise ValidationFailedError(
+                "Only 15-minute resolution is supported for EntsoeDayAheadTariffSource", loc=("query", "resolution")
+            )
 
         country_code = country_code or self.country_code
         if country_code is None:
-            raise ValueError("country_code must be provided")
+            raise ValidationFailedError("country_code must be provided", loc=("query", "country_code"))
 
         try:
             series = await asyncio.to_thread(

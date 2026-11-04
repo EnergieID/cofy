@@ -7,8 +7,9 @@ from typing import Literal
 
 import yaml
 from cofy.api.cofy_api import CofyAPISettings
+from cofy.api.errors import CofyError
 
-from ....errors import ManagementError, ResourceNotFoundError
+from ....errors import ResourceNotFoundError
 from .store import FileStore
 
 SLUG_PATTERN = re.compile(r"^[a-zA-Z0-9_-]+$")
@@ -49,7 +50,7 @@ class CommunityFileStore(FileStore[CofyAPISettings]):
             return []
         return sorted(path.stem for path in self.base_path.glob("*.yaml"))
 
-    def _not_found(self, path: Path) -> ManagementError:
+    def _not_found(self, path: Path) -> CofyError:
         return ResourceNotFoundError(f"Community {path.stem!r} not found")
 
     def _serialize(self, document: CofyAPISettings) -> str:

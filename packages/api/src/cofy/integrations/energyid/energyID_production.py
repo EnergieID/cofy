@@ -7,7 +7,7 @@ import requests
 from isodate import strftime
 from pydantic import BaseModel, Field
 
-from cofy.api import Secret
+from cofy.api import Secret, ValidationFailedError
 from cofy.modules.production import ProductionSource, ProductionSourceSettings
 from cofy.modules.timeseries import CacheSettings, ISODuration, Timeseries
 
@@ -59,9 +59,10 @@ class EnergyIDProduction(ProductionSource, settings=EnergyIDProductionSettings):
         resolution_iso = strftime(resolution, format="P%P")
 
         if resolution_iso not in self.SUPPORTED_RESOLUTIONS:
-            raise ValueError(
+            raise ValidationFailedError(
                 f"Resolution {resolution_iso} is not supported. "
-                f"Supported resolutions are: {', '.join(self.SUPPORTED_RESOLUTIONS)}"
+                f"Supported resolutions are: {', '.join(self.SUPPORTED_RESOLUTIONS)}",
+                loc=("query", "resolution"),
             )
 
         respone = await asyncio.to_thread(
@@ -69,8 +70,7 @@ class EnergyIDProduction(ProductionSource, settings=EnergyIDProductionSettings):
             f"https://api.energyid.eu/api/v1/records/{self.record_id}/data/energyProduction?start={start_date}&end={end_date}&interval={resolution_iso}",
             headers=self.headers,
         )
-        if respone.status_code != 200:
-            raise ValueError(f"Failed to fetch data from EnergyID API: {respone.status_code} - {respone.text}")
+        respone.raise_for_status()
 
         parsed = EnergyIDResponse.model_validate(respone.json())
         entry = parsed.value[0]

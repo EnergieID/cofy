@@ -13,7 +13,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from cofy.management.errors import add_exception_handlers
+from cofy.management.errors import EXCEPTION_HANDLERS
 
 from ..access_fixture import log_in_as_system_admin
 from ..allowed_fixture import allowed_in, include_catalogs
@@ -21,8 +21,7 @@ from ..allowed_fixture import allowed_in, include_catalogs
 
 @pytest.fixture()
 def client(tmp_path: Path) -> TestClient:
-    app = FastAPI()
-    add_exception_handlers(app)
+    app = FastAPI(exception_handlers=EXCEPTION_HANDLERS)
     log_in_as_system_admin(app)
     include_catalogs(app, allowed_in(tmp_path))
     return TestClient(app, raise_server_exceptions=False)

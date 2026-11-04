@@ -18,7 +18,7 @@ from fastapi.testclient import TestClient
 
 from cofy.management.api.modules import ModulesRouter
 from cofy.management.domain.availability import Availability
-from cofy.management.errors import add_exception_handlers
+from cofy.management.errors import EXCEPTION_HANDLERS
 from cofy.management.persitance.file.modules import FileModulesPersistence
 
 from ..access_fixture import log_in_as_system_admin
@@ -59,8 +59,7 @@ def tmp_data(tmp_path: Path):
 @pytest.fixture()
 def client(tmp_data: Path) -> TestClient:
     """Return a TestClient wired to the full router + file persistence in tmp_data."""
-    app = FastAPI()
-    add_exception_handlers(app)
+    app = FastAPI(exception_handlers=EXCEPTION_HANDLERS)
     log_in_as_system_admin(app)
     app.include_router(ModulesRouter(FileModulesPersistence(tmp_data), allowed_in(tmp_data)).router)
     return TestClient(app, raise_server_exceptions=False)
@@ -186,8 +185,7 @@ def test_resource_already_exists_handler_returns_409(tmp_data: Path):
 
     mock_persistence.create.side_effect = ResourceAlreadyExistsError("already exists")
 
-    app = FastAPI()
-    add_exception_handlers(app)
+    app = FastAPI(exception_handlers=EXCEPTION_HANDLERS)
     log_in_as_system_admin(app)
     app.include_router(ModulesRouter(mock_persistence, allowed_in(tmp_data)).router)
     c = TestClient(app, raise_server_exceptions=False)
@@ -201,8 +199,7 @@ def test_community_with_invalid_yaml_returns_error(tmp_data: Path):
     """A community YAML that is not a mapping raises a 500 error (ValueError from base)."""
     (tmp_data / "bad.yaml").write_text("- just\n- a\n- list\n")
 
-    app = FastAPI()
-    add_exception_handlers(app)
+    app = FastAPI(exception_handlers=EXCEPTION_HANDLERS)
     log_in_as_system_admin(app)
     app.include_router(ModulesRouter(FileModulesPersistence(tmp_data), allowed_in(tmp_data)).router)
     bad_client = TestClient(app, raise_server_exceptions=False)

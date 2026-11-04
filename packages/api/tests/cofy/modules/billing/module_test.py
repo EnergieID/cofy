@@ -4,9 +4,9 @@ from unittest.mock import patch
 import pandas as pd
 from energy_cost import CostGroup
 from energy_cost.contract import ContractHistory as EnergyContractHistory
-from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from cofy.api import CofyAPI
 from cofy.api.module import Module
 from cofy.modules.billing import BillingModule
 
@@ -86,7 +86,7 @@ class TestBillingModuleMetadata:
 class TestBillingEndpoint:
     def setup_method(self):
         self.module = BillingModule()
-        app = FastAPI()
+        app = CofyAPI()
         app.include_router(self.module)
         self.client = TestClient(app, raise_server_exceptions=False)
 
@@ -118,16 +118,17 @@ class TestBillingEndpoint:
         assert meta["start"] is not None
         assert meta["end"] is not None
 
-    def test_post_returns_400_when_apply_raises_value_error(self):
+    def test_post_returns_422_when_apply_raises_value_error(self):
         with patch.object(EnergyContractHistory, "apply", side_effect=ValueError("bad input")):
             response = self.client.post(self.module.prefix, json=_BODY)
-        assert response.status_code == 400
+        assert response.status_code == 422
+        assert response.json()["code"] == "validation-failed"
         assert "bad input" in response.json()["detail"]
 
-    def test_post_returns_400_when_apply_returns_none(self):
+    def test_post_returns_422_when_apply_returns_none(self):
         with patch.object(EnergyContractHistory, "apply", return_value=None):
             response = self.client.post(self.module.prefix, json=_BODY)
-        assert response.status_code == 400
+        assert response.status_code == 422
         assert "No cost data" in response.json()["detail"]
 
     def test_post_returns_422_for_missing_consumption(self):
@@ -165,7 +166,7 @@ class TestBillingEndpoint:
 class TestDSTBoundary:
     def setup_method(self):
         self.module = BillingModule()
-        app = FastAPI()
+        app = CofyAPI()
         app.include_router(self.module)
         self.client = TestClient(app, raise_server_exceptions=False)
 

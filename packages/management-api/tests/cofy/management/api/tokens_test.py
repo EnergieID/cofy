@@ -11,7 +11,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from cofy.management.api.tokens import TokensRouter
-from cofy.management.errors import add_exception_handlers
+from cofy.management.errors import EXCEPTION_HANDLERS
 from cofy.management.persitance.file.tokens import FileTokensPersistence
 
 from ..access_fixture import log_in_as_system_admin
@@ -51,8 +51,7 @@ def tmp_data(tmp_path: Path) -> Path:
 
 
 def client_for(path: Path) -> TestClient:
-    app = FastAPI()
-    add_exception_handlers(app)
+    app = FastAPI(exception_handlers=EXCEPTION_HANDLERS)
     log_in_as_system_admin(app)
     app.include_router(TokensRouter(FileTokensPersistence(path)).router)
     return TestClient(app, raise_server_exceptions=False)

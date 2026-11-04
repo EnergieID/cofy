@@ -2,8 +2,9 @@ import logging
 
 import yaml
 from cofy.api.cofy_api import CofyAPISettings
+from cofy.api.errors import CofyError
 
-from ...errors import ManagementError, ResourceAlreadyExistsError
+from ...errors import ResourceAlreadyExistsError
 from ..communities import CommunitiesPersistence
 from .base import CommunityFileStore
 
@@ -21,7 +22,7 @@ class FileCommunitiesPersistence(CommunityFileStore, CommunitiesPersistence):
             try:
                 with self._open_community_config(slug, "read") as config:
                     communities.append((slug, config))
-            except (ValueError, yaml.YAMLError, ManagementError) as exc:
+            except (ValueError, yaml.YAMLError, CofyError) as exc:
                 # These configs are hand-editable by design, so one bad edit is expected
                 # eventually - and this listing is the console's entry point. Dropping the
                 # unreadable community keeps the rest reachable, where failing the whole

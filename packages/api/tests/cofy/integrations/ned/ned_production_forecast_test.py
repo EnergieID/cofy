@@ -7,6 +7,7 @@ import polars as pl
 import pytest
 from pydantic import ValidationError
 
+from cofy.api import SourceError, SourceUnauthorizedError
 from cofy.integrations.ned import NedInstallation, NedProductionForecastSource
 from cofy.modules.directive import DirectiveModule, DirectiveSource
 from cofy.modules.timeseries import TimeseriesSource
@@ -105,7 +106,18 @@ async def test_fetch_follows_pages():
 
 @pytest.mark.asyncio
 async def test_fetch_raises_on_error():
-    with ned(lambda _: httpx.Response(401, text="nope")), pytest.raises(ValueError, match="401"):
+    with ned(lambda _: httpx.Response(500, text="boom")), pytest.raises(SourceError) as error:
+        await NedProductionForecastSource(api_key="key", installations=[SOLAR]).fetch_timeseries(
+            START, START + HOUR, HOUR
+        )
+
+    assert type(error.value) is SourceError
+    assert "boom" not in str(error.value)
+
+
+@pytest.mark.asyncio
+async def test_fetch_raises_on_rejected_key():
+    with ned(lambda _: httpx.Response(401, text="nope")), pytest.raises(SourceUnauthorizedError):
         await NedProductionForecastSource(api_key="key", installations=[SOLAR]).fetch_timeseries(
             START, START + HOUR, HOUR
         )

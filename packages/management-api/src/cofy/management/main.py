@@ -23,7 +23,7 @@ from .auth.session import install_session
 from .auth.user import install_users
 from .community_api import CommunityApi
 from .domain.allowed import AllowedTypes
-from .errors import add_exception_handlers
+from .errors import EXCEPTION_HANDLERS
 from .persitance.file.allowed import FileAllowedPersistence
 from .persitance.file.base import data_dir
 from .persitance.file.communities import FileCommunitiesPersistence
@@ -76,8 +76,12 @@ grants = FileGrantsPersistence(users_file)
 allowed_types = FileAllowedPersistence(data_dir() / "access" / "allowed.yaml")
 allowed = AllowedTypes(allowed_types)
 
-app = FastAPI(title="COFY Management API", version="0.1.0", description="Management API for COFY")
-add_exception_handlers(app)
+app = FastAPI(
+    title="COFY Management API",
+    version="0.1.0",
+    description="Management API for COFY",
+    exception_handlers=EXCEPTION_HANDLERS,
+)
 install_session(app, oidc_config)
 install_users(app, users)
 

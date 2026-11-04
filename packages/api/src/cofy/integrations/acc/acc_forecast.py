@@ -7,11 +7,12 @@ from urllib.parse import urljoin
 
 import polars as pl
 import requests
+from google.auth.exceptions import RefreshError
 from google.auth.transport.requests import Request
 from google.oauth2.service_account import IDTokenCredentials
 from pydantic import BaseModel, Field
 
-from cofy.api import Secret
+from cofy.api import Secret, SourceUnauthorizedError
 from cofy.modules.simultaneity import NetVolumeSource, NetVolumeSourceSettings
 from cofy.modules.timeseries import CacheSettings, ISODuration, Timeseries
 
@@ -67,13 +68,22 @@ class AccForecastSource(NetVolumeSource, settings=AccForecastSettings):
     @cached_property
     def credentials(self) -> IDTokenCredentials:
         # built on first use, so a misconfigured source fails its requests rather than app startup
-        return IDTokenCredentials.from_service_account_info(
-            json.loads(self._service_account), target_audience=ACC_TARGET_AUDIENCE
-        )
+        try:
+            return IDTokenCredentials.from_service_account_info(
+                json.loads(self._service_account), target_audience=ACC_TARGET_AUDIENCE
+            )
+        except ValueError as exc:
+            raise SourceUnauthorizedError("The service account key for EvO isn't a valid one.") from exc
 
     def _get(self, url: str, params: dict | None = None) -> AccForecastPage:
         if not self.credentials.valid:
-            self.credentials.refresh(Request())
+            try:
+                self.credentials.refresh(Request())
+            except RefreshError as exc:
+                # one that can't be retried is the key being refused, not the token service being unreachable
+                if exc.retryable:
+                    raise
+                raise SourceUnauthorizedError("The service account key for EvO was refused.") from exc
 
         response = requests.get(
             url,
@@ -81,8 +91,7 @@ class AccForecastSource(NetVolumeSource, settings=AccForecastSettings):
             headers={"Authorization": f"Bearer {self.credentials.token}"},
             timeout=ACC_TIMEOUT,
         )
-        if response.status_code != 200:
-            raise ValueError(f"Failed to fetch forecasts from EvO: {response.status_code} - {response.text}")
+        response.raise_for_status()
         return AccForecastPage.model_validate(response.json())
 
     def _fetch_all(self, start: dt.datetime, end: dt.datetime) -> list[AccForecast]:
