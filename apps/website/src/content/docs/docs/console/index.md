@@ -29,9 +29,9 @@ At the top of a community's page you find:
   | Changes pending | The API still runs the previous settings. Saved changes normally apply within a few seconds; if this stays, the new settings could not be applied: ask your COFY host. |
   | Unavailable | The API is not running. Ask your COFY host. |
 
-Below them, a community has these tabs:
+The menu on the left leads to a community's pages, grouped under **Configuration** and **Permissions**. On a phone, the button at the top left opens it.
 
-| Tab | What you do there |
+| Page | What you do there |
 | --- | --- |
 | [Modules](/docs/console/modules/) | Switch on the modules your community needs, and configure each one |
 | [Resources](/docs/console/resources-and-secrets/#resources) | Configure things several modules share, like a data source or a tariff |
@@ -39,11 +39,11 @@ Below them, a community has these tabs:
 | [API tokens](/docs/console/api-tokens/) | Create the keys other applications use to call your community's API |
 | [Access](/docs/console/access/) | Decide who else can manage this community |
 
-You only see the tabs you are allowed to use.
+You only see the pages you are allowed to use.
 
 ## Your settings
 
-The button at the top right opens your settings: light or dark appearance, the console's language, and logging out.
+The buttons at the top right switch between light and dark, and pick the console's language where it offers more than one. The person icon shows who you are logged in as, and leads to logging out. A system admin finds the administration at the foot of the menu.
 
 ## Where to start
 

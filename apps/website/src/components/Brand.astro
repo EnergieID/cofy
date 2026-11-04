@@ -1,0 +1,58 @@
+---
+/*
+ * The logo and name heading every page: COFY in the brand colour, and which part of COFY this is
+ * beside it in plain text - "COFY.cloud" on the marketing pages, "COFY docs" in the docs. The
+ * console draws the same, as "COFY console", at the same size.
+ */
+import logo from "../assets/logo.svg";
+
+interface Props {
+  /** Which part of COFY this is. Follows the name directly when it starts with a dot, after a space otherwise. */
+  part: string;
+  href: string;
+}
+
+const { part, href } = Astro.props;
+---
+
+<a href={href} class="brand">
+  <img src={logo.src} alt="" />
+  <span translate="no">COFY{part.startsWith(".") ? "" : " "}<span class="part">{part}</span></span>
+</a>
+
+<style>
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: var(--wa-space-xs);
+    color: var(--wa-color-brand-50);
+    font-size: var(--wa-font-size-l);
+    font-weight: var(--wa-font-weight-bold);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .brand:hover {
+    color: var(--wa-color-brand-50);
+  }
+  img {
+    block-size: var(--wa-space-xl);
+  }
+  .part {
+    color: var(--wa-color-text-quiet);
+    font-size: var(--wa-font-size-m);
+    font-weight: var(--wa-font-weight-normal);
+  }
+
+  /* Where Starlight gives its header more room, as it does its own title. */
+  @media (min-width: 50rem) {
+    .brand {
+      font-size: var(--wa-font-size-xl);
+    }
+    img {
+      block-size: var(--wa-space-2xl);
+    }
+    .part {
+      font-size: var(--wa-font-size-l);
+    }
+  }
+</style>

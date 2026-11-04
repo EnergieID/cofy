@@ -3,7 +3,10 @@
 // styles sit in `@layer wa-component`, which unlayered CSS beats regardless.
 import "@awesome.me/webawesome/dist/styles/webawesome.css";
 
+import "@awesome.me/webawesome/dist/components/button/button.js";
+import "@awesome.me/webawesome/dist/components/icon/icon.js";
 import "@awesome.me/webawesome/dist/components/page/page.js";
+import type WaPage from "@awesome.me/webawesome/dist/components/page/page.js";
 
 import { provide } from "@lit/context";
 import { ApiClient, CofyStore } from "@cofy/frontend-sdk";
@@ -21,15 +24,16 @@ import {
 import "@cofy/web-components";
 import { LitElement, css, html } from "lit";
 import type { TemplateResult } from "lit";
-import { customElement } from "lit/decorators.js";
+import { customElement, query } from "lit/decorators.js";
 
-import "./components/cofy-settings-panel.js";
+import "./components/cofy-account-menu.js";
+import "./components/cofy-navigation.js";
 import { crumbStateContext, routeStateContext } from "./context.js";
 import { useLocalIcons } from "./icons.js";
 import { APP_NAMESPACE, LANGUAGES } from "./i18n.js";
 import { CrumbState } from "./states/crumb-state.js";
 import { RouteState } from "./states/route-state.js";
-import { routes } from "./routes.js";
+import { MENU_FOOTER_GROUPS, MENU_GROUPS, routes } from "./routes.js";
 import "./styles.css";
 import "@cofy/web-components/theme/cofy.css";
 import "./brand.css";
@@ -57,7 +61,7 @@ theme.start();
  * The console shell.
  *
  * It owns the store, the route and the breadcrumb trail, provides them to the tree, and
- * renders the header plus whatever the route table returns. It knows about no individual
+ * renders the header, the menu and whatever the route table returns. It knows about no individual
  * page: adding one is a new module and one entry in `routes.ts`.
  *
  * The store, theme and translations are constructed here rather than imported as singletons,
@@ -78,30 +82,94 @@ export class CofyApp extends LitElement {
         display: block;
         min-block-size: 100vh;
       }
+      wa-page {
+        --menu-width-desktop: 16rem;
+        --menu-width: var(--menu-width-desktop);
+      }
+      wa-page[view="mobile"] {
+        --menu-width: auto;
+      }
+      wa-page[view="desktop"]::part(menu) {
+        border-inline-end: var(--wa-border-width-s) solid var(--wa-color-surface-border);
+      }
+      /* As high as the docs' header: Starlight's 3.5rem, and 4rem from 50rem on. */
+      [slot="header"] {
+        inline-size: 100%;
+        block-size: 3.5rem;
+        padding-block: 0;
+        padding-inline: var(--wa-space-l);
+        border-block-end: var(--wa-border-width-s) solid var(--wa-color-surface-border);
+      }
+      /* On a short screen the menu scrolls above its foot, rather than running under it. */
+      [slot="navigation"] {
+        overflow-y: auto;
+      }
+      /* A menu with nothing to list hides itself, which wa-page's own display for what it holds would undo. */
+      cofy-navigation[hidden] {
+        display: none;
+      }
+      /* Full width, also in the mobile drawer, whose footer would push it to the end. */
+      [slot="navigation-footer"] {
+        inline-size: 100%;
+        border-block-start: var(--wa-border-width-s) solid var(--wa-color-surface-border);
+      }
+      /* The brand at the size the docs give it, on the website too: COFY in the brand colour, what
+         this is beside it. */
       .brand {
         color: var(--wa-color-brand-50);
-        font-weight: var(--wa-font-weight-semibold);
+        font-size: var(--wa-font-size-xl);
+        font-weight: var(--wa-font-weight-bold);
         text-decoration: none;
-        font-size: var(--wa-font-size-l);
+        white-space: nowrap;
+      }
+      .brand wa-icon {
+        font-size: var(--wa-space-2xl);
       }
       .brand .sub-brand {
         color: var(--wa-color-text-quiet);
-        font-size: var(--wa-font-size-m);
+        font-size: var(--wa-font-size-l);
         font-weight: var(--wa-font-weight-normal);
       }
-      .crumbs {
-        align-items: end;
-        gap: var(--wa-space-2xl);
+      @media (min-width: 50rem) {
+        [slot="header"] {
+          block-size: var(--wa-space-4xl);
+        }
       }
-      /* The chrome runs full width, but what it says lines up with the content under it. */
-      .measure {
+      wa-page[view="mobile"] [slot="header"] {
+        padding-inline: var(--wa-space-xs);
+      }
+      wa-page::part(drawer) {
+        --spacing: 0;
+      }
+      /* On desktop the trail starts where the page under it does: the brand's column is as wide as
+         what lies left of the page's column. */
+      wa-page[view="desktop"] [slot="header"] {
+        display: grid;
+        grid-template-columns: var(--content-start) minmax(0, 1fr) auto;
+        gap: 0;
+      }
+      wa-page[view="mobile"] .brand {
+        font-size: var(--wa-font-size-l);
+      }
+      wa-page[view="mobile"] .brand wa-icon {
+        font-size: var(--wa-space-xl);
+      }
+      wa-page[view="mobile"] .brand .sub-brand {
+        font-size: var(--wa-font-size-m);
+      }
+      /* What the page says lines up in one column, centred on the screen rather than beside the
+         menu where there is room for that, as in the docs. */
+      main {
         max-inline-size: 60rem;
         margin-inline: auto;
-        inline-size: 100%;
+        padding: var(--wa-space-l);
       }
-      .content {
-        padding-left: var(--wa-space-l);
-        padding-right: var(--wa-space-l);
+      wa-page[view="desktop"] {
+        /* Where the page's column starts: centred on the screen, or else right beside the menu. */
+        --content-start: max(var(--menu-width), (100vw - 60rem) / 2);
+      }
+      wa-page[view="desktop"] main {
+        margin-inline-start: calc(var(--content-start) - var(--menu-width));
       }
     `,
   ];
@@ -126,6 +194,8 @@ export class CofyApp extends LitElement {
 
   public readonly stateController = new StateController(this);
 
+  @query("wa-page") private page?: WaPage;
+
   public override connectedCallback(): void {
     super.connectedCallback();
     this.routeState.start();
@@ -148,31 +218,50 @@ export class CofyApp extends LitElement {
 
     return html`
       <wa-page>
-        <!-- The console has no navigation, so the mobile hamburger has nothing to toggle.
-             Overriding the slot suppresses it - and with it the only thing on the page that
-             would fetch an icon from Font Awesome's CDN at runtime. -->
-        <span slot="navigation-toggle"></span>
-
-        <!-- wa-split pushes the settings control to the far end, which is what a raw
-             framework class used to do here. No navigation beyond the breadcrumb trail yet,
-             so it sits alongside the brand rather than in its own row - a dedicated subheader
-             would spend a row of vertical space it does not need. -->
-        <header slot="header" class="wa-split measure">
-          <div class="wa-cluster crumbs">
-            <a class="brand" href="#/">
+        <header slot="header" class="wa-split wa-flex-nowrap">
+          <div class="wa-cluster wa-gap-xs wa-flex-nowrap">
+            <wa-button data-toggle-nav appearance="plain" class="wa-mobile-only" title=${this.t("menu.open")}>
+              <wa-icon name="bars" label=${this.t("menu.open")}></wa-icon>
+            </wa-button>
+            <a class="brand wa-cluster wa-gap-xs" href="#/">
               <wa-icon name="brand" library="cofy"></wa-icon>
-              <span class="wa-desktop-only">${this.t("product")} <span class=sub-brand>${this.t("subtitle")}</span></span>
+              <span>${this.t("product")} <span class="sub-brand">${this.t("subtitle")}</span></span>
             </a>
-            <cofy-breadcrumbs .crumbs=${this.crumbState.crumbs}></cofy-breadcrumbs>
           </div>
-          <cofy-settings-panel></cofy-settings-panel>
+          <cofy-breadcrumbs class="wa-desktop-only" .crumbs=${this.crumbState.crumbs}></cofy-breadcrumbs>
+          <div class="wa-cluster wa-gap-2xs wa-flex-nowrap">
+            <cofy-locale-picker></cofy-locale-picker>
+            <cofy-theme-picker></cofy-theme-picker>
+            <cofy-account-menu></cofy-account-menu>
+          </div>
         </header>
 
-        <div class="content measure">
+        <cofy-navigation
+          slot="navigation"
+          .groups=${MENU_GROUPS}
+          @click=${(event: Event): void => this.closeMenuOnFollow(event)}
+        ></cofy-navigation>
+        <cofy-navigation
+          slot="navigation-footer"
+          .groups=${MENU_FOOTER_GROUPS}
+          @click=${(event: Event): void => this.closeMenuOnFollow(event)}
+        ></cofy-navigation>
+
+        <!-- In the header where there is room for them, above the page where there isn't. -->
+        <main class="wa-stack">
+          <cofy-breadcrumbs class="wa-mobile-only" .crumbs=${this.crumbState.crumbs}></cofy-breadcrumbs>
           ${this.routeState.render() ?? html`<p>${this.t("notFound", { path: this.routeState.path })}</p>`}
-        </div>
+        </main>
       </wa-page>
     `;
+  }
+
+  /**
+   * Close the menu's drawer on mobile once a link in it is followed. The drawer closes itself for
+   * a `data-drawer="close"` link only in its own tree, which the menu's shadow root hides from it.
+   */
+  private closeMenuOnFollow(event: Event): void {
+    if (event.composedPath().some((target) => target instanceof HTMLAnchorElement)) this.page?.hideNavigation();
   }
 
   private t(key: string, params?: Record<string, unknown>): string {

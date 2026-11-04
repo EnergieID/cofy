@@ -32,7 +32,7 @@ A source that needs an API key or other credential takes a [secret](/docs/concep
 api_key: { type: secret, name: entsoe_key }
 ```
 
-In the console, store the key in the community's Secrets tab and pick it by name. In a settings file, list it under `secrets`:
+In the console, store the key in the community's Secrets page and pick it by name. In a settings file, list it under `secrets`:
 
 ```yaml
 secrets:

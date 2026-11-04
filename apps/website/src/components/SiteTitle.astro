@@ -1,0 +1,10 @@
+---
+/*
+ * The docs' title in Starlight's header: the same brand as the marketing pages, as "COFY docs".
+ */
+import Brand from "./Brand.astro";
+
+const { siteTitleHref } = Astro.locals.starlightRoute;
+---
+
+<Brand part="docs" href={siteTitleHref} />

@@ -38,11 +38,13 @@ different API with `COFY_MANAGEMENT_API=http://host:port npm run dev`.
   the library's own copy under
   [packages/web-components/locales](../../packages/web-components/locales). Add a language by
   adding both files; correct a string by editing one.
-- **Icons** - [src/icons.ts](src/icons.ts) stops Web Awesome fetching icons from its default CDN
-  at runtime (useful if the console runs on an isolated network); swap in your own icon set
-  there if needed.
+- **Icons** - the console draws Font Awesome Free icons, bundled from its npm package and listed
+  in [src/icons.ts](src/icons.ts), so it never fetches an icon from a CDN at runtime (useful if
+  the console runs on an isolated network). Add a name there to use another, or swap in your own
+  icon set.
 - **Pages** - adding a page is one new module under [src/pages](src/pages) plus one entry in
-  [src/routes.ts](src/routes.ts); nothing else needs to know about it.
+  [src/routes.ts](src/routes.ts); nothing else needs to know about it. The entry's `menu` lists
+  the page in the menu down the side, under one of the groups `MENU_GROUPS` names there.
 
 ## Development
 

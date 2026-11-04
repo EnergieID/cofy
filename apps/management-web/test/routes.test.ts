@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { matchRoute, type Access } from "../src/router.js";
-import { routes } from "../src/routes.js";
+import { MENU_FOOTER_GROUPS, MENU_GROUPS, routes } from "../src/routes.js";
 
 describe("routes", () => {
   it.each([
@@ -48,5 +48,13 @@ describe("routes", () => {
 
   it("lets anyone logged in see the communities", () => {
     expect("allows" in routes.communities).toBe(false);
+  });
+
+  it("files every page the menu lists under one of its groups", () => {
+    const groups = Object.values(routes).flatMap((route) => ("menu" in route ? [route.menu.group] : []));
+
+    const known: readonly string[] = [...MENU_GROUPS, ...MENU_FOOTER_GROUPS];
+
+    expect(groups.filter((group) => !known.includes(group))).toEqual([]);
   });
 });

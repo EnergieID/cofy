@@ -1,24 +1,33 @@
 # Strings owned by the management console itself. The components it embeds carry their own.
 
-title: COFY management
+title: COFY console
 product: COFY
-subtitle: management
+subtitle: console
 
 community:
   status: API status
-  tabs:
+
+menu:
+  label: Menu
+  open: Open the menu
+  # The first group, the console's top level, has no heading.
+  groups:
+    configuration: Configuration
+    permissions: Permissions
+    administration: Administration
+  items:
+    communities: Communities
     modules: Modules
     resources: Resources
     secrets: Secrets
     tokens: API tokens
     grants: Access
     allowedTypes: Allowed types
+    typeAvailability: Allowed types
 
-settings:
-  open: Settings
+account:
+  label: Your account
   logout: Log out
-  admin: Admin console
-  allowedTypes: Allowed types
 
 allowed:
   crumb: Allowed types

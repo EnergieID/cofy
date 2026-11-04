@@ -3,21 +3,34 @@ import { html } from "lit";
 import type { Action, Subject } from "@cofy/frontend-sdk";
 
 import type { Access, RouteDefinition, RouteParams } from "./router.js";
-import "./pages/allowed-page.js";
+import "./pages/admin/allowed-page.js";
 import "./pages/communities-page.js";
-import "./pages/module-page.js";
-import "./pages/community-page.js";
-import "./pages/new-module-page.js";
-import "./pages/new-resource-page.js";
-import "./pages/resource-page.js";
+import "./pages/community/allowed-types-page.js";
+import "./pages/community/grants-page.js";
+import "./pages/community/modules/module-page.js";
+import "./pages/community/modules/modules-page.js";
+import "./pages/community/modules/new-module-page.js";
+import "./pages/community/resources/new-resource-page.js";
+import "./pages/community/resources/resource-page.js";
+import "./pages/community/resources/resources-page.js";
+import "./pages/community/secrets-page.js";
+import "./pages/community/tokens-page.js";
+
+/**
+ * The menu's groups, in order: down the side, then at its foot. The first is the console's top
+ * level and goes without a heading; the menu lists a community's pages only inside a community,
+ * as their paths need its slug.
+ */
+export const MENU_GROUPS = ["console", "configuration", "permissions"] as const;
+export const MENU_FOOTER_GROUPS = ["administration"] as const;
 
 /**
  * Every page, keyed by the name the rest of the app navigates by.
  *
  * Adding a page means writing its module and adding one entry here: the name, the path it
- * answers, what to render, and who may see it. `render` receives only the captured path
- * parameters; everything else - stores, routing, the breadcrumb trail - a page consumes from
- * context.
+ * answers, what to render, who may see it and, for a page the menu lists, where. `render`
+ * receives only the captured path parameters; everything else - stores, routing, the breadcrumb
+ * trail - a page consumes from context.
  *
  * Matching runs in declaration order, so a pattern with a literal segment must come before
  * one whose parameter would also match it.
@@ -31,41 +44,49 @@ export const routes = {
   communities: {
     path: "/",
     render: () => html`<cofy-communities-page></cofy-communities-page>`,
+    menu: { group: "console", icon: "people-group" },
   },
   typeAvailability: {
     path: "/allowed-types",
     render: () => html`<cofy-allowed-page></cofy-allowed-page>`,
     allows: may("read", "allowed_types"),
+    menu: { group: "administration", icon: "sliders" },
   },
   modules: {
     path: "/communities/:slug",
-    render: ({ slug }) => html`<cofy-community-page .slug=${slug} tab="modules"></cofy-community-page>`,
+    render: ({ slug }) => html`<cofy-modules-page .slug=${slug}></cofy-modules-page>`,
     allows: may("read", "modules"),
+    menu: { group: "configuration", icon: "cubes" },
   },
   resources: {
     path: "/communities/:slug/resources",
-    render: ({ slug }) => html`<cofy-community-page .slug=${slug} tab="resources"></cofy-community-page>`,
+    render: ({ slug }) => html`<cofy-resources-page .slug=${slug}></cofy-resources-page>`,
     allows: may("read", "resources"),
+    menu: { group: "configuration", icon: "database" },
   },
   secrets: {
     path: "/communities/:slug/secrets",
-    render: ({ slug }) => html`<cofy-community-page .slug=${slug} tab="secrets"></cofy-community-page>`,
+    render: ({ slug }) => html`<cofy-secrets-page .slug=${slug}></cofy-secrets-page>`,
     allows: may("read", "secrets"),
+    menu: { group: "configuration", icon: "lock" },
   },
   tokens: {
     path: "/communities/:slug/tokens",
-    render: ({ slug }) => html`<cofy-community-page .slug=${slug} tab="tokens"></cofy-community-page>`,
+    render: ({ slug }) => html`<cofy-tokens-page .slug=${slug}></cofy-tokens-page>`,
     allows: may("read", "tokens"),
+    menu: { group: "permissions", icon: "key" },
   },
   grants: {
     path: "/communities/:slug/grants",
-    render: ({ slug }) => html`<cofy-community-page .slug=${slug} tab="grants"></cofy-community-page>`,
+    render: ({ slug }) => html`<cofy-grants-page .slug=${slug}></cofy-grants-page>`,
     allows: may("read", "grants"),
+    menu: { group: "permissions", icon: "user-shield" },
   },
   allowedTypes: {
     path: "/communities/:slug/allowed-types",
-    render: ({ slug }) => html`<cofy-community-page .slug=${slug} tab="allowedTypes"></cofy-community-page>`,
+    render: ({ slug }) => html`<cofy-community-allowed-page .slug=${slug}></cofy-community-allowed-page>`,
     allows: may("write", "allowed_types"),
+    menu: { group: "permissions", icon: "list-check" },
   },
   newModule: {
     path: "/communities/:slug/modules/new",

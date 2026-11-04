@@ -97,12 +97,6 @@
   background-color: var(--wa-color-brand-fill-loud);
 }
 
-/* The name in the header is the logo's green in both schemes, as in the console and on the
-   marketing pages. */
-.site-title {
-  color: var(--wa-color-brand-50);
-}
-
 /* A badge, such as "Soon" in the menu, is filled with the brand green like Web Awesome's own. */
 :root {
   --sl-badge-default-bg: var(--wa-color-brand-fill-loud);

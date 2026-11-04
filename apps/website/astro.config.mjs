@@ -33,7 +33,10 @@ export default defineConfig({
         minSyntaxHighlightingColorContrast: 0,
       },
       head: [{ tag: "script", content: schemeScript }],
-      components: { PageFrame: "./src/components/PageFrame.astro" },
+      components: {
+        PageFrame: "./src/components/PageFrame.astro",
+        SiteTitle: "./src/components/SiteTitle.astro",
+      },
       // English lives at the root. A language is added by adding an entry here and a folder
       // of the same name under src/content/docs/ - untranslated pages fall back to English.
       defaultLocale: "root",

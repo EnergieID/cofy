@@ -4,25 +4,31 @@ import type { TemplateResult } from "lit";
 import { customElement } from "lit/decorators.js";
 import { repeat } from "lit/directives/repeat.js";
 
-import "@awesome.me/webawesome/dist/components/option/option.js";
-import "@awesome.me/webawesome/dist/components/select/select.js";
+import "@awesome.me/webawesome/dist/components/button/button.js";
+import "@awesome.me/webawesome/dist/components/dropdown/dropdown.js";
+import "@awesome.me/webawesome/dist/components/dropdown-item/dropdown-item.js";
+import "@awesome.me/webawesome/dist/components/icon/icon.js";
+import "../../icons.js";
 
 import { CofyElement } from "../../cofy-element.js";
 import { themeStateContext } from "../../context.js";
 import { COLOR_SCHEMES, type ColorScheme, type ThemeState } from "../../theme/theme-state.js";
 
+/** The icon each scheme is shown with, on the button and in the menu. */
+const ICONS: Record<ColorScheme, string> = { system: "circle-half-stroke", light: "sun", dark: "moon" };
+
 /**
- * Chooses the colour scheme for the whole page.
+ * Chooses the colour scheme for the whole page, from an icon button. The button shows the same
+ * icon whatever is chosen, as on the website: it names the control, not the choice.
  *
- * A select, matching `cofy-locale-picker`: "System" is a standing choice rather than a
- * one-off reading, and pick it and the console follows the operating system from then on,
- * including a change made while the page is open.
+ * "System" is a standing choice rather than a one-off reading: pick it and the page follows the
+ * operating system from then on, including a change made while the page is open.
  */
 @customElement("cofy-theme-picker")
 export class CofyThemePicker extends CofyElement {
   public static override styles = css`
     :host {
-      display: block;
+      display: inline-block;
     }
   `;
 
@@ -30,28 +36,37 @@ export class CofyThemePicker extends CofyElement {
   public theme!: ThemeState;
 
   public override render(): TemplateResult {
+    const label = this.t("settings.theme.legend", { defaultValue: "Appearance" });
+
     return html`
-      <wa-select
-        label=${this.t("settings.theme.legend", { defaultValue: "Appearance" })}
-        .value=${this.theme?.scheme ?? "system"}
+      <wa-dropdown
+        placement="bottom-end"
         lang=${this.i18n?.resolvedLanguage ?? "en"}
-        @change=${(event: Event): void => this.select((event.target as HTMLElement & { value?: string }).value)}
+        @wa-select=${(event: CustomEvent<{ item: { value: string } }>): void => this.select(event.detail.item.value)}
       >
+        <wa-button slot="trigger" appearance="plain" title=${label}>
+          <wa-icon name=${ICONS.system} library="cofy" label=${label}></wa-icon>
+        </wa-button>
         ${repeat(
           COLOR_SCHEMES,
-          (scheme) => scheme,
-          (scheme): TemplateResult => html`
-            <wa-option value=${scheme}>${this.t(`settings.theme.names.${scheme}`, { defaultValue: scheme })}</wa-option>
+          (option) => option,
+          (option): TemplateResult => html`
+            <wa-dropdown-item value=${option}>
+              <wa-icon slot="icon" name=${ICONS[option]} library="cofy"></wa-icon>
+              ${this.nameOf(option)}
+            </wa-dropdown-item>
           `,
         )}
-      </wa-select>
+      </wa-dropdown>
     `;
   }
 
-  private select(scheme: string | undefined): void {
-    if (scheme !== undefined && (COLOR_SCHEMES as readonly string[]).includes(scheme)) {
-      this.theme.select(scheme as ColorScheme);
-    }
+  private nameOf(scheme: ColorScheme): string {
+    return this.t(`settings.theme.names.${scheme}`, { defaultValue: scheme });
+  }
+
+  private select(scheme: string): void {
+    if ((COLOR_SCHEMES as readonly string[]).includes(scheme)) this.theme.select(scheme as ColorScheme);
   }
 }
 

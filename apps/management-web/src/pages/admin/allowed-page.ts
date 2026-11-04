@@ -5,7 +5,7 @@ import type { Crumb } from "@cofy/web-components";
 
 import "@cofy/web-components";
 
-import { CofyPage } from "./cofy-page.js";
+import { CofyPage } from "../cofy-page.js";
 
 /** Which communities may use each type - for a system admin. */
 @customElement("cofy-allowed-page")

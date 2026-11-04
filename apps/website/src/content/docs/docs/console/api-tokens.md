@@ -9,7 +9,7 @@ Apps, such as your community's website, an energy app or a home battery, read yo
 
 ## Creating a token
 
-1. On the API tokens tab, click **New token**.
+1. On the API tokens page, click **New token**.
 2. Give it a **name**, such as `website`, and a description of which app uses it.
 3. Optionally, choose a date from which it **expires**.
 4. Click **Create**.
@@ -42,4 +42,4 @@ Every community's API describes itself. Open your API address followed by `/docs
 
 ## Stopping an app
 
-Delete its token on the API tokens tab: from then on, the app can no longer reach your API. The other apps keep working, since each has its own token.
+Delete its token on the API tokens page: from then on, the app can no longer reach your API. The other apps keep working, since each has its own token.

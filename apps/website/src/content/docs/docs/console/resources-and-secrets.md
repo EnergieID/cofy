@@ -17,7 +17,7 @@ A [resource](/docs/concepts/#resource) is a value you configure once and use in 
 
 ### Adding a resource
 
-1. On the Resources tab, click **Add resource**.
+1. On the Resources page, click **Add resource**.
 2. Choose its **kind**, give it a **name** and, optionally, a description.
 3. Fill in its value, as you would in a module's form.
 4. Click **Create resource**.
@@ -32,9 +32,9 @@ Changing a resource changes it for every module that uses it. A resource that is
 
 ## Secrets
 
-A [secret](/docs/concepts/#secret) is a credential, such as an API key or a password. You store it once, on the Secrets tab, and modules refer to it by name.
+A [secret](/docs/concepts/#secret) is a credential, such as an API key or a password. You store it once, on the Secrets page, and modules refer to it by name.
 
-1. On the Secrets tab, click **Add secret**.
+1. On the Secrets page, click **Add secret**.
 2. Give it a **name**, such as `entsoe_key`, and, optionally, a description of what it is for.
 3. Paste its **value** and click **Save**.
 

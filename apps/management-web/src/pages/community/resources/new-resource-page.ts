@@ -1,16 +1,16 @@
 import { css, html } from "lit";
 import type { TemplateResult } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { customElement } from "lit/decorators.js";
 import type { Crumb } from "@cofy/web-components";
 
 import { nativeStyles } from "@cofy/web-components";
 import "@cofy/web-components";
 
-import { CofyPage } from "./cofy-page.js";
+import { CofyCommunityPage } from "../cofy-community-page.js";
 
 /** Add a resource to a community. */
 @customElement("cofy-new-resource-page")
-export class CofyNewResourcePage extends CofyPage {
+export class CofyNewResourcePage extends CofyCommunityPage {
   public static override styles = [
     nativeStyles,
     css`
@@ -20,14 +20,8 @@ export class CofyNewResourcePage extends CofyPage {
     `,
   ];
 
-  @property({ type: String }) public override slug = "";
-
   protected override crumbs(): Crumb[] {
-    const community = this.cofy?.communities.get(this.slug);
-    return [
-      { label: community?.title ?? this.slug, href: this.routes.hashFor("resources", { slug: this.slug }) },
-      { label: this.t("newResource.crumb") },
-    ];
+    return this.sectionTrail("resources", { label: this.t("newResource.crumb") });
   }
 
   protected override content(): TemplateResult {

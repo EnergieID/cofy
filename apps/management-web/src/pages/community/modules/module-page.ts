@@ -1,4 +1,4 @@
-import { css, html } from "lit";
+import { html } from "lit";
 import type { TemplateResult } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import type { ModuleId } from "@cofy/frontend-sdk";
@@ -6,28 +6,16 @@ import type { Crumb } from "@cofy/web-components";
 
 import "@cofy/web-components";
 
-import { CofyPage } from "./cofy-page.js";
+import { CofyCommunityPage } from "../cofy-community-page.js";
 
 /** One module, edited as YAML. */
 @customElement("cofy-module-page")
-export class CofyModulePage extends CofyPage {
-  public static override styles = css`
-    :host {
-      display: block;
-    }
-  `;
-
-  @property({ type: String }) public override slug = "";
+export class CofyModulePage extends CofyCommunityPage {
   @property({ attribute: false }) public moduleId: ModuleId | null = null;
 
   protected override crumbs(): Crumb[] {
-    const community = this.cofy?.communities.get(this.slug);
     const module = this.moduleId === null ? undefined : this.cofy?.modules.get(this.slug, this.moduleId);
-
-    return [
-      { label: community?.title ?? this.slug, href: this.routes.hashFor("modules", { slug: this.slug }) },
-      { label: module?.display_name ?? module?.name ?? this.moduleId?.name ?? "" },
-    ];
+    return this.sectionTrail("modules", { label: module?.display_name ?? module?.name ?? this.moduleId?.name ?? "" });
   }
 
   protected override content(): TemplateResult {

@@ -2,10 +2,31 @@ import { ProblemError } from "@cofy/frontend-sdk";
 import { State, stateProperty } from "@dodona/lit-state";
 import { html, type TemplateResult } from "lit";
 
-import { buildHash, matchRoute, pathFromHash, type Access, type RouteParams, type RouteTable } from "../router.js";
+import {
+  buildHash,
+  buildPath,
+  isWithin,
+  matchRoute,
+  paramsFor,
+  pathFromHash,
+  type Access,
+  type RouteMatch,
+  type RouteParams,
+  type RouteTable,
+} from "../router.js";
 
 /** What a page shows in place of itself to someone who may not see it: what a refused request shows. */
 const NO_ACCESS = new ProblemError(403, { status: 403, code: "forbidden" });
+
+/** A page as the menu lists it. */
+export interface MenuItem<Name extends string = string> {
+  name: Name;
+  group: string;
+  icon: string;
+  hash: string;
+  /** Whether the page showing is this one, or one reached from it. */
+  current: boolean;
+}
 
 /**
  * Where the app is, as observable state.
@@ -66,9 +87,41 @@ export class RouteState<Name extends string = string> extends State {
     return this.routes[name].allows?.(this.access, params) ?? true;
   }
 
+  /** The route the current path matches, with what it captured. */
+  public match(): RouteMatch<Name> | undefined {
+    return matchRoute(this.routes, this.path);
+  }
+
+  /**
+   * The pages the menu lists from here, in declaration order: those with a place in the menu
+   * that the current path's parameters can address - a community's pages only inside one - and
+   * that the person logged in may see.
+   */
+  public menu(): MenuItem<Name>[] {
+    const params = this.match()?.params ?? {};
+    const listed = (Object.keys(this.routes) as Name[]).flatMap((name) => {
+      const route = this.routes[name];
+      const own = paramsFor(route.path, params);
+      if (route.menu === undefined || own === undefined || !this.allows(name, own)) return [];
+      return [{ name, menu: route.menu, path: buildPath(route.path, own) }];
+    });
+    // The page showing belongs to the listed one its path lies deepest within: a module's editor to the modules.
+    const current = listed
+      .filter((item) => isWithin(this.path, item.path))
+      .sort((a, b) => b.path.length - a.path.length)[0];
+
+    return listed.map((item) => ({
+      name: item.name,
+      group: item.menu.group,
+      icon: item.menu.icon,
+      hash: `#${item.path}`,
+      current: item === current,
+    }));
+  }
+
   /** The page for the current path - or why it isn't shown - or `undefined` when no route claims it. */
   public render(): TemplateResult | undefined {
-    const match = matchRoute(this.routes, this.path);
+    const match = this.match();
     if (match === undefined) return undefined;
     if (!this.allows(match.name, match.params)) {
       return html`<cofy-problem-details .problem=${NO_ACCESS}></cofy-problem-details>`;
