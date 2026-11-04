@@ -22,7 +22,7 @@ import {
   yamlBackend,
 } from "@cofy/web-components";
 import "@cofy/web-components";
-import { LitElement, css, html } from "lit";
+import { LitElement, css, html, nothing } from "lit";
 import type { TemplateResult } from "lit";
 import { customElement, query } from "lit/decorators.js";
 
@@ -82,14 +82,18 @@ export class CofyApp extends LitElement {
         display: block;
         min-block-size: 100vh;
       }
+      /* A column for the menu only when there is one: someone without any community has none. */
       wa-page {
         --menu-width-desktop: 16rem;
+        --menu-width: 0px;
+      }
+      wa-page:has(> [slot="navigation"]) {
         --menu-width: var(--menu-width-desktop);
       }
       wa-page[view="mobile"] {
         --menu-width: auto;
       }
-      wa-page[view="desktop"]::part(menu) {
+      wa-page[view="desktop"]:has(> [slot="navigation"])::part(menu) {
         border-inline-end: var(--wa-border-width-s) solid var(--wa-color-surface-border);
       }
       /* As high as the docs' header: Starlight's 3.5rem, and 4rem from 50rem on. */
@@ -145,7 +149,8 @@ export class CofyApp extends LitElement {
          what lies left of the page's column. */
       wa-page[view="desktop"] [slot="header"] {
         display: grid;
-        grid-template-columns: var(--content-start) minmax(0, 1fr) auto;
+        /* Never narrower than the brand, which without a menu may be wider than what lies left of the page. */
+        grid-template-columns: minmax(max-content, var(--content-start)) minmax(0, 1fr) auto;
         gap: 0;
       }
       wa-page[view="mobile"] .brand {
@@ -220,9 +225,13 @@ export class CofyApp extends LitElement {
       <wa-page>
         <header slot="header" class="wa-split wa-flex-nowrap">
           <div class="wa-cluster wa-gap-xs wa-flex-nowrap">
-            <wa-button data-toggle-nav appearance="plain" class="wa-mobile-only" title=${this.t("menu.open")}>
-              <wa-icon name="bars" label=${this.t("menu.open")}></wa-icon>
-            </wa-button>
+            ${this.hasMenu()
+              ? html`
+                  <wa-button data-toggle-nav appearance="plain" class="wa-mobile-only" title=${this.t("menu.open")}>
+                    <wa-icon name="bars" label=${this.t("menu.open")}></wa-icon>
+                  </wa-button>
+                `
+              : nothing}
             <a class="brand wa-cluster wa-gap-xs" href="#/">
               <wa-icon name="brand" library="cofy"></wa-icon>
               <span>${this.t("product")} <span class="sub-brand">${this.t("subtitle")}</span></span>
@@ -236,16 +245,7 @@ export class CofyApp extends LitElement {
           </div>
         </header>
 
-        <cofy-navigation
-          slot="navigation"
-          .groups=${MENU_GROUPS}
-          @click=${(event: Event): void => this.closeMenuOnFollow(event)}
-        ></cofy-navigation>
-        <cofy-navigation
-          slot="navigation-footer"
-          .groups=${MENU_FOOTER_GROUPS}
-          @click=${(event: Event): void => this.closeMenuOnFollow(event)}
-        ></cofy-navigation>
+        ${this.menu()}
 
         <!-- In the header where there is room for them, above the page where there isn't. -->
         <main class="wa-stack">
@@ -254,6 +254,30 @@ export class CofyApp extends LitElement {
         </main>
       </wa-page>
     `;
+  }
+
+  /**
+   * The menu down the side, unless it would list nothing - then wa-page leaves out its column, and
+   * the toggle that opens it on mobile.
+   */
+  private menu(): TemplateResult | typeof nothing {
+    if (!this.hasMenu()) return nothing;
+    return html`
+      <cofy-navigation
+        slot="navigation"
+        .groups=${MENU_GROUPS}
+        @click=${(event: Event): void => this.closeMenuOnFollow(event)}
+      ></cofy-navigation>
+      <cofy-navigation
+        slot="navigation-footer"
+        .groups=${MENU_FOOTER_GROUPS}
+        @click=${(event: Event): void => this.closeMenuOnFollow(event)}
+      ></cofy-navigation>
+    `;
+  }
+
+  private hasMenu(): boolean {
+    return this.routeState.menu().length > 0;
   }
 
   /**

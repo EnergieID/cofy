@@ -4,8 +4,8 @@ import type { TemplateResult } from "lit";
 /** The values a path's `:name` segments captured. */
 export type RouteParams = Record<string, string>;
 
-/** What a route's rule asks of who is logged in: what they may do. */
-export type Access = Pick<SessionStore, "can">;
+/** What a route's rules ask of who is logged in: what they may do, and where. */
+export type Access = Pick<SessionStore, "can" | "get">;
 
 /** Where a page is listed in the menu: under which group, with which icon. */
 export interface MenuEntry {
@@ -28,6 +28,8 @@ export interface RouteDefinition {
   allows?: (access: Access, params: RouteParams) => boolean;
   /** The page's place in the menu; a page reached only from another one has none. */
   menu?: MenuEntry;
+  /** Another path to show instead, for some: their own home, say. Without one, or when it gives none, this page shows. */
+  redirect?: (access: Access) => string | undefined;
 }
 
 /** A set of routes, keyed by name. */

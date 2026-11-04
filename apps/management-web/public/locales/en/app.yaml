@@ -7,6 +7,10 @@ subtitle: console
 community:
   status: API status
 
+home:
+  title: No communities yet
+  noAccess: You don't have access to any community yet. Ask whoever manages your community, or your COFY host, to give you access.
+
 menu:
   label: Menu
   open: Open the menu

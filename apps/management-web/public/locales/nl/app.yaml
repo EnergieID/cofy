@@ -5,6 +5,10 @@ subtitle: console
 community:
   status: Status van de API
 
+home:
+  title: Nog geen gemeenschappen
+  noAccess: Je hebt nog geen toegang tot een gemeenschap. Vraag wie je gemeenschap beheert, of je COFY-host, om je toegang te geven.
+
 menu:
   label: Menu
   open: Open het menu

@@ -12,11 +12,11 @@ The management console is where you set up and change your community's COFY API.
 
 Open the console's address and log in with your account at your COFY host, such as your EnergyID account for the COFY that EnergyID hosts. Use the email address you were given access with.
 
-If you see no communities after logging in, nobody has given you access yet: ask whoever manages your community, or your COFY host, to [give you access](/docs/console/access/).
+If the console says you have no communities yet, nobody has given you access yet: ask whoever manages your community, or your COFY host, to [give you access](/docs/console/access/).
 
 ## Your communities
 
-The first page lists the communities you have access to, with how many modules each has and the status of its API. Click a community to open it.
+If you have access to several communities, the first page lists them, with how many modules each has and the status of its API. Click a community to open it. If you have access to just one, the console opens that one straight away.
 
 At the top of a community's page you find:
 

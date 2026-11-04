@@ -2,7 +2,7 @@ import { html } from "lit";
 
 import type { Action, Subject } from "@cofy/frontend-sdk";
 
-import type { Access, RouteDefinition, RouteParams } from "./router.js";
+import { buildPath, type Access, type RouteDefinition, type RouteParams } from "./router.js";
 import "./pages/admin/allowed-page.js";
 import "./pages/communities-page.js";
 import "./pages/community/allowed-types-page.js";
@@ -15,6 +15,7 @@ import "./pages/community/resources/resource-page.js";
 import "./pages/community/resources/resources-page.js";
 import "./pages/community/secrets-page.js";
 import "./pages/community/tokens-page.js";
+import "./pages/home-page.js";
 
 /**
  * The menu's groups, in order: down the side, then at its foot. The first is the console's top
@@ -40,10 +41,31 @@ function may(action: Action, subject: Subject): NonNullable<RouteDefinition["all
   return (access: Access, { slug }: RouteParams): boolean => access.can(action, subject, slug ?? null);
 }
 
+/** The communities someone has a role in. */
+function communitiesOf(access: Access): string[] {
+  return access.get()?.permissions.flatMap(({ slug }) => (slug === null ? [] : [slug])) ?? [];
+}
+
+/** Whether someone has communities to pick from: several of them, or the right to create one. A list of one is not a choice. */
+function picks(access: Access): boolean {
+  return access.can("write", "community", null) || communitiesOf(access).length > 1;
+}
+
 export const routes = {
-  communities: {
+  /** Where the brand leads: the communities to pick from, the one community someone has, or - with none - a page saying so. */
+  home: {
     path: "/",
+    render: () => html`<cofy-home-page></cofy-home-page>`,
+    redirect: (access): string | undefined => {
+      if (picks(access)) return routes.communities.path;
+      const [only] = communitiesOf(access);
+      return only === undefined ? undefined : buildPath(routes.modules.path, { slug: only });
+    },
+  },
+  communities: {
+    path: "/communities",
     render: () => html`<cofy-communities-page></cofy-communities-page>`,
+    allows: picks,
     menu: { group: "console", icon: "people-group" },
   },
   typeAvailability: {

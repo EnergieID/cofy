@@ -5,6 +5,8 @@ import { MENU_FOOTER_GROUPS, MENU_GROUPS, routes } from "../src/routes.js";
 
 describe("routes", () => {
   it.each([
+    ["/", "home", {}],
+    ["/communities", "communities", {}],
     ["/communities/foo", "modules", { slug: "foo" }],
     ["/communities/foo/resources", "resources", { slug: "foo" }],
     ["/communities/foo/secrets", "secrets", { slug: "foo" }],
@@ -36,6 +38,7 @@ describe("routes", () => {
   ] as const)("lets %s be seen by whoever may %s %s", (name, params, action, subject, slug) => {
     const asked: unknown[] = [];
     const access: Access = {
+      get: () => undefined,
       can: (...args) => {
         asked.push(args);
         return false;
@@ -46,8 +49,38 @@ describe("routes", () => {
     expect(asked).toEqual([[action, subject, slug]]);
   });
 
-  it("lets anyone logged in see the communities", () => {
-    expect("allows" in routes.communities).toBe(false);
+  describe("home", () => {
+    /** Someone with a role in *slugs*, who may create communities if *creates*. */
+    function person(slugs: string[], creates = false): Access {
+      const me = {
+        email: "ann@example.com",
+        name: null,
+        system_admin: false,
+        permissions: slugs.map((slug) => ({ slug, permissions: [] })),
+      };
+      return { get: () => me, can: (action, subject, slug) => creates && action === "write" && subject === "community" && slug === null };
+    }
+
+    it("is the one community of whoever has only that one, who has no list to pick from", () => {
+      expect(routes.home.redirect(person(["demo"]))).toBe("/communities/demo");
+      expect(routes.communities.allows(person(["demo"]))).toBe(false);
+    });
+
+    it("is the list for whoever has several", () => {
+      expect(routes.home.redirect(person(["demo", "evo"]))).toBe("/communities");
+      expect(routes.communities.allows(person(["demo", "evo"]))).toBe(true);
+    });
+
+    it("is the list for whoever may create a community, with one or none", () => {
+      expect(routes.home.redirect(person(["demo"], true))).toBe("/communities");
+      expect(routes.home.redirect(person([], true))).toBe("/communities");
+      expect(routes.communities.allows(person([], true))).toBe(true);
+    });
+
+    it("is itself for whoever has no community at all", () => {
+      expect(routes.home.redirect(person([]))).toBeUndefined();
+      expect(routes.communities.allows(person([]))).toBe(false);
+    });
   });
 
   it("files every page the menu lists under one of its groups", () => {

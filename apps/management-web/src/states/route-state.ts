@@ -87,9 +87,14 @@ export class RouteState<Name extends string = string> extends State {
     return this.routes[name].allows?.(this.access, params) ?? true;
   }
 
-  /** The route the current path matches, with what it captured. */
+  /** The route the current path matches, with what it captured - after the route's redirect, if it has one. */
   public match(): RouteMatch<Name> | undefined {
-    return matchRoute(this.routes, this.path);
+    return matchRoute(this.routes, this.shown());
+  }
+
+  /** The path whose page is shown: the current one, or where its route sends the person logged in. */
+  private shown(): string {
+    return matchRoute(this.routes, this.path)?.route.redirect?.(this.access) ?? this.path;
   }
 
   /**
@@ -107,7 +112,7 @@ export class RouteState<Name extends string = string> extends State {
     });
     // The page showing belongs to the listed one its path lies deepest within: a module's editor to the modules.
     const current = listed
-      .filter((item) => isWithin(this.path, item.path))
+      .filter((item) => isWithin(this.shown(), item.path))
       .sort((a, b) => b.path.length - a.path.length)[0];
 
     return listed.map((item) => ({

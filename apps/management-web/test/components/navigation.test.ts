@@ -5,24 +5,36 @@ import { CofyNavigation } from "../../src/components/cofy-navigation.js";
 import { MENU_FOOTER_GROUPS, MENU_GROUPS } from "../../src/routes.js";
 import { ANN, mount } from "../support/mount.js";
 
-/** Ann, who may read everything in the community "foo". */
+/** Everything to read in a community, but what types it may use. */
+const READ_ALL = (["modules", "resources", "secrets", "tokens", "grants"] as const).map((subject) => ({
+  action: "read" as const,
+  subject,
+}));
+
+/** Ann, who may read everything in the communities "foo" and "bar". */
 const MEMBER: Me = {
   ...ANN,
   permissions: [
-    {
-      slug: "foo",
-      permissions: (["modules", "resources", "secrets", "tokens", "grants"] as const).map((subject) => ({
-        action: "read" as const,
-        subject,
-      })),
-    },
+    { slug: "foo", permissions: READ_ALL },
+    { slug: "bar", permissions: READ_ALL },
   ],
 };
+
+/** Ann, who has only the community "foo". */
+const SINGLE: Me = { ...ANN, permissions: [{ slug: "foo", permissions: READ_ALL }] };
 
 const ADMIN: Me = {
   ...ANN,
   system_admin: true,
-  permissions: [{ slug: null, permissions: [{ action: "read", subject: "allowed_types" }] }],
+  permissions: [
+    {
+      slug: null,
+      permissions: [
+        { action: "write", subject: "community" },
+        { action: "read", subject: "allowed_types" },
+      ],
+    },
+  ],
 };
 
 function groups(element: CofyNavigation): [string, string[]][] {
@@ -60,6 +72,16 @@ describe("cofy-navigation", () => {
     const current = element.shadowRoot!.querySelector("a[aria-current=page]")!;
     expect(current.textContent.trim()).toBe("Secrets");
     expect(current.getAttribute("href")).toBe("#/communities/foo/secrets");
+  });
+
+  it("leaves out the communities for whoever has only one, whose home is that one", async () => {
+    const { element } = await mount(menu(MENU_GROUPS), SINGLE);
+
+    expect(groups(element)).toEqual([
+      ["Configuration", ["Modules", "Resources", "Secrets"]],
+      ["Permissions", ["API tokens", "Access"]],
+    ]);
+    expect(element.shadowRoot!.querySelector("a[aria-current=page]")!.getAttribute("href")).toBe("#/communities/foo");
   });
 
   it("lists only the groups it is given", async () => {

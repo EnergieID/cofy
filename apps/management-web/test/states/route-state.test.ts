@@ -15,7 +15,7 @@ const routes = {
 } satisfies RouteTable;
 
 /** Someone who may see the community "foo", and nothing else. */
-const access: Access = { can: (_action, _subject, slug) => slug === "foo" };
+const access: Access = { can: (_action, _subject, slug) => slug === "foo", get: () => undefined };
 
 describe("RouteState", () => {
   let state: RouteState;
@@ -167,8 +167,29 @@ describe("RouteState", () => {
 
     it("leaves out a page its rule refuses", () => {
       expect(menuAt("#/communities/bar").map((item) => item.name)).toEqual(["communities", "modules", "secrets"]);
-      const admin = new RouteState(menuRoutes, { can: (): boolean => true });
+      const admin = new RouteState(menuRoutes, { can: (): boolean => true, get: (): undefined => undefined });
       expect(admin.menu().map((item) => item.name)).toContain("admin");
+    });
+  });
+
+  describe("redirect", () => {
+    const homeRoutes = {
+      home: {
+        path: "/",
+        render: (): TemplateResult => html`list`,
+        redirect: (): string => "/communities/foo",
+        menu: { group: "top", icon: "home" },
+      },
+      modules: { path: "/communities/:slug", render: (): TemplateResult => html`modules`, menu: { group: "community", icon: "cubes" } },
+    } satisfies RouteTable;
+
+    it("shows the page a route sends to, as if it were the path", () => {
+      window.location.hash = "#/";
+      const home = new RouteState(homeRoutes, access);
+
+      expect(home.match()?.name).toBe("modules");
+      expect(home.match()?.params).toEqual({ slug: "foo" });
+      expect(home.menu().filter((item) => item.current).map((item) => item.name)).toEqual(["modules"]);
     });
   });
 });
