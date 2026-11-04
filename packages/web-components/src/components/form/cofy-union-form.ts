@@ -12,6 +12,7 @@ import "./cofy-any-form.js";
 
 import { fieldRegistryContext } from "../../context.js";
 import { nativeStyles } from "../../theme/native-styles.js";
+import { panelStyles } from "../../theme/panel-styles.js";
 import { utilityStyles } from "../../theme/utility-styles.js";
 import type { FieldRegistry } from "./field-registry.js";
 import { defaultFieldRegistry } from "./field-registry.js";
@@ -52,6 +53,7 @@ export class CofyUnionForm extends CofyFormField {
   public static override styles = [
     nativeStyles,
     utilityStyles,
+    panelStyles,
     css`
       :host {
         display: block;

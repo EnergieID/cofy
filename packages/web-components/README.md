@@ -21,13 +21,14 @@ build your own console instead (route 3 in the [root README](../../README.md)). 
 - **A YAML editor** (`components/editor/*`) - `CofyYamlEditor`, a CodeMirror-based editor with
   YAML syntax highlighting and lint diagnostics, backing the raw-YAML fallback form and
   anywhere else config needs hand-editing.
-- **Theming** (`theme/*`) - `ThemeState` (light/dark/system, persisted), plus shared styles
+- **Theming** (`theme/*`) - `ThemeState` (light/dark/system/EnergyID, persisted), plus shared styles
   (`nativeStyles`, `utilityStyles`, `tableStyles`) built on Web Awesome's `--wa-*` tokens.
   `theme/cofy.css` is the COFY theme - every colour built from one lightness and chroma ladder
   and a hue per colour, and a softer dark background - shared by the console and the website. See
   [apps/management-web/src/brand.css](../../apps/management-web/src/brand.css) for how a
   deployment sets its own brand hue on top of it - a CSS custom property, no code or build step
-  involved.
+  involved. `theme/energyid.css` is the EnergyID theme on top of it: EnergyID's green and blue
+  navigation bar, light only.
 - **Translations** (`i18n/*`) - `createI18n`, `CofyI18n`, built on
   [i18next](https://www.i18next.com/). The library's own strings ship as YAML under
   [locales/](locales) rather than bundled into the JS, so a deployment can add a language or

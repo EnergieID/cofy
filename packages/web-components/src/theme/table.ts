@@ -20,6 +20,12 @@ export const tableStyles: CSSResultGroup = [
     wa-scroller > table {
       margin-block: 0;
     }
+    /* The scroller is the table's panel, flat on the page unless a theme gives it a surface of its own. */
+    wa-scroller {
+      background: var(--cofy-panel-background);
+      border-radius: var(--cofy-panel-radius);
+      overflow: hidden;
+    }
     tbody tr {
       cursor: pointer;
     }

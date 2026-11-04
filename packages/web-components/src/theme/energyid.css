@@ -1,0 +1,79 @@
+/*
+ * The EnergyID theme: the COFY theme in EnergyID's colours, so the console looks at home next to
+ * EnergyID. Light only, as EnergyID is.
+ *
+ * Import it after the COFY theme. It applies only under the `cofy-energyid` class that
+ * `ThemeState` puts on the root element, together with `wa-light`, so the light and dark themes
+ * are untouched. `:root.cofy-energyid` outranks the plain `:root` of the COFY theme and of a
+ * deployment's own brand, whatever the import order.
+ */
+
+/*
+ * The green is EnergyID's, with its key step exactly EnergyID's #6fac4d. That is lighter than the
+ * COFY ladder's 50, and more vivid, so the steps around it are EnergyID's own: the hue of that
+ * green, lighter steps above it and darker ones, readable as text on white, below.
+ *
+ * As in the COFY theme, the brand is that green, and so is success, which Web Awesome takes from
+ * the green.
+ */
+:root.cofy-energyid {
+  --wa-color-green-95: oklch(96% 0.03 136);
+  --wa-color-green-90: oklch(92% 0.06 136);
+  --wa-color-green-80: oklch(85% 0.1 136);
+  --wa-color-green-70: oklch(78% 0.13 136);
+  --wa-color-green-60: oklch(73% 0.14 136);
+  --wa-color-green-50: #6fac4d;
+  --wa-color-green-40: oklch(53% 0.12 136);
+  --wa-color-green-30: oklch(44% 0.1 136);
+  --wa-color-green-20: oklch(35% 0.08 136);
+  --wa-color-green-10: oklch(26% 0.06 136);
+  --wa-color-green-05: oklch(20% 0.04 136);
+  --wa-color-green: var(--wa-color-green-50);
+  --wa-color-green-key: 50;
+
+  --wa-color-brand-95: var(--wa-color-green-95);
+  --wa-color-brand-90: var(--wa-color-green-90);
+  --wa-color-brand-80: var(--wa-color-green-80);
+  --wa-color-brand-70: var(--wa-color-green-70);
+  --wa-color-brand-60: var(--wa-color-green-60);
+  --wa-color-brand-50: var(--wa-color-green-50);
+  --wa-color-brand-40: var(--wa-color-green-40);
+  --wa-color-brand-30: var(--wa-color-green-30);
+  --wa-color-brand-20: var(--wa-color-green-20);
+  --wa-color-brand-10: var(--wa-color-green-10);
+  --wa-color-brand-05: var(--wa-color-green-05);
+  --wa-color-brand: var(--wa-color-green);
+}
+
+/* EnergyID's dark grey text and blue links. */
+:root.cofy-energyid {
+  --wa-color-text-normal: #4d4d4d;
+  --wa-color-text-link: #1771a6;
+}
+
+/* EnergyID's blue navigation bar, with white on it and its darker blue under a hovered control. */
+:root.cofy-energyid {
+  --cofy-header-background: #3197d6;
+  --cofy-header-brand: white;
+  --cofy-header-text: rgb(255 255 255 / 0.85);
+  --cofy-header-link: white;
+  --cofy-header-control: white;
+  --cofy-header-control-hover: #4589b6;
+}
+
+/*
+ * EnergyID's light grey page, with the menu, tables and panels on it white, and a panel in a panel
+ * grey again. Tables have rounded corners and no border.
+ */
+:root.cofy-energyid {
+  --cofy-page-background: #f8f8f8;
+  --cofy-panel-background: white;
+  --cofy-panel-radius: var(--wa-border-radius-l);
+  --cofy-surface-alt: #f8f8f8;
+}
+
+/* As high as EnergyID's navigation bar, with a logo small enough to have room in it. */
+:root.cofy-energyid {
+  --cofy-header-height: 50px;
+  --cofy-header-logo-size: 1.75rem;
+}

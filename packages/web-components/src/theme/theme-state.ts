@@ -1,10 +1,13 @@
 import { State, stateProperty } from "@dodona/lit-state";
 
-/** What the reader chose. "system" defers to the operating system, and keeps deferring. */
-export type ColorScheme = "system" | "light" | "dark";
+/**
+ * What the reader chose. "system" defers to the operating system, and keeps deferring.
+ * "energyid" is EnergyID's look, which is light by nature.
+ */
+export type ColorScheme = "system" | "light" | "dark" | "energyid";
 
 /** The choices a picker offers, in order. */
-export const COLOR_SCHEMES = ["system", "light", "dark"] as const;
+export const COLOR_SCHEMES = ["system", "light", "dark", "energyid"] as const;
 
 export interface ThemeOptions {
   /** Where the classes are applied. Defaults to the document. */
@@ -16,6 +19,9 @@ export interface ThemeOptions {
 }
 
 const STORAGE_KEY = "cofy.theme";
+
+/** The class `theme/energyid.css` is scoped to. */
+const ENERGYID_CLASS = "cofy-energyid";
 
 function isColorScheme(value: unknown): value is ColorScheme {
   return typeof value === "string" && (COLOR_SCHEMES as readonly string[]).includes(value);
@@ -79,6 +85,7 @@ export class ThemeState extends State {
   /** The scheme actually on screen, which for "system" is whatever the OS currently asks for. */
   public get resolved(): "light" | "dark" {
     if (this.scheme === "system") return this.systemDark ? "dark" : "light";
+    if (this.scheme === "energyid") return "light";
     return this.scheme;
   }
 
@@ -91,6 +98,7 @@ export class ThemeState extends State {
     const dark = this.isDark;
     root.classList.toggle("wa-dark", dark);
     root.classList.toggle("wa-light", !dark);
+    root.classList.toggle(ENERGYID_CLASS, this.scheme === "energyid");
   }
 
   private readonly onSystemChange = (event: MediaQueryListEvent): void => {

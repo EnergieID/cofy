@@ -281,6 +281,7 @@ settings:
       system: System
       light: Light
       dark: Dark
+      energyid: EnergyID
   language:
     legend: Language
     choose: Choose a language
