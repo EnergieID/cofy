@@ -55,17 +55,17 @@ describe("cofy-navigation", () => {
     document.body.replaceChildren();
   });
 
-  it("lists only the communities outside a community, without a heading", async () => {
+  it("lists only the communities outside a community, under the General heading", async () => {
     const { element } = await mount(menu(MENU_GROUPS), MEMBER);
 
-    expect(groups(element)).toEqual([["", ["Communities"]]]);
+    expect(groups(element)).toEqual([["General", ["Communities"]]]);
   });
 
   it("lists a community's pages inside it, grouped", async () => {
     const { element } = await mount(menu(MENU_GROUPS), MEMBER, "#/communities/foo/secrets");
 
     expect(groups(element)).toEqual([
-      ["", ["Communities"]],
+      ["General", ["Communities"]],
       ["Configuration", ["Modules", "Resources", "Secrets"]],
       ["Permissions", ["API tokens", "Access"]],
     ]);
@@ -87,7 +87,7 @@ describe("cofy-navigation", () => {
   it("lists only the groups it is given", async () => {
     const { element } = await mount(menu(MENU_GROUPS), ADMIN, "#/allowed-types");
 
-    expect(groups(element)).toEqual([["", ["Communities"]]]);
+    expect(groups(element)).toEqual([["General", ["Communities"]]]);
   });
 
   it("lists the administration for a system admin", async () => {
