@@ -74,7 +74,7 @@ describe("SessionStore", () => {
     await store.fetch();
 
     expect(store.can("read", "grants", "demo")).toBe(true);
-    expect(store.can("write", "grants", "demo")).toBe(false);
+    expect(store.can("update", "grants", "demo")).toBe(false);
     expect(store.can("read", "grants", "elsewhere")).toBe(false);
   });
 
@@ -84,7 +84,7 @@ describe("SessionStore", () => {
     await store.fetch();
 
     expect(store.can("read", "community", null)).toBe(true);
-    expect(store.can("write", "community", null)).toBe(false);
+    expect(store.can("create", "community", null)).toBe(false);
   });
 
   it("allows nothing before anyone is known to be logged in", () => {

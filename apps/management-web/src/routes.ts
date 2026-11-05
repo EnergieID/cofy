@@ -48,7 +48,7 @@ function communitiesOf(access: Access): string[] {
 
 /** Whether someone has communities to pick from: several of them, or the right to create one. A list of one is not a choice. */
 function picks(access: Access): boolean {
-  return access.can("write", "community", null) || communitiesOf(access).length > 1;
+  return access.can("create", "community", null) || communitiesOf(access).length > 1;
 }
 
 export const routes = {
@@ -107,18 +107,18 @@ export const routes = {
   allowedTypes: {
     path: "/communities/:slug/allowed-types",
     render: ({ slug }) => html`<cofy-community-allowed-page .slug=${slug}></cofy-community-allowed-page>`,
-    allows: may("write", "allowed_types"),
+    allows: may("update", "allowed_types"),
     menu: { group: "permissions", icon: "list-check" },
   },
   newModule: {
     path: "/communities/:slug/modules/new",
     render: ({ slug }) => html`<cofy-new-module-page .slug=${slug}></cofy-new-module-page>`,
-    allows: may("write", "modules"),
+    allows: may("create", "modules"),
   },
   newResource: {
     path: "/communities/:slug/resources/new",
     render: ({ slug }) => html`<cofy-new-resource-page .slug=${slug}></cofy-new-resource-page>`,
-    allows: may("write", "resources"),
+    allows: may("create", "resources"),
   },
   resource: {
     path: "/communities/:slug/resources/:name",

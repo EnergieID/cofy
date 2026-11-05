@@ -15,13 +15,13 @@ const communities: CommunityInfo[] = [
 type Permission = { action: string; subject: string };
 
 const READ_COMMUNITY: Permission = { action: "read", subject: "community" };
-const WRITE_COMMUNITY: Permission = { action: "write", subject: "community" };
+const CHANGE_COMMUNITY: Permission[] = ["create", "update", "delete"].map((action) => ({ action, subject: "community" }));
 
 /** Who is logged in: a system administrator may do anything, in any community and outside them. */
 const systemAdmin = [
-  { slug: null, permissions: [READ_COMMUNITY, WRITE_COMMUNITY] },
-  { slug: "demo", permissions: [READ_COMMUNITY, WRITE_COMMUNITY] },
-  { slug: "riverside", permissions: [READ_COMMUNITY, WRITE_COMMUNITY] },
+  { slug: null, permissions: [READ_COMMUNITY, ...CHANGE_COMMUNITY] },
+  { slug: "demo", permissions: [READ_COMMUNITY, ...CHANGE_COMMUNITY] },
+  { slug: "riverside", permissions: [READ_COMMUNITY, ...CHANGE_COMMUNITY] },
 ];
 /** A community administrator manages what is in their community, but not the community itself. */
 const demoAdmin = [{ slug: "demo", permissions: [READ_COMMUNITY] }];

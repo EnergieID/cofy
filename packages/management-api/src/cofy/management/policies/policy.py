@@ -22,8 +22,8 @@ from ..errors import ForbiddenError
 class Policy:
     """The rules for a subject, named after the router methods they guard.
 
-    Seeing the subject takes `read` on it and changing it `write`, in the community the route is about, or outside any
-    one community on a route without a slug.
+    Seeing the subject takes `read` on it, and `create`, `put` and `delete` take `create`, `update` and `delete`, in
+    the community the route is about, or outside any one community on a route without a slug.
     """
 
     def __init__(self, user: User, request: Request, subject: Subject | None):
@@ -53,13 +53,13 @@ class Policy:
         return self.can(Action.read)
 
     def create(self) -> bool:
-        return self.can(Action.write)
+        return self.can(Action.create)
 
     def put(self) -> bool:
-        return self.can(Action.write)
+        return self.can(Action.update)
 
     def delete(self) -> bool:
-        return self.can(Action.write)
+        return self.can(Action.delete)
 
 
 Rule = Callable[[Any], bool]

@@ -74,6 +74,16 @@ services:
             ]
           },
           {
+            "SubjectId": "demo-editor",
+            "Username": "demo-editor",
+            "Password": "pwd",
+            "Claims": [
+              { "Type": "name", "Value": "Demo Editor", "ValueType": "string" },
+              { "Type": "email", "Value": "demo-editor@example.com", "ValueType": "string" },
+              { "Type": "email_verified", "Value": "true", "ValueType": "boolean" }
+            ]
+          },
+          {
             "SubjectId": "nobody",
             "Username": "nobody",
             "Password": "pwd",

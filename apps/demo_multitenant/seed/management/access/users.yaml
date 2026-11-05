@@ -7,3 +7,6 @@ users:
   - email: demo-admin@example.com
     grants:
       demo: community_admin
+  - email: demo-editor@example.com
+    grants:
+      demo: community_editor

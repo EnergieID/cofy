@@ -11,10 +11,12 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, PlainSerializer, mo
 
 
 class Action(StrEnum):
-    """What may be done to a subject: seeing it, or changing it (creating, updating and deleting alike)."""
+    """What may be done to a subject: creating, seeing, updating or deleting it."""
 
+    create = "create"
     read = "read"
-    write = "write"
+    update = "update"
+    delete = "delete"
 
 
 class Subject(StrEnum):
@@ -47,15 +49,23 @@ class Role(StrEnum):
     """A named set of permissions, granted to a person on a community."""
 
     community_admin = "community_admin"
+    community_editor = "community_editor"
+
+
+def _permissions(subject: Subject, *actions: Action) -> frozenset[Permission]:
+    return frozenset(Permission(action=action, subject=subject) for action in actions)
 
 
 ROLE_PERMISSIONS: Mapping[Role, frozenset[Permission]] = {
     # Everything in their community, except changing the community itself or which types it may use.
     Role.community_admin: frozenset(Permission.all())
-    - {
-        Permission(action=Action.write, subject=Subject.community),
-        Permission(action=Action.write, subject=Subject.allowed_types),
-    },
+    - _permissions(Subject.community, Action.create, Action.update, Action.delete)
+    - _permissions(Subject.allowed_types, Action.create, Action.update, Action.delete),
+    # Seeing their community and changing what is configured in it: its modules, but not which there are.
+    Role.community_editor: _permissions(Subject.community, Action.read)
+    | _permissions(Subject.modules, Action.read, Action.update)
+    | _permissions(Subject.resources, *Action)
+    | _permissions(Subject.secrets, *Action),
 }
 """The permissions each role carries, the only place a role turns into what it allows."""
 

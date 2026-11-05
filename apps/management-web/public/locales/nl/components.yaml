@@ -198,6 +198,7 @@ grantDialog:
 
 roles:
   community_admin: Gemeenschapsbeheerder
+  community_editor: Gemeenschapsredacteur
 
 
 errors:

@@ -66,6 +66,20 @@ def test_every_action_on_every_subject_is_a_permission():
 
 def test_a_community_admin_can_do_everything_in_its_community_but_change_it_or_the_allowed_types():
     assert set(Permission.all()) - ROLE_PERMISSIONS[Role.community_admin] == {
-        Permission(action=Action.write, subject=Subject.community),
-        Permission(action=Action.write, subject=Subject.allowed_types),
+        Permission(action=action, subject=subject)
+        for subject in (Subject.community, Subject.allowed_types)
+        for action in (Action.create, Action.update, Action.delete)
+    }
+
+
+def test_a_community_editor_can_see_their_community_update_its_modules_and_manage_its_resources_and_secrets():
+    assert ROLE_PERMISSIONS[Role.community_editor] == {
+        Permission(action=Action.read, subject=Subject.community),
+        Permission(action=Action.read, subject=Subject.modules),
+        Permission(action=Action.update, subject=Subject.modules),
+        *(
+            Permission(action=action, subject=subject)
+            for subject in (Subject.resources, Subject.secrets)
+            for action in Action
+        ),
     }

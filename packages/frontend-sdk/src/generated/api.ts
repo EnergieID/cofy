@@ -501,10 +501,10 @@ export interface components {
         };
         /**
          * Action
-         * @description What may be done to a subject: seeing it, or changing it (creating, updating and deleting alike).
+         * @description What may be done to a subject: creating, seeing, updating or deleting it.
          * @enum {string}
          */
-        Action: "read" | "write";
+        Action: "create" | "read" | "update" | "delete";
         /**
          * Address
          * @description An address of a member.
@@ -2531,7 +2531,7 @@ export interface components {
          * @description A named set of permissions, granted to a person on a community.
          * @enum {string}
          */
-        Role: "community_admin";
+        Role: "community_admin" | "community_editor";
         /**
          * ScheduledFormula
          * @description A formula that only applies during the given time windows.

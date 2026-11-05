@@ -24,6 +24,7 @@ def users() -> dict[str, User]:
         "system_admin": user("admin", system_admin=True),
         "admin_of_a": user("ann", grants={"a": Role.community_admin}),
         "admin_of_b": user("bob", grants={"b": Role.community_admin}),
+        "editor_of_a": user("eddie", grants={"a": Role.community_editor}),
         "nobody": User(identity("nobody"), None),
     }
 
@@ -70,6 +71,29 @@ def test_a_community_admin_may_see_but_not_set_the_allowed_types(subject: Subjec
     assert allowed(users["admin_of_a"], subject) == {"all", "get"}
 
 
+@pytest.mark.parametrize("subject", [Subject.resources, Subject.secrets])
+def test_a_community_editor_may_do_anything_to_the_resources_and_secrets_of_their_community(
+    subject: Subject, users: dict[str, User]
+):
+    assert allowed(users["editor_of_a"], subject) == EVERYTHING
+
+
+def test_a_community_editor_may_see_and_change_modules_but_not_add_or_remove_them(users: dict[str, User]):
+    assert allowed(users["editor_of_a"], Subject.modules) == {"all", "get", "put"}
+
+
+@pytest.mark.parametrize("subject", [Subject.tokens, Subject.grants, *ALLOWED_TYPES])
+def test_a_community_editor_may_do_nothing_with_tokens_grants_or_allowed_types(
+    subject: Subject, users: dict[str, User]
+):
+    assert allowed(users["editor_of_a"], subject) == set()
+
+
+@pytest.mark.parametrize("subject", INSIDE_A_COMMUNITY + ALLOWED_TYPES)
+def test_a_community_editor_may_do_nothing_in_another_community(subject: Subject, users: dict[str, User]):
+    assert allowed(users["editor_of_a"], subject, "b") == set()
+
+
 # ── communities ───────────────────────────────────────────────────────────
 
 
@@ -101,6 +125,11 @@ ON_ONE_COMMUNITY = {"get", "put", "delete"}
 
 def test_a_community_admin_may_see_but_not_change_their_community(users: dict[str, User]):
     assert ON_ONE_COMMUNITY & community(users["admin_of_a"]) == {"get"}
+
+
+def test_a_community_editor_may_see_but_not_change_their_community(users: dict[str, User]):
+    assert ON_ONE_COMMUNITY & community(users["editor_of_a"]) == {"get"}
+    assert "create" not in community(users["editor_of_a"], None)
 
 
 def test_a_system_admin_may_change_and_delete_a_community(users: dict[str, User]):

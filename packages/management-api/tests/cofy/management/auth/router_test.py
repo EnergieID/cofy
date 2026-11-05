@@ -48,7 +48,7 @@ ANN = {
                     "grants",
                     "allowed_types",
                 )
-                for action in ("read", "write")
+                for action in ("create", "read", "update", "delete")
                 if action == "read" or not (subject == "community" or subject.startswith("allowed_"))
             ],
         },
@@ -171,7 +171,7 @@ def test_the_login_binds_a_system_admin(data: Path, monkeypatch: pytest.MonkeyPa
     me = client.get("/auth/me").json()
     assert me["system_admin"]
     assert [entry["slug"] for entry in me["permissions"]] == [None, "test"]
-    assert all(len(entry["permissions"]) == 14 for entry in me["permissions"])
+    assert all(len(entry["permissions"]) == 28 for entry in me["permissions"])
     assert stored_user(data, "root@example.com")["subject"] == "root-sub"
 
 

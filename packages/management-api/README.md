@@ -77,6 +77,9 @@ users:
 - **Community admins** may manage the communities they are granted, including who else has
   access to them, through `/management/communities/{slug}/grants`. Deleting a community takes
   away every role in it.
+- **Community editors** may change the modules of the communities they are granted, but not add
+  or remove any, and manage their resources and secrets. Their tokens and who has access are
+  out of their reach.
 
 Access is granted to an email, since that is all anyone knows of a person who hasn't logged in yet.
 At that person's first login with a verified email, their identity at the provider is written

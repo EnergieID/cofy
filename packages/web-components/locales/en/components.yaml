@@ -197,6 +197,7 @@ grantDialog:
 
 roles:
   community_admin: Community admin
+  community_editor: Community editor
 
 resourceCreate:
   title: Add resource

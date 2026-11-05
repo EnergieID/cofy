@@ -27,14 +27,14 @@ describe("routes", () => {
     ["typeAvailability", {}, "read", "allowed_types", null],
     ["modules", { slug: "foo" }, "read", "modules", "foo"],
     ["module", { slug: "foo", type: "tariff", name: "spot" }, "read", "modules", "foo"],
-    ["newModule", { slug: "foo" }, "write", "modules", "foo"],
+    ["newModule", { slug: "foo" }, "create", "modules", "foo"],
     ["resources", { slug: "foo" }, "read", "resources", "foo"],
     ["resource", { slug: "foo", name: "day_ahead" }, "read", "resources", "foo"],
-    ["newResource", { slug: "foo" }, "write", "resources", "foo"],
+    ["newResource", { slug: "foo" }, "create", "resources", "foo"],
     ["secrets", { slug: "foo" }, "read", "secrets", "foo"],
     ["tokens", { slug: "foo" }, "read", "tokens", "foo"],
     ["grants", { slug: "foo" }, "read", "grants", "foo"],
-    ["allowedTypes", { slug: "foo" }, "write", "allowed_types", "foo"],
+    ["allowedTypes", { slug: "foo" }, "update", "allowed_types", "foo"],
   ] as const)("lets %s be seen by whoever may %s %s", (name, params, action, subject, slug) => {
     const asked: unknown[] = [];
     const access: Access = {
@@ -58,7 +58,7 @@ describe("routes", () => {
         system_admin: false,
         permissions: slugs.map((slug) => ({ slug, permissions: [] })),
       };
-      return { get: () => me, can: (action, subject, slug) => creates && action === "write" && subject === "community" && slug === null };
+      return { get: () => me, can: (action, subject, slug) => creates && action === "create" && subject === "community" && slug === null };
     }
 
     it("is the one community of whoever has only that one, who has no list to pick from", () => {

@@ -1,7 +1,7 @@
 import { css, html, nothing } from "lit";
 import type { TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { moduleKey, type ModuleSettings, type ProblemError } from "@cofy/frontend-sdk";
+import { moduleKey, type Action, type ModuleSettings, type ProblemError } from "@cofy/frontend-sdk";
 
 import "@awesome.me/webawesome/dist/components/button/button.js";
 import "@awesome.me/webawesome/dist/components/skeleton/skeleton.js";
@@ -17,7 +17,8 @@ import "../cofy-problem-details.js";
 /**
  * The modules configured in a community.
  *
- * A row is the edit affordance and carries its own delete button. Deliberately plain: there is
+ * A row is the edit affordance and carries its own delete button, for whoever may delete; adding
+ * one is likewise only offered to whoever may. Deliberately plain: there is
  * no selection model, no search and no sorting, because none of them are needed at the volumes
  * a community actually holds. Search is the likeliest of the three to be wanted first, and is
  * a `filter()` over the rows here when it is - no store or API change.
@@ -63,9 +64,11 @@ export class CofyModuleList extends CofyElement {
         <cofy-heading>
           <span slot="title">${this.t("moduleList.title")}</span>
           <span slot="description">${this.t("moduleList.description")}</span>
-          <wa-button slot="actions" variant="brand" @click=${(): void => this.requestCreate()}>
-            ${this.t("moduleList.add")}
-          </wa-button>
+          ${this.may("create")
+            ? html`<wa-button slot="actions" variant="brand" @click=${(): void => this.requestCreate()}>
+                ${this.t("moduleList.add")}
+              </wa-button>`
+            : nothing}
         </cofy-heading>
 
         <wa-scroller>
@@ -107,21 +110,28 @@ export class CofyModuleList extends CofyElement {
         <td>${module.display_name || module.name}</td>
         <td><wa-tag variant="neutral" appearance="outlined">${module.type}</wa-tag></td>
         <td class="actions">
-          <wa-button
-            appearance="plain"
-            size="small"
-            ?disabled=${this.deleting}
-            @click=${(event: MouseEvent): void => {
-              // Without this the row's own handler would also fire and navigate away.
-              event.stopPropagation();
-              void this.deleteModule(module);
-            }}
-          >
-            ${this.deleting ? this.t("moduleList.deleting") : this.t("moduleList.delete")}
-          </wa-button>
+          ${this.may("delete")
+            ? html`<wa-button
+                appearance="plain"
+                size="small"
+                ?disabled=${this.deleting}
+                @click=${(event: MouseEvent): void => {
+                  // Without this the row's own handler would also fire and navigate away.
+                  event.stopPropagation();
+                  void this.deleteModule(module);
+                }}
+              >
+                ${this.deleting ? this.t("moduleList.deleting") : this.t("moduleList.delete")}
+              </wa-button>`
+            : nothing}
         </td>
       </tr>
     `;
+  }
+
+  /** Whether the person logged in may do *action* to this community's modules. */
+  private may(action: Action): boolean {
+    return this.cofy.session.can(action, "modules", this.slug);
   }
 
   private onKeydown(event: KeyboardEvent, module: ModuleSettings): void {
