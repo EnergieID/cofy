@@ -1,7 +1,7 @@
 import os
 
 import httpx
-from cofy.api import ModuleSettings, ResourceSettings
+from cofy.api import ModuleSettings, ResourceSettings, encrypt_secret
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
@@ -36,6 +36,7 @@ from .persitance.file.users import FileUsersPersistence
 
 STATIC_DIR_ENV_VAR = "COFY_MANAGEMENT_STATIC_DIR"
 COMMUNITIES_URL_ENV_VAR = "COFY_MANAGEMENT_COMMUNITIES_URL"
+ENCRYPTION_KEY_ENV_VAR = "COFY_MANAGEMENT_SECRETS_ENCRYPTION_KEY"
 
 #: Each `OidcConfig` field, and the environment variable it is read from.
 OIDC_ENV_VARS = {
@@ -68,8 +69,19 @@ def community_api_from_env() -> CommunityApi:
     return CommunityApi(httpx.Client(base_url=url, timeout=2.0))
 
 
+def encryption_key_from_env() -> str:
+    """The public key the communities' secrets are encrypted with; they are never stored otherwise."""
+    key = os.environ.get(ENCRYPTION_KEY_ENV_VAR, "")
+    try:
+        encrypt_secret("", key)
+    except ValueError as exc:
+        raise RuntimeError(f"{ENCRYPTION_KEY_ENV_VAR} must be set to the public key from `generate_keypair`") from exc
+    return key
+
+
 oidc_config = oidc_config_from_env()
 community_api = community_api_from_env()
+encryption_key = encryption_key_from_env()
 users_file = data_dir() / "access" / "users.yaml"
 users = FileUsersPersistence(users_file)
 grants = FileGrantsPersistence(users_file)
@@ -97,7 +109,9 @@ app.include_router(
 app.include_router(AllowedTypesRouter(allowed, FileCommunitiesPersistence()).router)
 app.include_router(CommunityAllowedTypesRouter(allowed, FileCommunitiesPersistence()).router)
 app.include_router(ResourcesRouter(FileResourcesPersistence(), FileModulesPersistence(), allowed).router)
-app.include_router(SecretsRouter(FileSecretsPersistence(), FileModulesPersistence(), FileResourcesPersistence()).router)
+app.include_router(
+    SecretsRouter(FileSecretsPersistence(), FileModulesPersistence(), FileResourcesPersistence(), encryption_key).router
+)
 app.include_router(TokensRouter(FileTokensPersistence()).router)
 app.include_router(GrantsRouter(grants, FileCommunitiesPersistence()).router)
 app.include_router(StatusRouter(FileCommunitiesPersistence(), community_api).router)

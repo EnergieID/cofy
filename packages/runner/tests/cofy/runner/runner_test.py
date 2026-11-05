@@ -10,6 +10,7 @@ from pathlib import Path
 
 import pytest
 import yaml
+from cofy.api import encrypt_secret, generate_keypair
 from fastapi.testclient import TestClient
 from opentelemetry import trace
 from opentelemetry.trace import NonRecordingSpan, SpanContext
@@ -137,6 +138,38 @@ def test_one_broken_community_leaves_the_others_alone(tmp_path: Path):
     assert client.get("/demo/health").json() == {"status": "ok", "revision": 1}
 
 
+def with_encrypted_secret(settings: dict, public_key: str) -> dict:
+    """*settings* with a source that needs an encrypted secret."""
+    return settings | {
+        "secrets": [{"name": "entsoe_key", "encrypted": encrypt_secret("real", public_key)}],
+        "resources": [
+            {
+                "type": "source",
+                "name": "prices",
+                "value": {"type": "entsoe_day_ahead", "api_key": {"type": "secret", "name": "entsoe_key"}},
+            }
+        ],
+        "modules": [{"type": "tariff", "name": "spot", "source": {"type": "resource", "name": "prices"}}],
+    }
+
+
+def test_encrypted_secrets_are_decrypted_with_the_runners_key(tmp_path: Path):
+    private_key, public_key = generate_keypair()
+    write(tmp_path, "demo", with_encrypted_secret(community(1), public_key))
+    client = refreshed(CommunityRunner(tmp_path, decryption_key=private_key))
+
+    assert client.get("/demo/health").status_code == 200
+
+
+def test_encrypted_secrets_dont_build_without_the_runners_key(tmp_path: Path, caplog: pytest.LogCaptureFixture):
+    _, public_key = generate_keypair()
+    write(tmp_path, "demo", with_encrypted_secret(community(1), public_key))
+    client = refreshed(CommunityRunner(tmp_path))
+
+    assert client.get("/demo/health").status_code == 503
+    assert "'entsoe_key' is encrypted, but no key was given" in caplog.text
+
+
 def test_a_removed_community_is_no_longer_served(tmp_path: Path):
     write(tmp_path, "demo", community(1))
     runner = CommunityRunner(tmp_path)
@@ -157,7 +190,7 @@ def logging_communities():
     logging.setLogRecordFactory(factory)
 
 
-def logging_api(settings: dict) -> Starlette:
+def logging_api(settings: dict, context: dict | None = None) -> Starlette:
     """An API whose /health logs a warning."""
 
     async def health(request: Request) -> JSONResponse:

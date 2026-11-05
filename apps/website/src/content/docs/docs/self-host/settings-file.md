@@ -72,6 +72,21 @@ Every field that needs a credential refers to a secret instead of holding it: `{
 
 To keep them out of the file entirely, the `app.py` of [run one community yourself](/docs/self-host/single-community/#3-load-it) fills in `${VARIABLES}` from the environment before reading the file. That is up to the code loading the file: COFY itself reads only YAML.
 
+To keep the file safe to copy, store a secret encrypted instead of its `value`. Make a key pair once, and encrypt each value with its public key:
+
+```sh
+python -c "from cofy.api import generate_keypair; print(*generate_keypair())"
+python -c "from cofy.api import encrypt_secret; print(encrypt_secret('my-entsoe-api-key', '<public key>'))"
+```
+
+```yaml
+secrets:
+  - name: entsoe_key
+    encrypted: <the encrypted value>
+```
+
+Only the private key decrypts it, so keep that out of the file, and hand it to COFY when it loads the file: `CofyAPI.create(settings, context={DECRYPTION_KEY: private_key})`, with `DECRYPTION_KEY` imported from `cofy.api`.
+
 ## Resources
 
 A [resource](/docs/concepts/#resource) is a value configured once, under a name, and referred to wherever one of its kind fits: `{ type: resource, name: day_ahead }`.

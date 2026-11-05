@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import yaml
-from cofy.api import CofyAPI
+from cofy.api import DECRYPTION_KEY, CofyAPI
 from opentelemetry import trace
 from starlette.applications import Starlette
 from starlette.responses import JSONResponse
@@ -60,7 +60,8 @@ class CommunityRunner(Starlette):
 
     The directory is checked every *poll_interval*, and a community whose file changed is rebuilt and swapped in; one
     that fails to build keeps serving what it served before. *communities* limits which slugs are served, so several
-    runners can share one directory.
+    runners can share one directory. *decryption_key* is the private key the communities' encrypted secrets are
+    decrypted with; without it, only their plain ones can be used.
     """
 
     def __init__(
@@ -68,10 +69,12 @@ class CommunityRunner(Starlette):
         directory: Path,
         communities: frozenset[str] | None = None,
         poll_interval: dt.timedelta = dt.timedelta(seconds=2),
+        decryption_key: str | None = None,
     ):
         self.directory = directory
         self.communities = communities
         self.poll_interval = poll_interval
+        self.decryption_key = decryption_key
         self._served: dict[str, Community] = {}
         super().__init__(
             routes=[Mount("/{slug}", app=self.dispatch)],
@@ -104,13 +107,12 @@ class CommunityRunner(Starlette):
                 # In a thread, as building one may read files or wait on the network, which mustn't hold up requests.
                 self._served[slug] = await asyncio.to_thread(self._build, slug, path, signature, previous)
 
-    @staticmethod
-    def _build(slug: str, path: Path, signature: Signature, previous: Community | None) -> Community:
+    def _build(self, slug: str, path: Path, signature: Signature, previous: Community | None) -> Community:
         try:
             settings = yaml.safe_load(path.read_text(encoding="utf-8"))
             if not isinstance(settings, dict):
                 raise ValueError(f"{path.name} must be a YAML mapping")
-            app = CofyAPI.create(settings)
+            app = CofyAPI.create(settings, context={DECRYPTION_KEY: self.decryption_key})
         except Exception:
             logger.exception("Community %r failed to build from %s", slug, path.name, extra={"community": slug})
             return Community(app=previous.app if previous else None, signature=signature)

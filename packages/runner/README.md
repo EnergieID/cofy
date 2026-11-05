@@ -26,6 +26,7 @@ and which a community's API also reports as the build metadata of its version, a
 | `COFY_RUNNER_DIRECTORY`     | The directory of community settings to serve.                          |
 | `COFY_RUNNER_COMMUNITIES`   | Optional, the slugs to serve, comma separated; every community by default. |
 | `COFY_RUNNER_POLL_INTERVAL` | Optional, how often to check for changes, as an ISO 8601 duration; `PT2S` by default. |
+| `COFY_RUNNER_SECRETS_DECRYPTION_KEY` | Optional, the private key encrypted secrets are decrypted with, the counterpart of the management API's `COFY_MANAGEMENT_SECRETS_ENCRYPTION_KEY`. Without it, a community with an encrypted secret doesn't build. |
 
 Limiting the communities lets several runners share one directory, each serving some of them.
 

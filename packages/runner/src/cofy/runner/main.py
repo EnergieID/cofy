@@ -12,6 +12,7 @@ from .tracing import setup_tracing
 DIRECTORY_ENV_VAR = "COFY_RUNNER_DIRECTORY"
 COMMUNITIES_ENV_VAR = "COFY_RUNNER_COMMUNITIES"
 POLL_INTERVAL_ENV_VAR = "COFY_RUNNER_POLL_INTERVAL"
+DECRYPTION_KEY_ENV_VAR = "COFY_RUNNER_SECRETS_DECRYPTION_KEY"
 
 
 def directory_from_env() -> Path:
@@ -42,6 +43,11 @@ def poll_interval_from_env() -> dt.timedelta:
     return interval
 
 
+def decryption_key_from_env() -> str | None:
+    """The private key the communities' encrypted secrets are decrypted with, if any."""
+    return os.environ.get(DECRYPTION_KEY_ENV_VAR) or None
+
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s%(context)s: %(message)s%(trace)s")
 log_communities()
 setup_tracing()
@@ -49,4 +55,4 @@ setup_tracing()
 # Register every installed module, source and format type, so the settings can use any of them.
 discover_all_types()
 
-app = CommunityRunner(directory_from_env(), communities_from_env(), poll_interval_from_env())
+app = CommunityRunner(directory_from_env(), communities_from_env(), poll_interval_from_env(), decryption_key_from_env())

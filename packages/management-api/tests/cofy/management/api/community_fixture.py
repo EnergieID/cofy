@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import yaml
+from cofy.api import generate_keypair
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -20,6 +21,7 @@ from ..access_fixture import log_in_as_system_admin
 from ..allowed_fixture import allowed_in, include_catalogs
 
 COMMUNITY = "/management/communities/test"
+DECRYPTION_KEY, ENCRYPTION_KEY = generate_keypair()
 
 
 def ref(name: str) -> dict:
@@ -66,7 +68,7 @@ def client_for(path: Path) -> TestClient:
     allowed = allowed_in(path)
     app.include_router(ModulesRouter(modules, allowed).router)
     app.include_router(ResourcesRouter(resources, modules, allowed).router)
-    app.include_router(SecretsRouter(secrets, modules, resources).router)
+    app.include_router(SecretsRouter(secrets, modules, resources, ENCRYPTION_KEY).router)
     include_catalogs(app, allowed)
     return TestClient(app, raise_server_exceptions=False)
 

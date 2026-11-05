@@ -55,3 +55,14 @@ def test_does_not_start_without_the_communities_url(monkeypatch: pytest.MonkeyPa
 
     with pytest.raises(RuntimeError, match="COFY_MANAGEMENT_COMMUNITIES_URL"):
         _import_main(monkeypatch, None)
+
+
+@pytest.mark.parametrize("key", [None, "not a key"], ids=["unset", "unusable"])
+def test_does_not_start_without_a_key_to_encrypt_secrets_with(monkeypatch: pytest.MonkeyPatch, key: str | None) -> None:
+    if key is None:
+        monkeypatch.delenv("COFY_MANAGEMENT_SECRETS_ENCRYPTION_KEY")
+    else:
+        monkeypatch.setenv("COFY_MANAGEMENT_SECRETS_ENCRYPTION_KEY", key)
+
+    with pytest.raises(RuntimeError, match="COFY_MANAGEMENT_SECRETS_ENCRYPTION_KEY"):
+        _import_main(monkeypatch, None)

@@ -34,6 +34,10 @@ one of three states: `live` when that is the saved one, `pending` while it is an
 a few seconds after a change, or for as long as the change fails to apply - and `unavailable`. Why
 is in the log of what serves it, not in the answer.
 
+`COFY_MANAGEMENT_SECRETS_ENCRYPTION_KEY` must be set to the public key of a key pair made with `task keypair`, which
+prints it and the runner's private key as the lines to put in a `.env`. Every secret written through this API is stored encrypted with it, so only what holds the private key - the
+[runner](../runner) - can read it. The API won't start without it.
+
 ## Logging in
 
 Every route needs a login, except the login itself. The API doesn't keep accounts: it logs people

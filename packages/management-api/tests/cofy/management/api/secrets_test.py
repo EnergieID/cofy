@@ -5,9 +5,10 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from cofy.api import decrypt_secret
 from fastapi.testclient import TestClient
 
-from .community_fixture import COMMUNITY, client_for, stored, write_community
+from .community_fixture import COMMUNITY, DECRYPTION_KEY, client_for, stored, write_community
 
 SECRETS = f"{COMMUNITY}/secrets"
 
@@ -49,12 +50,15 @@ def test_get_unknown_secret_returns_404(client: TestClient):
     assert client.get(f"{SECRETS}/missing").status_code == 404
 
 
-def test_create_stores_the_value_and_reports_it_without(client: TestClient, tmp_data: Path):
+def test_create_stores_the_value_encrypted_and_reports_it_without(client: TestClient, tmp_data: Path):
     r = client.post(SECRETS, json={"name": "new_key", "value": "new-secret"})
 
     assert r.status_code == 201
     assert "new-secret" not in r.text
-    assert _stored_secret(tmp_data, "new_key")["value"] == "new-secret"
+    assert "new-secret" not in (tmp_data / "test.yaml").read_text()
+    stored_secret = _stored_secret(tmp_data, "new_key")
+    assert "value" not in stored_secret
+    assert decrypt_secret(stored_secret["encrypted"], DECRYPTION_KEY) == "new-secret"
 
 
 def test_create_cannot_read_a_secret_from_the_environment(client: TestClient, tmp_data: Path):
@@ -75,7 +79,10 @@ def test_put_overwrites_the_value(client: TestClient, tmp_data: Path):
     r = client.put(f"{SECRETS}/entsoe_key", json={"name": "entsoe_key", "value": "rotated", "description": "new"})
 
     assert r.status_code == 200
-    assert _stored_secret(tmp_data, "entsoe_key") == {"name": "entsoe_key", "description": "new", "value": "rotated"}
+    stored_secret = _stored_secret(tmp_data, "entsoe_key")
+    assert stored_secret.keys() == {"name", "description", "encrypted"}
+    assert stored_secret["description"] == "new"
+    assert decrypt_secret(stored_secret["encrypted"], DECRYPTION_KEY) == "rotated"
 
 
 def test_put_needs_the_value(client: TestClient):
