@@ -112,6 +112,17 @@ tasks:
     cmds:
       - python3 apps/demo_multitenant/scripts/reset.py
 
+  keypair:
+    desc: Make a key pair to encrypt the communities' secrets with, as the lines to put in a .env
+    silent: true
+    cmds:
+      - |
+        uv run -q --project packages/api python -c '
+        from cofy.api import generate_keypair
+        private_key, public_key = generate_keypair()
+        print(f"COFY_MANAGEMENT_SECRETS_ENCRYPTION_KEY={public_key}")
+        print(f"COFY_RUNNER_SECRETS_DECRYPTION_KEY={private_key}")'
+
   dev-idp:
     desc: Run a local identity provider to log into the management console with (users admin, demo-admin, demo-editor, nobody; password pwd)
     cmds:

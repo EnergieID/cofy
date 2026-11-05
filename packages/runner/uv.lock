@@ -328,6 +328,7 @@ name = "cofy-api"
 version = "0.0.0"
 source = { editable = "../api" }
 dependencies = [
+    { name = "cryptography" },
     { name = "fastapi" },
     { name = "opentelemetry-api" },
     { name = "pydantic" },
@@ -364,6 +365,7 @@ requires-dist = [
     { name = "cofy-api", extras = ["timeseries"], marker = "extra == 'simultaneity'" },
     { name = "cofy-api", extras = ["timeseries"], marker = "extra == 'tariff'" },
     { name = "cofy-api", extras = ["timeseries", "tariff", "members", "production", "directive", "simultaneity", "billing", "entsoe", "energy-cost", "energyid", "acc", "elia", "ned", "demo"], marker = "extra == 'all'" },
+    { name = "cryptography", specifier = ">=47.0.0" },
     { name = "energy-cost", marker = "extra == 'billing'", specifier = ">=0.9.0,<0.10" },
     { name = "energy-cost", marker = "extra == 'energy-cost'", specifier = ">=0.9.0,<0.10" },
     { name = "energy-cost", marker = "extra == 'members'", specifier = ">=0.9.0,<0.10" },

@@ -227,7 +227,8 @@ class FromSettingsMixin:
             _registered_settings.append(settings)
 
     @classmethod
-    def create(cls: type[FromSettingsMixin], data: dict[str, Any]):
+    def create(cls: type[FromSettingsMixin], data: dict[str, Any], context: dict[str, Any] | None = None):
+        """Build an instance from its settings in *data*, validated with *context*."""
         finalize()
 
         type_name = data.get("type")
@@ -240,5 +241,5 @@ class FromSettingsMixin:
             available = ", ".join(sorted(cls._registry.keys()))
             raise ValueError(f"Unknown type {type_name!r}. Available: {available}") from exc
 
-        settings = settings_model.model_validate(data)
+        settings = settings_model.model_validate(data, context=context)
         return settings.convert()

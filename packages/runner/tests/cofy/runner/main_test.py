@@ -20,6 +20,7 @@ def directory(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     monkeypatch.setenv("COFY_RUNNER_DIRECTORY", str(tmp_path))
     monkeypatch.delenv("COFY_RUNNER_COMMUNITIES", raising=False)
     monkeypatch.delenv("COFY_RUNNER_POLL_INTERVAL", raising=False)
+    monkeypatch.delenv("COFY_RUNNER_SECRETS_DECRYPTION_KEY", raising=False)
     return tmp_path
 
 
@@ -29,6 +30,7 @@ def test_defaults(directory: Path):
     assert app.directory == directory
     assert app.communities is None
     assert app.poll_interval == dt.timedelta(seconds=2)
+    assert app.decryption_key is None
 
 
 def test_communities_and_poll_interval(monkeypatch: pytest.MonkeyPatch):
@@ -39,6 +41,12 @@ def test_communities_and_poll_interval(monkeypatch: pytest.MonkeyPatch):
 
     assert app.communities == frozenset({"demo", "other"})
     assert app.poll_interval == dt.timedelta(milliseconds=500)
+
+
+def test_decryption_key(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("COFY_RUNNER_SECRETS_DECRYPTION_KEY", "the-private-key")
+
+    assert _import_main().app.decryption_key == "the-private-key"
 
 
 def test_does_not_start_without_a_directory(monkeypatch: pytest.MonkeyPatch):

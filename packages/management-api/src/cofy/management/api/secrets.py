@@ -1,10 +1,10 @@
-"""CRUD over a community's secrets, which are written but never read back."""
+"""CRUD over a community's secrets, which are written encrypted and never read back."""
 
 from __future__ import annotations
 
 from typing import Annotated
 
-from cofy.api import SecretSettings
+from cofy.api import SecretSettings, encrypt_secret
 from cofy.api.secret import NAME_PATTERN
 from fastapi import Path
 from pydantic import BaseModel, Field
@@ -18,14 +18,16 @@ from ..policies.policy import Policy, PolicyRouter
 
 
 class SecretBody(BaseModel):
-    """A secret as written: its value is replaced on every write."""
+    """A secret as written: its value is replaced on every write, and only stored encrypted."""
 
     name: str = Field(description="The machine name of the secret, by which it is referenced.", pattern=NAME_PATTERN)
     description: str | None = Field(None, description="A short description of the secret.")
     value: str = Field(description="The secret itself.")
 
-    def to_settings(self) -> SecretSettings:
-        return SecretSettings.model_validate(self.model_dump())
+    def to_settings(self, encryption_key: str) -> SecretSettings:
+        return SecretSettings(
+            name=self.name, description=self.description, encrypted=encrypt_secret(self.value, encryption_key)
+        )
 
 
 class SecretInfo(BaseModel):
@@ -40,10 +42,17 @@ class SecretInfo(BaseModel):
 
 
 class SecretsRouter:
-    def __init__(self, persistence: SecretsPersistence, modules: ModulesPersistence, resources: ResourcesPersistence):
+    def __init__(
+        self,
+        persistence: SecretsPersistence,
+        modules: ModulesPersistence,
+        resources: ResourcesPersistence,
+        encryption_key: str,
+    ):
         self.persistence = persistence
         self.modules = modules
         self.resources = resources
+        self.encryption_key = encryption_key
         self.router = PolicyRouter(
             subject=Subject.secrets, prefix="/management/communities/{slug}/secrets", tags=["Secrets"]
         )
@@ -60,12 +69,12 @@ class SecretsRouter:
         return SecretInfo.of(self.persistence.get(slug, name))
 
     def create(self, slug: str, payload: SecretBody) -> SecretInfo:
-        return SecretInfo.of(self.persistence.create(slug, payload.to_settings()))
+        return SecretInfo.of(self.persistence.create(slug, payload.to_settings(self.encryption_key)))
 
     def put(self, slug: str, name: str, payload: SecretBody) -> SecretInfo:
         if payload.name != name:
             raise ValueError(f"Secret name in body ({payload.name!r}) must match the URL path ({name!r})")
-        return SecretInfo.of(self.persistence.replace(slug, name, payload.to_settings()))
+        return SecretInfo.of(self.persistence.replace(slug, name, payload.to_settings(self.encryption_key)))
 
     def delete(self, slug: str, name: str) -> None:
         self.persistence.get(slug, name)

@@ -156,6 +156,11 @@ modules:
     source: { type: entsoe_day_ahead, api_key: { type: secret, name: entsoe_key } }
 ```
 
+A secret can be given `encrypted` instead of as its `value`, encrypted with `encrypt_secret(value, public_key)` for a key
+pair from `generate_keypair()`. It is decrypted while the API is built, with the private key given in the validation
+context: `CofyAPI.create(settings, context={DECRYPTION_KEY: private_key})`. The management API stores every secret this
+way.
+
 A settings field of your own holding a credential is typed `Secret`; its object is built with the secret's value. Built
 from Python, objects take the value itself, as before.
 

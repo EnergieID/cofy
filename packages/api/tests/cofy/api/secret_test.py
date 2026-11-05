@@ -5,7 +5,15 @@ from pydantic import BaseModel, ValidationError
 
 from cofy.api import CofyAPI, finalize
 from cofy.api.cofy_api import CofyAPISettings
-from cofy.api.secret import Secret, SecretRef, SecretSettings
+from cofy.api.secret import (
+    DECRYPTION_KEY,
+    Secret,
+    SecretRef,
+    SecretSettings,
+    decrypt_secret,
+    encrypt_secret,
+    generate_keypair,
+)
 from cofy.modules.discovery import discover_installed_types
 
 discover_installed_types()
@@ -74,10 +82,68 @@ def test_a_secret_value_is_only_revealed_when_written_to_disk():
     assert secret.model_dump(round_trip=True)["value"] == "real"
 
 
+@pytest.mark.parametrize("given", [{}, {"value": "real", "encrypted": "c2VhbGVk"}], ids=["neither", "both"])
+def test_a_secret_is_either_its_value_or_encrypted(given: dict):
+    with pytest.raises(ValidationError, match="either a value or an encrypted value"):
+        SecretSettings.model_validate({"name": "entsoe_key"} | given)
+
+
 def test_a_secret_cannot_be_read_from_the_environment():
     """The environment holds the deployment's own secrets, which no community's config may reach."""
     with pytest.raises(ValidationError):
         SecretSettings.model_validate({"name": "a", "value": {"env": "ENTSOE_API_KEY"}})
+
+
+# ── encrypted secrets ─────────────────────────────────────────────────────
+
+
+def test_a_value_encrypted_with_the_public_key_is_decrypted_with_the_private_key():
+    private_key, public_key = generate_keypair()
+
+    encrypted = encrypt_secret("real", public_key)
+
+    assert "real" not in encrypted
+    assert decrypt_secret(encrypted, private_key) == "real"
+
+
+def test_an_encrypted_secret_is_decrypted_with_the_key_in_the_validation_context():
+    private_key, public_key = generate_keypair()
+    given = {"name": "entsoe_key", "encrypted": encrypt_secret("real", public_key)}
+
+    secret = SecretSettings.model_validate(given, context={DECRYPTION_KEY: private_key})
+
+    assert secret.resolve() == "real"
+    assert private_key not in repr(secret)
+    assert private_key not in str(secret.model_dump(round_trip=True))
+
+
+def test_an_encrypted_secret_is_written_to_disk_as_it_was_given():
+    _, public_key = generate_keypair()
+    encrypted = encrypt_secret("real", public_key)
+
+    secret = SecretSettings.model_validate({"name": "entsoe_key", "encrypted": encrypted})
+
+    assert secret.model_dump(round_trip=True, exclude_none=True) == {"name": "entsoe_key", "encrypted": encrypted}
+
+
+def test_an_encrypted_secret_cannot_be_revealed_without_a_key():
+    _, public_key = generate_keypair()
+    secret = SecretSettings.model_validate({"name": "entsoe_key", "encrypted": encrypt_secret("real", public_key)})
+
+    with pytest.raises(ValueError, match="'entsoe_key' is encrypted, but no key was given"):
+        secret.resolve()
+
+
+@pytest.mark.parametrize("key", [generate_keypair()[0], "not a key"], ids=["another_key", "no_key"])
+def test_an_encrypted_secret_cannot_be_revealed_with_the_wrong_key(key: str):
+    _, public_key = generate_keypair()
+    given = {"name": "entsoe_key", "encrypted": encrypt_secret("real", public_key)}
+    secret = SecretSettings.model_validate(given, context={DECRYPTION_KEY: key})
+
+    with pytest.raises(ValueError, match="'entsoe_key' cannot be decrypted with the given key") as error:
+        secret.resolve()
+
+    assert error.value.__cause__ is None
 
 
 # ── in a configuration ────────────────────────────────────────────────────
@@ -95,6 +161,17 @@ def test_a_configuration_gives_each_secret_field_the_value_of_the_secret_it_name
 
     keys = {module.name: module.source.client.api_key for module in cofy.modules}
     assert keys == {"prices": "be-key", "nl": "nl-key"}
+
+
+def test_a_configuration_decrypts_its_encrypted_secrets_with_the_key_it_is_created_with():
+    private_key, public_key = generate_keypair()
+
+    cofy = CofyAPI.create(
+        config([entsoe_module()], [{"name": "entsoe_key", "encrypted": encrypt_secret("real", public_key)}]),
+        context={DECRYPTION_KEY: private_key},
+    )
+
+    assert cofy.modules[0].source.client.api_key == "real"
 
 
 def test_a_secret_used_in_a_resource_is_given_to_it_too():
