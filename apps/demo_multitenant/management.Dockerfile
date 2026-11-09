@@ -40,14 +40,13 @@ COPY packages/management-api ./packages/management-api
 RUN uv sync --project packages/management-api --frozen --no-dev \
     && find /app/packages -path '*/.venv/*' -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 
-# --- Final stage (no uv, no build deps, no node) ---
-FROM python:3.12-alpine
+# --- Runtime stage: everything but the Python environment ---
+# A deployment that installs its own environment builds this stage (`--target runtime`) and adds it on top, so the
+# image doesn't also carry this one's.
+FROM python:3.12-alpine AS runtime
 
 WORKDIR /app
 
-# Copies the whole builder tree, not just the venv: `cofy-api` is installed editable, so the
-# venv resolves it through a path back to packages/api/src at the same absolute location.
-COPY --from=api-builder /app /app
 COPY --from=frontend-builder /app/apps/management-web/dist /app/console
 
 ARG VERSION=dev
@@ -75,3 +74,10 @@ ENV UVICORN_HOST=0.0.0.0 \
 # before it stops the container this one replaces.
 HEALTHCHECK --interval=5s --timeout=3s --start-period=120s CMD nc -z 127.0.0.1 "$UVICORN_PORT"
 CMD ["/app/packages/management-api/.venv/bin/uvicorn", "cofy.management.main:app"]
+
+# --- Final stage (no uv, no build deps, no node) ---
+FROM runtime
+
+# Copies the whole builder tree, not just the venv: `cofy-api` is installed editable, so the
+# venv resolves it through a path back to packages/api/src at the same absolute location.
+COPY --from=api-builder /app /app
