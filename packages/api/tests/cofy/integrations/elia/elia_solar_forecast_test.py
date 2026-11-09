@@ -40,19 +40,42 @@ def elia_datasets(responses: dict[str, list[dict]], requests: dict[str, httpx.Re
     return elia(handler)
 
 
+def build_frame(records: list[dict], resolution: dt.timedelta = QUARTER_HOUR, quarters: int = 4) -> pl.DataFrame:
+    return EliaSolarForecastSource()._build_frame(records, START, START + quarters * QUARTER_HOUR, resolution)
+
+
 def test_build_frame_computes_share_of_capacity():
-    frame = EliaSolarForecastSource._build_frame(
+    frame = build_frame([record("2026-06-21T10:00:00+00:00", 600.0)], quarters=1)
+
+    assert frame["value"].to_list() == [60.0]
+    assert frame["timestamp"][0] == START
+
+
+def test_build_frame_leaves_out_and_warns_about_missing_values(caplog):
+    frame = build_frame(
         [
             record("2026-06-21T10:00:00+00:00", 600.0),
             record("2026-06-21T10:15:00+00:00", None),
             record("2026-06-21T10:30:00+00:00", 100.0, capacity=0.0),
             record("2026-06-21T10:45:00+00:00", 100.0, capacity=None),
         ],
-        QUARTER_HOUR,
+        quarters=5,
     )
 
-    assert frame["value"].to_list() == [60.0, 0.0, 0.0, 0.0]
-    assert frame["timestamp"][0] == START
+    assert frame["value"].to_list() == [60.0]
+    assert caplog.messages == [
+        "Elia Open Data has no solar forecast for Belgium at 4 of 5 quarter-hours, "
+        "from 2026-06-21T10:15:00+00:00 to 2026-06-21T11:00:00+00:00"
+    ]
+
+
+def test_build_frame_fills_a_missing_value_from_a_later_dataset(caplog):
+    frame = build_frame(
+        [record("2026-06-21T10:00:00+00:00", None), record("2026-06-21T10:00:00+00:00", 600.0)], quarters=1
+    )
+
+    assert frame["value"].to_list() == [60.0]
+    assert not caplog.messages
 
 
 def test_build_frame_aggregates_to_hours():
@@ -61,13 +84,13 @@ def test_build_frame_aggregates_to_hours():
     ]
     records.append(record("2026-06-21T11:00:00+00:00", 500))
 
-    frame = EliaSolarForecastSource._build_frame(records, dt.timedelta(hours=1))
+    frame = build_frame(records, dt.timedelta(hours=1), quarters=5)
 
     assert frame["value"].to_list() == [25.0, 50.0]
 
 
 def test_build_frame_empty():
-    frame = EliaSolarForecastSource._build_frame([], QUARTER_HOUR)
+    frame = build_frame([])
 
     assert frame.is_empty()
     assert frame.schema == pl.Schema({"timestamp": pl.Datetime(time_zone="UTC"), "value": pl.Float64})
@@ -94,7 +117,7 @@ async def test_fetch_merges_datasets_preferring_near_real_time():
     assert timeseries.frame["value"].to_list() == [40.0, 50.0, 60.0]
     assert timeseries.metadata["unit"] == "%"
     assert requests.keys() == {"ods210", "ods209", "capacity"}
-    assert 'region="Antwerpen" and gridconnectiontype="All"' in requests["ods210"].url.params["where"]
+    assert 'region="Antwerpen" and gridconnectiontype="Total"' in requests["ods210"].url.params["where"]
     assert "monitoredcapacity" not in requests["ods210"].url.params["select"]
     assert 'region="Antwerpen" and gridconnectiontype="Total"' in requests["ods209"].url.params["where"]
     assert requests["capacity"].url.path.endswith("/ods209/exports/json")
