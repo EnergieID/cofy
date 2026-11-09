@@ -1,5 +1,6 @@
 import asyncio
 import datetime as dt
+import logging
 from typing import Literal
 
 import httpx
@@ -10,12 +11,14 @@ from pydantic import Field
 from cofy.api import SourceError, ValidationFailedError
 from cofy.modules.timeseries import CacheSettings, ISODuration, NumericSource, NumericSourceSettings, Timeseries
 
+LOGGER = logging.getLogger(__name__)
+
 ELIA_BASE_URL = "https://opendata.elia.be/api/explore/v2.1/catalog/datasets"
-# Near-real-time dataset (today up to 10 days ahead) first, so it wins over the historical one on overlap. Each has its
-# own name for the total of the PV connected to the distribution and the transmission grid.
+# Near-real-time dataset (today up to 10 days ahead) first, so it wins over the historical one on overlap
 NEAR_REAL_TIME_DATASET = "ods210"
 HISTORICAL_DATASET = "ods209"
-GRID_CONNECTION_TYPES = {NEAR_REAL_TIME_DATASET: "All", HISTORICAL_DATASET: "Total"}
+# The total of the PV connected to the distribution and the transmission grid
+GRID_CONNECTION_TYPE = "Total"
 # Elia's discontinued historical dataset, up to where ods209 starts, with its own region names
 LEGACY_DATASET = "ods032"
 LEGACY_END = dt.datetime(2026, 10, 25, 23, tzinfo=dt.UTC)
@@ -86,7 +89,7 @@ class EliaSolarForecastSource(NumericSource, settings=EliaSolarForecastSourceSet
                 loc=("query", "resolution"),
             )
 
-        queries = [(dataset, self._where(dataset)) for dataset in GRID_CONNECTION_TYPES]
+        queries = [(dataset, self._where()) for dataset in (NEAR_REAL_TIME_DATASET, HISTORICAL_DATASET)]
         if start < LEGACY_END:
             queries.append((LEGACY_DATASET, f'region="{LEGACY_REGIONS.get(self.region, self.region)}"'))
 
@@ -99,12 +102,12 @@ class EliaSolarForecastSource(NumericSource, settings=EliaSolarForecastSourceSet
         # The near-real-time dataset has no capacity of its own, so its forecast is a share of the latest one
         records = [{"monitoredcapacity": capacity, **record} for response in responses for record in response]
         return Timeseries(
-            frame=self._build_frame(records, resolution),
+            frame=self._build_frame(records, start, end, resolution),
             metadata={"unit": "%", "region": self.region, "source": "Elia Open Data"},
         )
 
-    def _where(self, dataset: str) -> str:
-        return f'region="{self.region}" and gridconnectiontype="{GRID_CONNECTION_TYPES[dataset]}"'
+    def _where(self) -> str:
+        return f'region="{self.region}" and gridconnectiontype="{GRID_CONNECTION_TYPE}"'
 
     async def _fetch_dataset(
         self, client: httpx.AsyncClient, dataset: str, where: str, start: dt.datetime, end: dt.datetime
@@ -127,7 +130,7 @@ class EliaSolarForecastSource(NumericSource, settings=EliaSolarForecastSourceSet
         records = await self._export(
             client,
             HISTORICAL_DATASET,
-            where=f"{self._where(HISTORICAL_DATASET)} and monitoredcapacity is not null",
+            where=f"{self._where()} and monitoredcapacity is not null",
             select="monitoredcapacity",
             order_by="datetime desc",
             limit=1,
@@ -142,29 +145,50 @@ class EliaSolarForecastSource(NumericSource, settings=EliaSolarForecastSourceSet
         response.raise_for_status()
         return response.json()
 
-    @staticmethod
-    def _build_frame(records: list[dict], resolution: ISODuration) -> pl.DataFrame:
-        if not records:
-            return pl.DataFrame(schema=SCHEMA)
-
-        capacity = pl.col("monitoredcapacity")
-        frame = (
-            pl.DataFrame(records, schema_overrides={"mostrecentforecast": pl.Float64, "monitoredcapacity": pl.Float64})
-            .select(
-                timestamp=pl.col("datetime").str.to_datetime(time_zone="UTC"),
-                value=pl.when(capacity > 0)
-                .then(pl.col("mostrecentforecast").fill_null(0) / capacity * 100)
-                .otherwise(0.0),
+    def _build_frame(
+        self, records: list[dict], start: dt.datetime, end: dt.datetime, resolution: ISODuration
+    ) -> pl.DataFrame:
+        frame = pl.DataFrame(schema=SCHEMA)
+        if records:
+            capacity = pl.col("monitoredcapacity")
+            frame = (
+                pl.DataFrame(
+                    records, schema_overrides={"mostrecentforecast": pl.Float64, "monitoredcapacity": pl.Float64}
+                )
+                .select(
+                    timestamp=pl.col("datetime").str.to_datetime(time_zone="UTC"),
+                    value=pl.when(capacity > 0).then(pl.col("mostrecentforecast") / capacity * 100),
+                )
+                # Left out rather than zero, so a later dataset can fill them
+                .drop_nulls("value")
+                .unique("timestamp", keep="first", maintain_order=True)
+                .sort("timestamp")
             )
-            .unique("timestamp", keep="first", maintain_order=True)
-            .sort("timestamp")
-        )
+        self._warn_missing(frame, start, end)
 
         if resolution != NATIVE_RESOLUTION:
             assert isinstance(resolution, dt.timedelta)
             frame = frame.group_by_dynamic("timestamp", every=resolution).agg(pl.col("value").mean())
 
         return frame.cast(SCHEMA)
+
+    def _warn_missing(self, frame: pl.DataFrame, start: dt.datetime, end: dt.datetime) -> None:
+        """Logs a warning for the quarter-hours from `start` to `end` that Elia has no forecast for."""
+        step = NATIVE_RESOLUTION.total_seconds()
+        first = dt.datetime.fromtimestamp(-(-start.timestamp() // step) * step, dt.UTC)
+        if first >= end:
+            return
+        expected = pl.datetime_range(first, end, NATIVE_RESOLUTION, closed="left", time_zone="UTC", eager=True)
+        missing = expected.filter(~expected.is_in(frame["timestamp"].implode()))
+        if not missing.is_empty():
+            LOGGER.warning(
+                "Elia Open Data has no solar forecast for %s at %d of %d quarter-hours, from %s to %s",
+                self.region,
+                len(missing),
+                len(expected),
+                missing[0].isoformat(),
+                missing[-1].isoformat(),
+            )
 
     @property
     def supported_resolutions(self) -> list[str]:
