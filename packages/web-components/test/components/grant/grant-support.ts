@@ -13,8 +13,9 @@ export interface Community {
 export function community(): Community {
   return {
     grants: [
-      { email: "ann@example.com", role: "community_admin", bound: true },
-      { email: "bob@example.com", role: "community_admin", bound: false },
+      { email: "ann@example.com", role: "community_admin", bound: true, managed_by: null },
+      { email: "bob@example.com", role: "community_admin", bound: false, managed_by: null },
+      { email: "cas@example.com", role: "community_editor", bound: true, managed_by: "energyid" },
     ],
     writes: [],
   };

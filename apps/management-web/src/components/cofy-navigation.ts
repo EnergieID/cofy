@@ -1,4 +1,3 @@
-import { consume } from "@lit/context";
 import { CofyElement, nativeStyles, utilityStyles } from "@cofy/web-components";
 import type { TOptions } from "i18next";
 import { css, html, nothing } from "lit";
@@ -8,14 +7,13 @@ import { repeat } from "lit/directives/repeat.js";
 
 import "@awesome.me/webawesome/dist/components/icon/icon.js";
 
-import { routeStateContext } from "../context.js";
+import { CONSOLE_NAMESPACE, type ConsoleMenuItem } from "@cofy/web-components/console";
+
 import { APP_NAMESPACE } from "../i18n.js";
-import { type RouteName } from "../routes.js";
-import type { MenuItem, RouteState } from "../states/route-state.js";
 
 /**
- * A part of the menu down the side of the console: the pages the routes list in *groups*, for
- * where the reader is and what they may see. With nothing to list, it hides itself.
+ * A part of the menu down the side of the console: the console's pages, as it lists them for where the reader is and
+ * what they may see, in *groups*. With nothing to list, it hides itself.
  */
 @customElement("cofy-navigation")
 export class CofyNavigation extends CofyElement {
@@ -61,8 +59,8 @@ export class CofyNavigation extends CofyElement {
     `,
   ];
 
-  @consume({ context: routeStateContext, subscribe: true })
-  public routes!: RouteState<RouteName>;
+  /** The pages to list, as the console reports them. */
+  @property({ attribute: false }) public items: readonly ConsoleMenuItem[] = [];
 
   /** The groups to list, in order. */
   @property({ attribute: false }) public groups: readonly string[] = [];
@@ -84,26 +82,26 @@ export class CofyNavigation extends CofyElement {
     `;
   }
 
-  private listed(): MenuItem<RouteName>[] {
-    return this.routes.menu().filter((item) => this.groups.includes(item.group));
+  private listed(): ConsoleMenuItem[] {
+    return this.items.filter((item) => this.groups.includes(item.group));
   }
 
-  private group(group: string, items: MenuItem<RouteName>[]): TemplateResult | typeof nothing {
+  private group(group: string, items: ConsoleMenuItem[]): TemplateResult | typeof nothing {
     const listed = items.filter((item) => item.group === group);
     if (listed.length === 0) return nothing;
     return html`
       <section class="wa-stack wa-gap-3xs">
-        <h2>${this.t(`menu.groups.${group}`)}</h2>
+        <h2>${this.t(`menu.groups.${group}`, { ns: CONSOLE_NAMESPACE })}</h2>
         ${repeat(
           listed,
           (item) => item.name,
           (item) => html`
             <a
               class="wa-cluster wa-gap-s"
-              href=${item.hash}
+              href=${item.href}
               aria-current=${item.current ? "page" : nothing}
             >
-              <wa-icon name=${item.icon}></wa-icon>${this.t(`menu.items.${item.name}`)}
+              <wa-icon library="cofy" name=${item.icon}></wa-icon>${item.label}
             </a>
           `,
         )}

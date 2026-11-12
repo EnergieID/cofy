@@ -11,6 +11,10 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./console": {
+      "types": "./dist/console/index.d.ts",
+      "default": "./dist/console/index.js"
+    },
     "./components/*": {
       "types": "./dist/components/*.d.ts",
       "default": "./dist/components/*.js"
@@ -20,8 +24,7 @@
     "./theme/energyid.css": "./dist/theme/energyid.css"
   },
   "files": [
-    "dist",
-    "locales"
+    "dist"
   ],
   "repository": {
     "type": "git",

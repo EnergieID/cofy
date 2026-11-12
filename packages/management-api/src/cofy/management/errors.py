@@ -40,6 +40,14 @@ class ResourceInUseError(CofyError):
     code = "resource-in-use"
 
 
+class ResourceManagedError(CofyError):
+    """Something a client looks after, which only that client changes."""
+
+    status = 409
+    title = "Conflict"
+    code = "resource-managed"
+
+
 async def handle_value_error(request: Request, exc: ValueError) -> JSONResponse:
     # Domain invariants that are not tied to a single input field - a body whose identity
     # disagrees with its URL, a stored config that is not a mapping.

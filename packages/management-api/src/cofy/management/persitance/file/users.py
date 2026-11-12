@@ -1,4 +1,4 @@
-from ...auth.access import Identity, UserRecord
+from ...auth.access import ClientRecord, Identity, UserRecord
 from ..users import UsersPersistence
 from .base import UsersFileStore
 
@@ -17,3 +17,7 @@ class FileUsersPersistence(UsersFileStore, UsersPersistence):
             for user in users.users:
                 if not user.bound and user.matches(identity):
                     user.bind(identity)
+
+    def client(self, digest: str) -> ClientRecord | None:
+        with self._open_users("read") as users:
+            return next((client for client in users.clients if client.hash == digest), None)

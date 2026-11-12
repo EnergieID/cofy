@@ -39,6 +39,14 @@ export abstract class Cache<Scope extends unknown[], Value> {
     this.api = api;
   }
 
+  /**
+   * Call *listener* whenever anything cached here changes, until the returned stop: for code that doesn't render with
+   * Lit, which follows what it reads by itself.
+   */
+  public subscribe(listener: () => void): () => void {
+    return this.entries.subscribe(() => listener());
+  }
+
   /** Why the last fetch failed, or `null` when it did not. */
   public error(...scope: Scope): ProblemError | null {
     return this.entries.get(Cache.key(scope))?.error ?? null;

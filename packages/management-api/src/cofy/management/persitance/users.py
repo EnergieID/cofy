@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from ..auth.access import Identity, UserRecord
+from ..auth.access import ClientRecord, Identity, UserRecord
 
 
 class UsersPersistence(ABC):
-    """Everyone who may do something, as far as logging in is concerned: who someone is, and binding them."""
+    """Everyone who may do something, as far as logging in is concerned: who someone is, and binding them - and the
+    clients, known by their API keys."""
 
     @abstractmethod
     def match(self, identity: Identity) -> UserRecord | None:
@@ -15,3 +16,7 @@ class UsersPersistence(ABC):
     @abstractmethod
     def bind(self, identity: Identity) -> None:
         """Bind *identity* to the person still waiting for its first login, if there is one."""
+
+    @abstractmethod
+    def client(self, digest: str) -> ClientRecord | None:
+        """The client whose API key hashes to *digest*, if there is one."""

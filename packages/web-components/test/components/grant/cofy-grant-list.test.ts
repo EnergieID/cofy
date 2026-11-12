@@ -32,6 +32,14 @@ describe("cofy-grant-list", () => {
     expect(row(element, "bob@example.com")!.textContent).toContain("Community admin");
   });
 
+  it("says which client manages a grant, which it offers no revoke for", async () => {
+    const element = await mount();
+
+    expect(row(element, "cas@example.com")!.textContent).toContain("Managed by energyid");
+    expect(row(element, "cas@example.com")!.querySelector("wa-button")).toBeNull();
+    expect(row(element, "ann@example.com")!.querySelector("wa-button")).not.toBeNull();
+  });
+
   it("grants access through its dialog", async () => {
     const state = community();
     const element = await mount(state);
@@ -41,7 +49,7 @@ describe("cofy-grant-list", () => {
     expect(dialog(element).open).toBe(true);
 
     const email = dialog(element).shadowRoot!.querySelector("wa-input")! as HTMLElement & { value: string };
-    email.value = "cas@example.com";
+    email.value = "dan@example.com";
     email.dispatchEvent(new Event("input"));
     await dialog(element).updateComplete;
     dialog(element).shadowRoot!.querySelector<HTMLElement>('wa-button[variant="brand"]')!.click();
@@ -51,11 +59,11 @@ describe("cofy-grant-list", () => {
       {
         method: "POST",
         path: "/management/communities/test/grants",
-        body: { email: "cas@example.com", role: "community_admin" },
+        body: { email: "dan@example.com", role: "community_admin" },
       },
     ]);
     expect(dialog(element).open).toBe(false);
-    expect(row(element, "cas@example.com")).not.toBeNull();
+    expect(row(element, "dan@example.com")).not.toBeNull();
   });
 
   it("revokes a grant after asking", async () => {

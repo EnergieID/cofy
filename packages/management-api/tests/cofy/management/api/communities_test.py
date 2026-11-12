@@ -16,15 +16,15 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from cofy.management.api.communities import CommunitiesRouter
-from cofy.management.auth.access import Grant, Role
-from cofy.management.auth.user import User
+from cofy.management.auth.access import GlobalRole, Grant, Role
+from cofy.management.auth.user import Principal
 from cofy.management.community_api import CommunityApi
 from cofy.management.domain.availability import Availability
 from cofy.management.errors import EXCEPTION_HANDLERS
 from cofy.management.persitance.file.communities import FileCommunitiesPersistence
 from cofy.management.persitance.file.grants import FileGrantsPersistence
 
-from ..access_fixture import log_in, log_in_as_system_admin, user
+from ..access_fixture import api_client, client_record, log_in, log_in_as_system_admin, user
 from ..allowed_fixture import allowed_types_in
 
 TOKEN = "super-secret-token"
@@ -328,7 +328,7 @@ def test_an_empty_config_file_is_reported_as_broken_rather_than_a_blank_communit
 # ── access ────────────────────────────────────────────────────────────────
 
 
-def client_as(tmp_data: Path, logged_in: User) -> TestClient:
+def client_as(tmp_data: Path, logged_in: Principal) -> TestClient:
     app = FastAPI(exception_handlers=EXCEPTION_HANDLERS)
     log_in(app, logged_in)
     app.include_router(
@@ -432,3 +432,82 @@ def test_a_community_whose_config_is_broken_can_still_be_deleted(client: TestCli
     assert client.delete("/management/communities/broken").status_code == 204
 
     assert not (tmp_data / "broken.yaml").exists()
+
+
+# ── Clients ───────────────────────────────────────────────────────────────
+
+
+def with_client(tmp_data: Path, *, create_communities: bool) -> TestClient:
+    """A client listed in the users file, making the requests, a community creator if *create_communities*."""
+    roles = [GlobalRole.community_creator] if create_communities else []
+    record = client_record(roles=roles)
+    (tmp_data / "access").mkdir(exist_ok=True)
+    (tmp_data / "access" / "users.yaml").write_text(
+        yaml.safe_dump({"users": [], "clients": [record.model_dump(mode="json")]})
+    )
+    return client_as(tmp_data, api_client(roles=roles))
+
+
+def client_grants(tmp_data: Path) -> dict:
+    return yaml.safe_load((tmp_data / "access" / "users.yaml").read_text())["clients"][0].get("grants", {})
+
+
+def test_a_client_allowed_to_create_communities_looks_after_those_it_creates(tmp_data: Path):
+    r = with_client(tmp_data, create_communities=True).post(
+        "/management/communities", json={"slug": "new", "title": "New"}
+    )
+
+    assert r.status_code == 201
+    assert client_grants(tmp_data) == {"new": "integration"}
+
+
+def test_a_client_is_not_given_a_community_whose_slug_is_taken(tmp_data: Path):
+    r = with_client(tmp_data, create_communities=True).post(
+        "/management/communities", json={"slug": "test", "title": "Taken"}
+    )
+
+    assert r.status_code == 409
+    assert client_grants(tmp_data) == {}
+
+
+def test_a_client_not_allowed_to_create_communities_cannot(tmp_data: Path):
+    r = with_client(tmp_data, create_communities=False).post(
+        "/management/communities", json={"slug": "new", "title": "New"}
+    )
+
+    assert r.status_code == 403
+    assert not (tmp_data / "new.yaml").exists()
+
+
+def test_a_client_only_sees_the_communities_it_looks_after(tmp_data: Path):
+    listed = client_as(tmp_data, api_client(grants={"test": Role.integration})).get("/management/communities")
+
+    assert [c["slug"] for c in listed.json()] == ["test"]
+
+
+def test_a_client_can_neither_edit_nor_delete_the_communities_it_looks_after(tmp_data: Path):
+    client = client_as(tmp_data, api_client(grants={"test": Role.integration}))
+
+    assert client.put("/management/communities/test", json={"title": "Renamed"}).status_code == 403
+    assert client.delete("/management/communities/test").status_code == 403
+
+
+def test_deleting_a_community_takes_it_from_the_clients_looking_after_it(client: TestClient, tmp_data: Path):
+    with_client(tmp_data, create_communities=True).post("/management/communities", json={"slug": "new", "title": "New"})
+
+    assert client.delete("/management/communities/new").status_code == 204
+
+    assert client_grants(tmp_data) == {}
+
+
+def test_a_person_creating_a_community_becomes_its_admin(tmp_data: Path):
+    (tmp_data / "access").mkdir(exist_ok=True)
+    (tmp_data / "access" / "users.yaml").write_text(
+        yaml.safe_dump({"users": [{"email": "ann@example.com", "roles": ["community_creator"]}]})
+    )
+    creator = user("ann", roles=[GlobalRole.community_creator])
+
+    r = client_as(tmp_data, creator).post("/management/communities", json={"slug": "new", "title": "New"})
+
+    assert r.status_code == 201
+    assert grants_in(tmp_data).all("new") == [Grant(email="ann@example.com", role=Role.community_admin)]

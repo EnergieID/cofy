@@ -18,7 +18,6 @@ export {
 
 export { COMPONENTS_NAMESPACE, createI18n, preferredLanguage, type I18nOptions } from "./i18n/i18n.js";
 export { CofyI18n } from "./i18n/cofy-i18n.js";
-export { yamlBackend, type YamlBackendOptions } from "./i18n/yaml-backend.js";
 
 export { COLOR_SCHEMES, ThemeState, type ColorScheme, type ThemeOptions } from "./theme/theme-state.js";
 export { tableStyles } from "./theme/table.js";

@@ -1,0 +1,14 @@
+# Strings owned by the console's own shell: its header and menu. The console it places, and the components that is
+# built from, carry their own.
+
+title: COFY console
+product: COFY
+subtitle: console
+
+menu:
+  label: Menu
+  open: Open the menu
+
+account:
+  label: Your account
+  logout: Log out

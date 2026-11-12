@@ -13,6 +13,7 @@ import yaml
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from cofy.management.auth.access import Role
 from cofy.management.auth.config import OidcConfig
 from cofy.management.auth.router import AuthRouter, safe_return_to
 from cofy.management.auth.session import install_session
@@ -20,8 +21,9 @@ from cofy.management.auth.user import install_users
 from cofy.management.errors import EXCEPTION_HANDLERS
 from cofy.management.persitance.file.communities import FileCommunitiesPersistence
 from cofy.management.persitance.file.users import FileUsersPersistence
+from cofy.management.proxied import ProxiedUrls
 
-from ..access_fixture import ISSUER, OIDC_CONFIG
+from ..access_fixture import ISSUER, OIDC_CONFIG, client_record
 
 METADATA = {
     "issuer": ISSUER,
@@ -31,6 +33,8 @@ METADATA = {
     "userinfo_endpoint": f"{ISSUER}/connect/userinfo",
 }
 ANN = {
+    "issuer": ISSUER,
+    "subject": "ann-sub",
     "email": "ann@example.com",
     "name": "Ann",
     "system_admin": False,
@@ -171,7 +175,7 @@ def test_the_login_binds_a_system_admin(data: Path, monkeypatch: pytest.MonkeyPa
     me = client.get("/auth/me").json()
     assert me["system_admin"]
     assert [entry["slug"] for entry in me["permissions"]] == [None, "test"]
-    assert all(len(entry["permissions"]) == 28 for entry in me["permissions"])
+    assert all(len(entry["permissions"]) == 32 for entry in me["permissions"])
     assert stored_user(data, "root@example.com")["subject"] == "root-sub"
 
 
@@ -281,3 +285,90 @@ def test_logout_ends_the_session_here_when_the_identity_provider_cannot_be_reach
 
 async def _timing_out() -> dict:
     raise httpx.ReadTimeout("the identity provider took too long")
+
+
+# ── clients ───────────────────────────────────────────────────────────────
+
+
+def with_client(data: Path) -> None:
+    users = yaml.safe_load((data / "access" / "users.yaml").read_text())
+    users["clients"] = [client_record(grants={"test": Role.integration}).model_dump(mode="json")]
+    (data / "access" / "users.yaml").write_text(yaml.safe_dump(users))
+
+
+def test_a_client_is_known_by_its_api_key(data: Path, monkeypatch: pytest.MonkeyPatch):
+    with_client(data)
+
+    r = client_for(data, monkeypatch).get("/auth/me", headers={"Authorization": "Bearer energyid-key"})
+
+    assert r.json() == {
+        "issuer": None,
+        "subject": None,
+        "email": None,
+        "name": "energyid",
+        "system_admin": False,
+        "permissions": [
+            {
+                "slug": "test",
+                "permissions": [
+                    {"action": "read", "subject": "community"},
+                    {"action": "create", "subject": "tokens"},
+                    {"action": "read", "subject": "tokens"},
+                    {"action": "update", "subject": "tokens"},
+                    {"action": "delete", "subject": "tokens"},
+                    {"action": "read", "subject": "grants"},
+                    {"action": "update", "subject": "managed_grants"},
+                ],
+            }
+        ],
+    }
+
+
+@pytest.mark.parametrize("authorization", ["Bearer someone-else", "energyid-key", "Basic energyid-key", "Bearer "])
+def test_an_unknown_or_malformed_api_key_is_refused(data: Path, monkeypatch: pytest.MonkeyPatch, authorization: str):
+    with_client(data)
+
+    r = client_for(data, monkeypatch).get("/auth/me", headers={"Authorization": authorization})
+
+    assert r.status_code == 401
+
+
+def test_an_api_key_is_asked_for_instead_of_the_session(data: Path, monkeypatch: pytest.MonkeyPatch):
+    client = client_for(data, monkeypatch)
+    log_in(client)
+
+    assert client.get("/auth/me", headers={"Authorization": "Bearer someone-else"}).status_code == 401
+
+
+# ── behind a proxy ────────────────────────────────────────────────────────
+
+
+def proxied(client: TestClient, url: str = "https://app.example/cofy") -> TestClient:
+    client.app.add_middleware(ProxiedUrls, urls=[url])
+    return client
+
+
+def test_a_login_through_a_proxy_comes_back_through_it(data: Path, monkeypatch: pytest.MonkeyPatch):
+    client = proxied(client_for(data, monkeypatch))
+
+    r = client.get("/auth/login", headers={"X-Forwarded-Prefix": "/cofy"})
+
+    redirect_uri = parse_qs(urlparse(r.headers["location"]).query)["redirect_uri"]
+    assert redirect_uri == ["https://app.example/cofy/auth/callback"]
+
+
+def test_a_proxy_may_leave_its_prefix_on_the_path(data: Path, monkeypatch: pytest.MonkeyPatch):
+    client = proxied(client_for(data, monkeypatch))
+
+    r = client.get("/cofy/auth/login", headers={"X-Forwarded-Prefix": "/cofy/"})
+
+    redirect_uri = parse_qs(urlparse(r.headers["location"]).query)["redirect_uri"]
+    assert redirect_uri == ["https://app.example/cofy/auth/callback"]
+
+
+def test_a_login_through_an_unknown_proxy_comes_back_here(data: Path, monkeypatch: pytest.MonkeyPatch):
+    client = proxied(client_for(data, monkeypatch))
+
+    r = client.get("/auth/login", headers={"X-Forwarded-Prefix": "/elsewhere"})
+
+    assert parse_qs(urlparse(r.headers["location"]).query)["redirect_uri"] == ["http://testserver/auth/callback"]

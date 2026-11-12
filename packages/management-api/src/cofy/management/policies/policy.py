@@ -15,7 +15,7 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.params import Depends as DependsParam
 
 from ..auth.access import Action, Subject
-from ..auth.user import User, current_user
+from ..auth.user import Principal, current_principal
 from ..errors import ForbiddenError
 
 
@@ -26,7 +26,7 @@ class Policy:
     the community the route is about, or outside any one community on a route without a slug.
     """
 
-    def __init__(self, user: User, request: Request, subject: Subject | None):
+    def __init__(self, user: Principal, request: Request, subject: Subject | None):
         self.user = user
         self.request = request
         self.subject = subject
@@ -86,7 +86,7 @@ class RuleCheck(PolicyCheck):
         self.subject = subject
         self.rule = rule
 
-    def __call__(self, request: Request, user: Annotated[User, Depends(current_user)]) -> None:
+    def __call__(self, request: Request, user: Annotated[Principal, Depends(current_principal)]) -> None:
         if not self.policy(user, request, self.subject).allows(self.rule):
             raise ForbiddenError("You are not allowed to do this")
 

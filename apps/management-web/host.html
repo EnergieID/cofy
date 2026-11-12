@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Embedding host (development only)</title>
+    <!-- A stand-in for an app embedding the console, served at /host/<slug>/... by the dev server only. Its own
+         look is deliberately plain: the console has to fit into a page it doesn't style. -->
+    <style>
+      body {
+        margin: 0;
+        font-family: system-ui, sans-serif;
+        display: grid;
+        grid-template: "top top" 3rem "side main" 1fr / 14rem 1fr;
+        min-height: 100vh;
+      }
+      header {
+        grid-area: top;
+        background: #1771a6;
+        color: white;
+        display: flex;
+        align-items: center;
+        padding-inline: 1rem;
+      }
+      nav {
+        grid-area: side;
+        border-inline-end: 1px solid #ddd;
+        padding: 1rem;
+      }
+      nav a {
+        display: block;
+        padding: 0.25rem 0;
+      }
+      nav a[aria-current="page"] {
+        font-weight: bold;
+      }
+      cofy-console,
+      main {
+        grid-area: main;
+        padding: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header>Host app</header>
+    <nav></nav>
+    <cofy-console api-path="/cofy"></cofy-console>
+    <script type="module">
+      import "/src/embed.ts";
+      // The host brings the theme, as for any Web Awesome component: here COFY's.
+      import "@awesome.me/webawesome/dist/styles/themes/default.css";
+      import "@cofy/web-components/theme/cofy.css";
+
+      const slug = location.pathname.split("/")[2];
+      const console_ = document.querySelector("cofy-console");
+      const nav = document.querySelector("nav");
+      // Like the app it stands in for, this host shows one community: the one its address names.
+      if (!slug) {
+        console_.replaceWith(Object.assign(document.createElement("main"), {
+          innerHTML: 'Open a community at <code>/host/&lt;slug&gt;/</code>, such as <a href="/host/demo/">/host/demo/</a>.',
+        }));
+        throw new Error("No community in the address");
+      }
+      const base = `/host/${slug}`;
+      Object.assign(console_, { community: slug, basePath: base, path: location.pathname.slice(base.length) });
+
+      // The host routes: it follows a navigation the console asks for, and the back button.
+      function go(href) {
+        history.pushState(null, "", href);
+        console_.path = location.pathname.slice(base.length);
+      }
+      console_.addEventListener("cofy-navigate", (event) => {
+        event.preventDefault();
+        go(event.detail.href);
+      });
+      addEventListener("popstate", () => (console_.path = location.pathname.slice(base.length)));
+
+      // The host draws the console's menu in its own, from the console's state, once the console has made it.
+      function drawMenu() {
+        nav.replaceChildren(
+          ...console_.state.menu().map((item) => {
+            const link = Object.assign(document.createElement("a"), { href: item.href, textContent: item.label });
+            if (item.current) link.setAttribute("aria-current", "page");
+            link.addEventListener("click", (click) => {
+              click.preventDefault();
+              go(item.href);
+            });
+            return link;
+          }),
+        );
+      }
+      await console_.updateComplete;
+      console_.state.subscribe(drawMenu);
+      drawMenu();
+    </script>
+  </body>
+</html>

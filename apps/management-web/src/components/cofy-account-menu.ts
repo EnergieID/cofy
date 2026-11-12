@@ -49,7 +49,7 @@ export class CofyAccountMenu extends CofyElement {
         }}
       >
         <wa-button slot="trigger" appearance="plain" title=${label}>
-          <wa-icon name="circle-user" label=${label}></wa-icon>
+          <wa-icon name="circle-user" library="cofy" label=${label}></wa-icon>
         </wa-button>
         ${me == null
           ? nothing
@@ -61,7 +61,7 @@ export class CofyAccountMenu extends CofyElement {
               <wa-divider></wa-divider>
             `}
         <wa-dropdown-item value="logout">
-          <wa-icon slot="icon" name="right-from-bracket"></wa-icon>
+          <wa-icon slot="icon" name="right-from-bracket" library="cofy"></wa-icon>
           ${this.t("account.logout")}
         </wa-dropdown-item>
       </wa-dropdown>

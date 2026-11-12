@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { SessionStore } from "../../src/stores/session-store.js";
-import { stubbedApi } from "../support/api.js";
+import { ApiClient } from "../../src/api-client.js";
+import { ORIGIN, stubbedApi } from "../support/api.js";
 
 const me = {
   email: "ann@example.com",
@@ -19,10 +20,10 @@ const me = {
   ],
 };
 
-/** A page at *hash*, recording where it was sent. */
-function page(hash: string): Location & { assigned: string[] } {
+/** A page at *hash*, under *pathname*, recording where it was sent. */
+function page(hash: string, pathname = "/", search = ""): Location & { assigned: string[] } {
   const assigned: string[] = [];
-  const location = { pathname: "/", search: "", hash, assign: (url: string): number => assigned.push(url), assigned };
+  const location = { pathname, search, hash, assign: (url: string): number => assigned.push(url), assigned };
   return location as unknown as Location & { assigned: string[] };
 }
 
@@ -65,7 +66,15 @@ describe("SessionStore", () => {
 
     new SessionStore(api, location).login();
 
-    expect(location.assigned).toEqual(["/auth/login?return_to=%2F%23%2Fcommunities%2Ftest"]);
+    expect(location.assigned).toEqual([`${ORIGIN}/auth/login?return_to=%2F%23%2Fcommunities%2Ftest`]);
+  });
+
+  it("logs in through the API wherever it is served, coming back to the page it is on", () => {
+    const location = page("", "/w/1/cofy/modules", "?a=1");
+
+    new SessionStore(new ApiClient({ baseUrl: "/cofy/" }), location).login();
+
+    expect(location.assigned).toEqual(["/cofy/auth/login?return_to=%2Fw%2F1%2Fcofy%2Fmodules%3Fa%3D1"]);
   });
 
   it("answers whether an action on a subject is allowed in a community", async () => {

@@ -19,38 +19,26 @@ import {
   nativeStyles,
   themeStateContext,
   utilityStyles,
-  yamlBackend,
 } from "@cofy/web-components";
 import "@cofy/web-components";
 import { LitElement, css, html, nothing } from "lit";
 import type { TemplateResult } from "lit";
 import { customElement, query } from "lit/decorators.js";
 
+import { ConsoleState, MENU_FOOTER_GROUPS, MENU_GROUPS, followLink } from "@cofy/web-components/console";
 import "./components/cofy-account-menu.js";
 import "./components/cofy-navigation.js";
-import { crumbStateContext, routeStateContext } from "./context.js";
-import { useLocalIcons } from "./icons.js";
-import { APP_NAMESPACE, LANGUAGES } from "./i18n.js";
-import { CrumbState } from "./states/crumb-state.js";
-import { RouteState } from "./states/route-state.js";
-import { MENU_FOOTER_GROUPS, MENU_GROUPS, routes } from "./routes.js";
+import { APP_NAMESPACE, APP_RESOURCES, LANGUAGES } from "./i18n.js";
 import "./styles.css";
 import "@cofy/web-components/theme/cofy.css";
 import "@cofy/web-components/theme/energyid.css";
 import "./brand.css";
 import "@cofy/web-components/theme/syntax.css";
 
-// Before any component renders, so no icon request is ever made.
-useLocalIcons();
-
-// Awaited before anything renders. `yamlBackend` fetches translations rather than bundling
-// them, so a render that beat it would put raw keys on screen - one await is cheaper than a
-// loading state in every component. The choice of backend is the app's, not the library's: a
-// deployment could pass `init: { resources: {...} }` instead and skip fetching entirely.
+// Awaited before anything renders: the shell's strings beside the console's and its components', bundled.
 const i18n = await createI18n({
   supportedLanguages: LANGUAGES,
-  namespaces: [APP_NAMESPACE],
-  backend: yamlBackend(),
+  resources: APP_RESOURCES,
 });
 
 // Puts the colour scheme on the root element and keeps following the operating system while
@@ -59,15 +47,21 @@ const theme = new ThemeState();
 theme.start();
 
 /**
- * The console shell.
+ * Where the console's pages are: apart from the communities' own APIs, which a deployment serves at
+ * `/communities/<slug>/` on the same site.
+ */
+const BASE = "/console";
+
+// The site's root is the console's home.
+if (window.location.pathname === "/") window.history.replaceState(null, "", BASE);
+
+/**
+ * The console shell: the header and the menu around `<cofy-console>`, which shows the pages - as it does embedded in
+ * another app. It knows about no individual page: adding one is a new module and one entry in `routes.ts`.
  *
- * It owns the store, the route and the breadcrumb trail, provides them to the tree, and
- * renders the header, the menu and whatever the route table returns. It knows about no individual
- * page: adding one is a new module and one entry in `routes.ts`.
- *
- * The store, theme and translations are constructed here rather than imported as singletons,
- * which is what lets the components be embedded in someone else's app against a different
- * backend, theme and language.
+ * It owns the store, the theme and the translations, which the header's pickers and account menu share with the
+ * console, and the console's state, from which it draws the menu and, where there is room, the trail. A link in the
+ * header or the menu goes to its page the way one in the console does.
  *
  * It does not extend `CofyElement` the way the pages do: an element that both provides and
  * consumes a context is deliberately skipped by its own provider, so the shell reads the
@@ -114,6 +108,10 @@ export class CofyApp extends LitElement {
       [slot="header"] cofy-breadcrumbs {
         --wa-color-text-link: var(--cofy-header-link);
         --wa-color-text-quiet: var(--cofy-header-text);
+      }
+      /* In the header where there is room for it, above the page where there isn't. */
+      wa-page[view="desktop"] cofy-console::part(breadcrumbs) {
+        display: none;
       }
       /* On a short screen the menu scrolls above its foot, rather than running under it. */
       [slot="navigation"] {
@@ -175,7 +173,7 @@ export class CofyApp extends LitElement {
       }
       /* What the page says lines up in one column, centred on the screen rather than beside the
          menu where there is room for that, as in the docs. */
-      main {
+      cofy-console {
         max-inline-size: 60rem;
         margin-inline: auto;
         padding: var(--wa-space-l);
@@ -184,7 +182,7 @@ export class CofyApp extends LitElement {
         /* Where the page's column starts: centred on the screen, or else right beside the menu. */
         --content-start: max(var(--menu-width), (100vw - 60rem) / 2);
       }
-      wa-page[view="desktop"] main {
+      wa-page[view="desktop"] cofy-console {
         margin-inline-start: calc(var(--content-start) - var(--menu-width));
       }
     `,
@@ -196,17 +194,14 @@ export class CofyApp extends LitElement {
   @provide({ context: cofyStoreContext })
   public cofy = new CofyStore(this.api);
 
-  @provide({ context: routeStateContext })
-  public routeState = new RouteState(routes, this.cofy.session);
-
-  @provide({ context: crumbStateContext })
-  public crumbState = new CrumbState();
-
   @provide({ context: i18nContext })
   public i18n = i18n;
 
   @provide({ context: themeStateContext })
   public theme = theme;
+
+  /** Where the console is, what it shows and lists: for the console, and for the menu and the trail here. */
+  public consoleState = new ConsoleState({ store: this.cofy, base: BASE, target: this, i18n });
 
   public readonly stateController = new StateController(this);
 
@@ -214,12 +209,12 @@ export class CofyApp extends LitElement {
 
   public override connectedCallback(): void {
     super.connectedCallback();
-    this.routeState.start();
+    this.consoleState.start();
   }
 
   public override disconnectedCallback(): void {
     super.disconnectedCallback();
-    this.routeState.stop();
+    this.consoleState.stop();
   }
 
   public override render(): TemplateResult {
@@ -233,22 +228,28 @@ export class CofyApp extends LitElement {
     }
 
     return html`
-      <wa-page>
+      <wa-page
+        @click=${(event: MouseEvent): void => {
+          // The menu's drawer on mobile closes itself only for a link in its own tree, which the menu's shadow root
+          // hides from it. A link in the console is followed by the console, before this.
+          if (followLink(event, this.consoleState.location)) this.page?.hideNavigation();
+        }}
+      >
         <header slot="header" class="wa-split wa-flex-nowrap">
           <div class="wa-cluster wa-gap-xs wa-flex-nowrap">
             ${this.hasMenu()
               ? html`
                   <wa-button data-toggle-nav appearance="plain" class="wa-mobile-only" title=${this.t("menu.open")}>
-                    <wa-icon name="bars" label=${this.t("menu.open")}></wa-icon>
+                    <wa-icon name="bars" library="cofy" label=${this.t("menu.open")}></wa-icon>
                   </wa-button>
                 `
               : nothing}
-            <a class="brand wa-cluster wa-gap-xs" href="#/">
+            <a class="brand wa-cluster wa-gap-xs" href=${BASE}>
               <wa-icon name="brand" library="cofy"></wa-icon>
               <span>${this.t("product")} <span class="sub-brand">${this.t("subtitle")}</span></span>
             </a>
           </div>
-          <cofy-breadcrumbs class="wa-desktop-only" .crumbs=${this.crumbState.crumbs}></cofy-breadcrumbs>
+          <cofy-breadcrumbs class="wa-desktop-only" .crumbs=${this.consoleState.crumbs.crumbs}></cofy-breadcrumbs>
           <div class="wa-cluster wa-gap-2xs wa-flex-nowrap">
             <cofy-locale-picker></cofy-locale-picker>
             <cofy-theme-picker></cofy-theme-picker>
@@ -258,11 +259,7 @@ export class CofyApp extends LitElement {
 
         ${this.menu()}
 
-        <!-- In the header where there is room for them, above the page where there isn't. -->
-        <main class="wa-stack">
-          <cofy-breadcrumbs class="wa-mobile-only" .crumbs=${this.crumbState.crumbs}></cofy-breadcrumbs>
-          ${this.routeState.render() ?? html`<p>${this.t("notFound", { path: this.routeState.path })}</p>`}
-        </main>
+        <cofy-console .state=${this.consoleState}></cofy-console>
       </wa-page>
     `;
   }
@@ -272,31 +269,16 @@ export class CofyApp extends LitElement {
    * the toggle that opens it on mobile.
    */
   private menu(): TemplateResult | typeof nothing {
-    if (!this.hasMenu()) return nothing;
+    const items = this.consoleState.menu();
+    if (items.length === 0) return nothing;
     return html`
-      <cofy-navigation
-        slot="navigation"
-        .groups=${MENU_GROUPS}
-        @click=${(event: Event): void => this.closeMenuOnFollow(event)}
-      ></cofy-navigation>
-      <cofy-navigation
-        slot="navigation-footer"
-        .groups=${MENU_FOOTER_GROUPS}
-        @click=${(event: Event): void => this.closeMenuOnFollow(event)}
-      ></cofy-navigation>
+      <cofy-navigation slot="navigation" .items=${items} .groups=${MENU_GROUPS}></cofy-navigation>
+      <cofy-navigation slot="navigation-footer" .items=${items} .groups=${MENU_FOOTER_GROUPS}></cofy-navigation>
     `;
   }
 
   private hasMenu(): boolean {
-    return this.routeState.menu().length > 0;
-  }
-
-  /**
-   * Close the menu's drawer on mobile once a link in it is followed. The drawer closes itself for
-   * a `data-drawer="close"` link only in its own tree, which the menu's shadow root hides from it.
-   */
-  private closeMenuOnFollow(event: Event): void {
-    if (event.composedPath().some((target) => target instanceof HTMLAnchorElement)) this.page?.hideNavigation();
+    return this.consoleState.menu().length > 0;
   }
 
   private t(key: string, params?: Record<string, unknown>): string {

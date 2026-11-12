@@ -30,11 +30,16 @@ build your own console instead (route 3 in the [root README](../../README.md)). 
   involved. `theme/energyid.css` is the EnergyID theme on top of it: EnergyID's green and blue
   navigation bar, light only.
 - **Translations** (`i18n/*`) - `createI18n`, `CofyI18n`, built on
-  [i18next](https://www.i18next.com/). The library's own strings ship as YAML under
-  [locales/](locales) rather than bundled into the JS, so a deployment can add a language or
-  correct a translation by dropping in a file - no rebuild needed. `yamlBackend()` is the
-  loader that reads them; see how [apps/management-web](../../apps/management-web) serves both
-  its own and the library's locales from one origin.
+  [i18next](https://www.i18next.com/). The library's own strings are written as YAML under
+  [locales/](locales) - `components` for the components, `console` for the console - and bundled. An app adds its own
+  namespaces with `resources`, and replaces any string with `overrides`, key by key; what a language leaves out falls
+  back to English, string by string. Adding a language is adding its files here.
+- **Icons** (`icons.ts`) - the library's own, registered as Web Awesome's `cofy` icon library and drawn with
+  `library="cofy"`: inline SVG, so none is ever fetched. Web Awesome's `default` library is left to the page.
+- **The console** (`console/*`, imported as `@cofy/web-components/console`) - `<cofy-console>` with every page of
+  the console, and `ConsoleState`, which a host draws its menu and trail from. What
+  [apps/management-web](../../apps/management-web) builds into the console and `embed.js`; see its README for
+  embedding.
 - `CofyElement` - a small `LitElement` base most components extend, wiring up the contexts
   above.
 

@@ -51,9 +51,11 @@ type Body<
 export class ApiClient {
   private readonly client: Client<paths>;
   private readonly onUnauthenticated?: () => void;
+  private readonly baseUrl: string;
 
   public constructor(options: ApiClientOptions = {}) {
     this.onUnauthenticated = options.onUnauthenticated;
+    this.baseUrl = (options.baseUrl ?? "").replace(/\/$/, "");
     this.client = createClient<paths>({
       baseUrl: options.baseUrl ?? "/",
       headers: options.headers,
@@ -80,6 +82,11 @@ export class ApiClient {
     ...init: Init<"put", Path>
   ): Promise<Body<"put", Path>> {
     return this.body(await this.client.PUT(path, ...init));
+  }
+
+  /** Where *path* of the API is, for what the browser itself goes to rather than `fetch`: a login, say. */
+  public url(path: `/${string}`): string {
+    return `${this.baseUrl}${path}`;
   }
 
   /** This API's deletes answer 204, so there is no body to return. */

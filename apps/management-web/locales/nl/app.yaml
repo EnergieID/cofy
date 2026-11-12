@@ -1,0 +1,11 @@
+title: COFY console
+product: COFY
+subtitle: console
+
+menu:
+  label: Menu
+  open: Open het menu
+
+account:
+  label: Je account
+  logout: Afmelden

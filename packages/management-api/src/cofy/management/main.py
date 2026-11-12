@@ -3,14 +3,13 @@ import os
 import httpx
 from cofy.api import ModuleSettings, ResourceSettings, encrypt_secret
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 
 from .api.allowed import AllowedTypesRouter
 from .api.catalog import CatalogRouter
 from .api.communities import CommunitiesRouter
 from .api.community_allowed_types import CommunityAllowedTypesRouter
-from .api.grants import GrantsRouter
+from .api.grants import GrantsRouter, ManagedGrantsRouter
 from .api.modules import ModulesRouter
 from .api.resources import ResourcesRouter
 from .api.secrets import SecretsRouter
@@ -22,6 +21,7 @@ from .auth.router import AuthRouter
 from .auth.session import install_session
 from .auth.user import install_users
 from .community_api import CommunityApi
+from .console_files import ConsoleFiles
 from .domain.allowed import AllowedTypes
 from .errors import EXCEPTION_HANDLERS
 from .persitance.file.allowed import FileAllowedPersistence
@@ -33,10 +33,12 @@ from .persitance.file.resources import FileResourcesPersistence
 from .persitance.file.secrets import FileSecretsPersistence
 from .persitance.file.tokens import FileTokensPersistence
 from .persitance.file.users import FileUsersPersistence
+from .proxied import ProxiedUrls
 
 STATIC_DIR_ENV_VAR = "COFY_MANAGEMENT_STATIC_DIR"
 COMMUNITIES_URL_ENV_VAR = "COFY_MANAGEMENT_COMMUNITIES_URL"
 ENCRYPTION_KEY_ENV_VAR = "COFY_MANAGEMENT_SECRETS_ENCRYPTION_KEY"
+PROXIED_URLS_ENV_VAR = "COFY_MANAGEMENT_PROXIED_URLS"
 
 #: Each `OidcConfig` field, and the environment variable it is read from.
 OIDC_ENV_VARS = {
@@ -79,6 +81,11 @@ def encryption_key_from_env() -> str:
     return key
 
 
+def proxied_urls_from_env() -> list[str]:
+    """The URLs reverse proxies serve the API and console at, under a path of their own site; none by default."""
+    return [url.strip() for url in os.environ.get(PROXIED_URLS_ENV_VAR, "").split(",") if url.strip()]
+
+
 oidc_config = oidc_config_from_env()
 community_api = community_api_from_env()
 encryption_key = encryption_key_from_env()
@@ -96,6 +103,8 @@ app = FastAPI(
 )
 install_session(app, oidc_config)
 install_users(app, users)
+# Added last, so it runs first: the session and everything after it see the URL the request was made to.
+app.add_middleware(ProxiedUrls, urls=proxied_urls_from_env())
 
 app.include_router(AuthRouter(oidc_config, users, FileCommunitiesPersistence()).router)
 app.include_router(CommunitiesRouter(FileCommunitiesPersistence(), grants, allowed_types, community_api).router)
@@ -114,15 +123,14 @@ app.include_router(
 )
 app.include_router(TokensRouter(FileTokensPersistence()).router)
 app.include_router(GrantsRouter(grants, FileCommunitiesPersistence()).router)
+app.include_router(ManagedGrantsRouter(grants, FileCommunitiesPersistence()).router)
 app.include_router(StatusRouter(FileCommunitiesPersistence(), community_api).router)
 
-# Serving the console's built assets is optional and off by default, so the API stays usable
+# Serving the console's built files is optional and off by default, so the API stays usable
 # on its own (e.g. behind the Vite dev server's proxy). A deployment that wants a single
 # origin - so the console's API client needs no base URL and there is no CORS to configure -
 # sets this to the console's build output; it is mounted last so it never shadows the routers
-# above, and `html=True` serves `index.html` for the app shell while leaving `/management/...` and `/auth/...`
-# to the API (the console itself routes client-side by URL hash, so no other paths ever reach
-# the server).
+# above, and answers every path of the console's own with its page, which routes itself.
 static_dir = os.environ.get(STATIC_DIR_ENV_VAR)
 if static_dir:
-    app.mount("/", StaticFiles(directory=static_dir, html=True), name="console")
+    app.mount("/", ConsoleFiles(static_dir), name="console")
