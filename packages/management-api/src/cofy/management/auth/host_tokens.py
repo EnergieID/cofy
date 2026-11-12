@@ -15,6 +15,8 @@ import httpx
 from cofy.api.errors import NotAuthenticatedError
 from fastapi import FastAPI, Request
 
+from ..errors import IdentityProviderUnavailableError
+from ..persitance.users import UsersPersistence
 from .access import Identity
 from .config import OidcConfig
 
@@ -22,17 +24,21 @@ from .config import OidcConfig
 class HostTokens:
     """Access tokens from the login's identity provider, issued to the apps embedding the console."""
 
-    def __init__(self, config: OidcConfig, http: httpx.AsyncClient | None = None):
+    def __init__(self, config: OidcConfig, users: UsersPersistence, http: httpx.Client | None = None):
         self.issuer = config.issuer
         self.metadata_url = config.server_metadata_url
         self.clients = frozenset(config.host_clients)
-        self.http = http or httpx.AsyncClient(timeout=5.0)
+        self.users = users
+        self.http = http or httpx.Client(timeout=5.0)
         self._userinfo_endpoint: str | None = None
         # By the token's hash, never the token itself, until it expires: the identity provider is asked once per token.
         self._identities: dict[str, tuple[Identity, float]] = {}
 
-    async def identity(self, token: str) -> Identity:
-        """Who *token* was issued to, if it is a valid access token issued to one of the apps; refused otherwise."""
+    def identity(self, token: str) -> Identity:
+        """Who *token* was issued to, if it is a valid access token issued to one of the apps; refused otherwise.
+
+        The first time a token is seen, its person is bound as at a login: an email granted access before is theirs.
+        """
         digest = hashlib.sha256(token.encode()).hexdigest()
         now = time.time()
         cached = self._identities.get(digest)
@@ -44,30 +50,30 @@ class HostTokens:
             raise NotAuthenticatedError("Invalid token")
         # The identity provider only answers for a token it issued that still holds - signed, not expired - which
         # vouches for the claims read above too.
-        response = await self.http.get(await self._userinfo(), headers={"Authorization": f"Bearer {token}"})
-        if response.status_code == httpx.codes.UNAUTHORIZED:
-            raise NotAuthenticatedError("Invalid token")
-        response.raise_for_status()
-        info = response.json()
+        info = self._userinfo(token)
         if info.get("sub") != claims.get("sub"):
             raise NotAuthenticatedError("Invalid token")
-        identity = Identity(
-            issuer=self.issuer,
-            subject=info["sub"],
-            email=info.get("email"),
-            email_verified=info.get("email_verified") in (True, "true"),
-            name=info.get("name"),
-        )
+        identity = Identity.from_claims({**info, "iss": self.issuer})
+        self.users.bind(identity)
         self._identities = {key: value for key, value in self._identities.items() if value[1] > now}
         self._identities[digest] = (identity, float(claims.get("exp", 0)))
         return identity
 
-    async def _userinfo(self) -> str:
-        if self._userinfo_endpoint is None:
-            response = await self.http.get(self.metadata_url)
-            response.raise_for_status()
-            self._userinfo_endpoint = response.json()["userinfo_endpoint"]
-        return self._userinfo_endpoint
+    def _userinfo(self, token: str) -> dict:
+        try:
+            if self._userinfo_endpoint is None:
+                self._userinfo_endpoint = (
+                    self.http.get(self.metadata_url).raise_for_status().json()["userinfo_endpoint"]
+                )
+            response = self.http.get(self._userinfo_endpoint, headers={"Authorization": f"Bearer {token}"})
+        except httpx.HTTPError as exc:
+            raise IdentityProviderUnavailableError("The identity provider can't be reached") from exc
+        # Turned away - expired, revoked, or without the scope to ask - is a token that doesn't hold.
+        if response.is_client_error:
+            raise NotAuthenticatedError("Invalid token")
+        if not response.is_success:
+            raise IdentityProviderUnavailableError("The identity provider can't say who the token is for")
+        return response.json()
 
 
 def _unverified_claims(token: str) -> dict:

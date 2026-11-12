@@ -112,7 +112,7 @@ app = FastAPI(
 install_session(app, oidc_config)
 install_users(app, users)
 if oidc_config.host_clients:
-    install_host_tokens(app, HostTokens(oidc_config))
+    install_host_tokens(app, HostTokens(oidc_config, users))
 # Last, so it runs first, around the console's files too: a host loads `embed.js` from its own pages.
 install_cors(app, cors_origins_from_env())
 

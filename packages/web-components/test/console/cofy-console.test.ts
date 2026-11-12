@@ -255,12 +255,26 @@ describe("cofy-console", () => {
     expect(element.shadowRoot!.querySelector("main")).toBeNull();
   });
 
-  it("logs in itself without a token from the host", async () => {
+  it("leaves logging in to the host without a token as well", async () => {
     const login = vi.spyOn(SessionStore.prototype, "login").mockImplementation(() => undefined);
+    const asked: Event[] = [];
+    document.addEventListener("cofy-unauthenticated", (event) => asked.push(event), { once: true });
 
     await embedded(null);
 
-    expect(login).toHaveBeenCalled();
+    expect(asked).toHaveLength(1);
+    expect(login).not.toHaveBeenCalled();
+  });
+
+  it("starts over with the token the host sets again, once it has renewed its login", async () => {
+    const element = await embedded(null, { accessToken: (): string => "an-expired-token" });
+    serve(EDITOR);
+
+    element.accessToken = (): string => "a-renewed-token";
+    await settled(element);
+
+    expect(element.shadowRoot!.querySelector("main")).not.toBeNull();
+    expect(authorizations).toContain("Bearer a-renewed-token");
   });
 
   describe("without a community", () => {

@@ -69,8 +69,9 @@ loads the console from COFY's site:
 ```
 
 The console is then whoever is logged in to the app, with no login or session of its own: it sends the token with
-every request, asking for it each time, so a renewed one is used. When COFY turns it away, the console shows nothing
-and fires `cofy-unauthenticated`, for the app to renew the token or log in. The management API takes the app's tokens
+every request, asking for it each time, so a renewed one is used. Without a login that holds, the console shows
+nothing and fires `cofy-unauthenticated` - once for each request turned away - for the app to log in, or renew its
+token and set `accessToken` again, which starts the console over. The management API takes the app's tokens
 once its client id and site are listed (see [its README](../../packages/management-api/README.md#logged-in-by-another-app)).
 
 - `community` - the community shown, by slug. Without one, every page is, by its whole path, as in the console's
@@ -104,7 +105,8 @@ The console adds nothing to the app's page but itself, and brings no theme: as f
 app loads one, or sets its custom properties, such as `--wa-color-brand-fill-loud`, on `cofy-console` or its page.
 
 In development, `npm run dev` serves a stand-in for such an app at http://localhost:5173/host/demo/. It sets no
-`accessToken`, so the console logs in through COFY's own login, on the API the dev server proxies.
+`accessToken`: on `cofy-unauthenticated` it sends the browser through COFY's own login, on the API the dev server
+proxies.
 
 ## Development
 

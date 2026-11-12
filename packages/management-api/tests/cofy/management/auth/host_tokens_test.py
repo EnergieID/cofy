@@ -14,6 +14,7 @@ import pytest
 import yaml
 
 from cofy.management.auth.host_tokens import HostTokens
+from cofy.management.persitance.file.users import FileUsersPersistence
 
 from ..access_fixture import ISSUER, OIDC_CONFIG
 from .router_test import client_for, log_in, stored_user, with_client
@@ -30,6 +31,9 @@ class Provider:
         self.issued: set[str] = set()
         self.userinfo: dict[str, Any] = {"sub": "ann-sub", "email": "ann@example.com", "email_verified": True}
         self.userinfo_calls = 0
+        # Set to answer every userinfo request with this status instead, or to not answer at all.
+        self.userinfo_status: int | None = None
+        self.down = False
 
     def token(self, *, issued: bool = True, **claims: Any) -> str:
         """An access token for Ann, issued to the app - unless *issued* is false: then only made to look like one."""
@@ -45,10 +49,14 @@ class Provider:
         return token
 
     def handle(self, request: httpx.Request) -> httpx.Response:
+        if self.down:
+            raise httpx.ConnectError("the identity provider is down", request=request)
         if request.url.path == "/.well-known/openid-configuration":
             return httpx.Response(200, json={"issuer": ISSUER, "userinfo_endpoint": f"{ISSUER}/userinfo"})
         if request.url.path == "/userinfo":
             self.userinfo_calls += 1
+            if self.userinfo_status is not None:
+                return httpx.Response(self.userinfo_status)
             token = request.headers["Authorization"].removeprefix("Bearer ")
             payload = token.split(".")[1]
             expired = json.loads(base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4)))["exp"] < time.time()
@@ -73,7 +81,8 @@ def provider() -> Provider:
 
 
 def client(data: Path, monkeypatch: pytest.MonkeyPatch, provider: Provider):
-    tokens = HostTokens(CONFIG, httpx.AsyncClient(transport=httpx.MockTransport(provider.handle)))
+    users = FileUsersPersistence(data / "access" / "users.yaml")
+    tokens = HostTokens(CONFIG, users, httpx.Client(transport=httpx.MockTransport(provider.handle)))
     return client_for(data, monkeypatch, host_tokens=tokens)
 
 
@@ -132,6 +141,19 @@ def test_an_expired_token_is_refused_even_beside_a_login(data: Path, monkeypatch
     r = me(api, provider.token(exp=int(time.time()) - 60))
 
     assert r.status_code == 401
+
+
+def test_a_token_the_identity_provider_turns_away_is_refused(data: Path, monkeypatch, provider: Provider):
+    # As Duende does for a token without the `openid` scope.
+    provider.userinfo_status = 403
+
+    assert me(client(data, monkeypatch, provider), provider.token()).status_code == 401
+
+
+def test_an_identity_provider_that_doesnt_answer_is_unavailable(data: Path, monkeypatch, provider: Provider):
+    provider.down = True
+
+    assert me(client(data, monkeypatch, provider), provider.token()).status_code == 503
 
 
 def test_a_userinfo_answer_about_someone_else_is_refused(data: Path, monkeypatch, provider: Provider):

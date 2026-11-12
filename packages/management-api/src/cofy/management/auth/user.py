@@ -130,9 +130,7 @@ def _users(request: Request) -> UsersPersistence:
 _authorization = APIKeyHeader(name="Authorization", auto_error=False, scheme_name="client")
 
 
-async def current_principal(
-    request: Request, authorization: Annotated[str | None, Depends(_authorization)]
-) -> Principal:
+def current_principal(request: Request, authorization: Annotated[str | None, Depends(_authorization)]) -> Principal:
     """Who makes this request: the client whose API key it carries, the person whose access token from an app
     embedding the console it carries, or else the person logged in.
 
@@ -151,7 +149,5 @@ async def current_principal(
     tokens = host_tokens(request)
     if tokens is None:
         raise NotAuthenticatedError("Invalid token")
-    identity = await tokens.identity(key)
-    # As at a login: an email granted access before their first one is theirs from now on.
-    _users(request).bind(identity)
+    identity = tokens.identity(key)
     return User(identity, _users(request).match(identity))

@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from enum import StrEnum
-from typing import Annotated
+from typing import Annotated, Any
 
 from cofy.api.secret import NAME_PATTERN
 from cofy.api.token_auth import HASH_PATTERN
@@ -107,6 +107,17 @@ class Identity(BaseModel):
     email: str | None = None
     email_verified: bool = False
     name: str | None = None
+
+    @classmethod
+    def from_claims(cls, claims: Mapping[str, Any]) -> Identity:
+        """The person an identity provider's claims say logged in, from an ID token or its userinfo endpoint."""
+        return cls(
+            issuer=claims["iss"],
+            subject=claims["sub"],
+            email=claims.get("email"),
+            email_verified=claims.get("email_verified") in (True, "true"),
+            name=claims.get("name"),
+        )
 
 
 # Stored from a Python-mode dump, which would otherwise keep the enum member.

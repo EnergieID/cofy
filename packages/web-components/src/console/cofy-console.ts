@@ -27,9 +27,8 @@ export type { ConsoleMenuItem } from "./states/console-state.js";
  *
  * The console's pages lie under *base-path* on the host's site, and it asks the host to go elsewhere with a
  * `cofy-navigate` event (see `HostLocation`). COFY's API is at *api-path*. A host that logs its users in at COFY's
- * identity provider hands the console its {@link accessToken}, and is told with a `cofy-unauthenticated` event when
- * that no longer holds. Without one, the console logs in through COFY's own login, which comes back to the page it was
- * on.
+ * identity provider hands the console its {@link accessToken}. Without a login that holds, the console shows nothing
+ * and fires `cofy-unauthenticated`: the host renews its token and sets {@link accessToken} again, or logs in itself.
  */
 @customElement("cofy-console")
 export class CofyConsole extends LitElement {
@@ -63,7 +62,7 @@ export class CofyConsole extends LitElement {
 
   /**
    * The host's own access token, from the identity provider COFY logs in at, asked for before every request: the
-   * console is then whoever the host has logged in, without a login of its own.
+   * console is then whoever the host has logged in. Set again, the console starts over, as after a renewed login.
    */
   @property({ attribute: false }) public accessToken?: () => string | undefined | Promise<string | undefined>;
 
@@ -99,7 +98,7 @@ export class CofyConsole extends LitElement {
   }
 
   protected override willUpdate(changed: PropertyValues<this>): void {
-    const attributes = changed.has("community") || changed.has("basePath") || changed.has("apiPath");
+    const attributes = (["community", "basePath", "apiPath", "accessToken"] as const).some((name) => changed.has(name));
     if (changed.has("state") && this.state !== this.own) this.adopt();
     else if (attributes && (this.state === undefined || this.state === this.own)) this.makeState();
     if (changed.has("lang") && this.lang !== "") void this.state?.i18n.changeLanguage(this.lang);
@@ -136,7 +135,9 @@ export class CofyConsole extends LitElement {
       baseUrl: this.apiPath,
       // Read on every request, so a getter the host sets after this is used as well.
       accessToken: (): string | undefined | Promise<string | undefined> => this.accessToken?.(),
-      onUnauthenticated: (): void => this.unauthenticated(),
+      onUnauthenticated: (): void => {
+        this.dispatchEvent(new CustomEvent("cofy-unauthenticated", { bubbles: true, composed: true }));
+      },
     });
     const store = new CofyStore(api);
     const i18n = createI18n({
@@ -185,12 +186,6 @@ export class CofyConsole extends LitElement {
     for (const unwatch of this.unwatches) unwatch();
     this.unwatches = [];
     this.own?.stop();
-  }
-
-  /** Logged out, or never logged in: the host renews its token, or else COFY's login is gone through. */
-  private unauthenticated(): void {
-    if (this.accessToken === undefined) this.state?.store.session.login();
-    else this.dispatchEvent(new CustomEvent("cofy-unauthenticated", { bubbles: true, composed: true }));
   }
 
   private readonly onClick = (event: MouseEvent): void => {

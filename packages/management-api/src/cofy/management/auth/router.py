@@ -84,13 +84,7 @@ class AuthRouter:
         """Where the identity provider sends the browser back to after a login."""
         token = await self.client.authorize_access_token(request)
         claims = await self._claims(token)
-        identity = Identity(
-            issuer=claims["iss"],
-            subject=claims["sub"],
-            email=claims.get("email"),
-            email_verified=claims.get("email_verified") in (True, "true"),
-            name=claims.get("name"),
-        )
+        identity = Identity.from_claims(claims)
         self.users.bind(identity)
         return_to = safe_return_to(request.session.get("return_to"))
         start_session(request, identity, token.get("id_token"), self.config.session_lifetime)
