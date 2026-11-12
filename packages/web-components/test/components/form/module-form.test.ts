@@ -18,8 +18,8 @@ import { testI18n } from "../../support/i18n.js";
  * directly on just the mounted element (the alternative) only reaches that one element's own
  * `t()` calls, not the recursive tree of children Lit creates beneath it.
  */
-async function provideI18n(element: ReactiveControllerHost & HTMLElement): Promise<void> {
-  new ContextProvider(element, { context: i18nContext, initialValue: await testI18n() });
+function provideI18n(element: ReactiveControllerHost & HTMLElement): void {
+  new ContextProvider(element, { context: i18nContext, initialValue: testI18n() });
 }
 
 /**
@@ -103,7 +103,7 @@ async function mountObjectForm(
   overrides: Partial<{ value: unknown; issues: ValidationIssue[] }> = {},
 ): Promise<CofyObjectForm> {
   const element = document.createElement("cofy-object-form");
-  await provideI18n(element);
+  provideI18n(element);
   element.schema = schema;
   element.root = schema;
   element.pointer = "";
@@ -177,7 +177,7 @@ async function mountField(
   options: Partial<{ pointer: string; issues: ValidationIssue[]; bare: boolean }> = {},
 ): Promise<{ element: CofyAnyForm; shell: HTMLElement; body: ParentNode }> {
   const element = document.createElement("cofy-any-form");
-  await provideI18n(element);
+  provideI18n(element);
   element.schema = schema;
   element.root = schema;
   element.pointer = options.pointer ?? "/thing";
@@ -502,7 +502,7 @@ describe("the generic form family, mounted end to end", () => {
     const itemSchema: JsonSchema = { title: "Row", type: "object", properties: { a: { type: "string" } } };
     const listSchema: JsonSchema = { title: "Rows", type: "array", items: itemSchema };
     const element = document.createElement("cofy-list-form");
-    await provideI18n(element);
+    provideI18n(element);
     element.schema = listSchema;
     element.root = listSchema;
     element.pointer = "/rows";
@@ -523,7 +523,7 @@ describe("the generic form family, mounted end to end", () => {
     };
     const listSchema: JsonSchema = { title: "Rows", type: "array", items: itemSchema };
     const element = document.createElement("cofy-list-form");
-    await provideI18n(element);
+    provideI18n(element);
     element.schema = listSchema;
     element.root = listSchema;
     element.pointer = "/rows";
@@ -545,7 +545,7 @@ describe("the generic form family, mounted end to end", () => {
       maxItems: 2,
     };
     const element = document.createElement("cofy-list-form");
-    await provideI18n(element);
+    provideI18n(element);
     element.schema = listSchema;
     element.root = listSchema;
     element.pointer = "/boundaries";
@@ -564,7 +564,7 @@ describe("the generic form family, mounted end to end", () => {
   it("opens a newly added item automatically, without needing another click", async () => {
     const listSchema: JsonSchema = { title: "Tags", type: "array", items: { type: "string" } };
     const element = document.createElement("cofy-list-form");
-    await provideI18n(element);
+    provideI18n(element);
     element.schema = listSchema;
     element.root = listSchema;
     element.pointer = "/tags";
@@ -596,7 +596,7 @@ describe("the generic form family, mounted end to end", () => {
   it("keeps a manually opened item open across a later, unrelated re-render", async () => {
     const listSchema: JsonSchema = { title: "Tags", type: "array", items: { type: "string" } };
     const element = document.createElement("cofy-list-form");
-    await provideI18n(element);
+    provideI18n(element);
     element.schema = listSchema;
     element.root = listSchema;
     element.pointer = "/tags";
@@ -627,7 +627,7 @@ describe("the generic form family, mounted end to end", () => {
     // mistake it for its own, adding a row to the outer array too.
     const outerSchema: JsonSchema = { type: "array", items: { type: "array", items: { type: "string" } } };
     const element = document.createElement("cofy-list-form");
-    await provideI18n(element);
+    provideI18n(element);
     element.schema = outerSchema;
     element.root = outerSchema;
     element.pointer = "/rows";
@@ -727,7 +727,7 @@ describe("the generic form family, mounted end to end", () => {
       },
     };
     const element = document.createElement("cofy-object-form");
-    await provideI18n(element);
+    provideI18n(element);
     element.schema = parentSchema;
     element.root = parentSchema;
     element.pointer = "";
@@ -794,7 +794,7 @@ describe("the generic form family, mounted end to end", () => {
       },
     };
     const element = document.createElement("cofy-object-form");
-    await provideI18n(element);
+    provideI18n(element);
     element.schema = parentSchema;
     element.root = parentSchema;
     element.pointer = "";
@@ -836,7 +836,7 @@ describe("the generic form family, mounted end to end", () => {
       },
     };
     const element = document.createElement("cofy-object-form");
-    await provideI18n(element);
+    provideI18n(element);
     element.schema = parentSchema;
     element.root = parentSchema;
     element.pointer = "";
@@ -867,7 +867,7 @@ describe("the generic form family, mounted end to end", () => {
       },
     };
     const element = document.createElement("cofy-object-form");
-    await provideI18n(element);
+    provideI18n(element);
     element.schema = parentSchema;
     element.root = parentSchema;
     element.pointer = "";
@@ -895,7 +895,7 @@ describe("cofy-dict-form", () => {
   it("appends a trailing 'Add' accordion item with a plus icon in place of the expand chevron", async () => {
     const dictSchema: JsonSchema = { type: "object", additionalProperties: { type: "string" } };
     const element = document.createElement("cofy-dict-form");
-    await provideI18n(element);
+    provideI18n(element);
     element.schema = dictSchema;
     element.root = dictSchema;
     element.pointer = "/tariffs";
@@ -916,7 +916,7 @@ describe("cofy-dict-form", () => {
   it("collapses each entry by default, labelled 'key: value summary', with a delete action", async () => {
     const dictSchema: JsonSchema = { type: "object", additionalProperties: { type: "string" } };
     const element = document.createElement("cofy-dict-form");
-    await provideI18n(element);
+    provideI18n(element);
     element.schema = dictSchema;
     element.root = dictSchema;
     element.pointer = "/tariffs";
@@ -937,7 +937,7 @@ describe("cofy-dict-form", () => {
   it("renders the key input, then the bare value form inside each entry", async () => {
     const dictSchema: JsonSchema = { type: "object", additionalProperties: { type: "string" } };
     const element = document.createElement("cofy-dict-form");
-    await provideI18n(element);
+    provideI18n(element);
     element.schema = dictSchema;
     element.root = dictSchema;
     element.pointer = "/tariffs";
@@ -955,7 +955,7 @@ describe("cofy-dict-form", () => {
   it("opens a newly added entry automatically, under a generated unique key", async () => {
     const dictSchema: JsonSchema = { type: "object", additionalProperties: { type: "string" } };
     const element = document.createElement("cofy-dict-form");
-    await provideI18n(element);
+    provideI18n(element);
     element.schema = dictSchema;
     element.root = dictSchema;
     element.pointer = "/tariffs";
@@ -989,7 +989,7 @@ describe("cofy-dict-form", () => {
   it("removes an entry when its delete link is activated", async () => {
     const dictSchema: JsonSchema = { type: "object", additionalProperties: { type: "string" } };
     const element = document.createElement("cofy-dict-form");
-    await provideI18n(element);
+    provideI18n(element);
     element.schema = dictSchema;
     element.root = dictSchema;
     element.pointer = "/tariffs";
@@ -1011,7 +1011,7 @@ describe("cofy-dict-form", () => {
   it("renames a key by rewriting the entry, keeping its value and open state", async () => {
     const dictSchema: JsonSchema = { type: "object", additionalProperties: { type: "string" } };
     const element = document.createElement("cofy-dict-form");
-    await provideI18n(element);
+    provideI18n(element);
     element.schema = dictSchema;
     element.root = dictSchema;
     element.pointer = "/tariffs";
@@ -1034,7 +1034,7 @@ describe("cofy-dict-form", () => {
   it("leaves a rename unapplied when the new key collides with another entry", async () => {
     const dictSchema: JsonSchema = { type: "object", additionalProperties: { type: "string" } };
     const element = document.createElement("cofy-dict-form");
-    await provideI18n(element);
+    provideI18n(element);
     element.schema = dictSchema;
     element.root = dictSchema;
     element.pointer = "/tariffs";
@@ -1057,7 +1057,7 @@ describe("cofy-dict-form", () => {
   it("allows renaming a key to a name that only collides with Object.prototype, not a real entry", async () => {
     const dictSchema: JsonSchema = { type: "object", additionalProperties: { type: "string" } };
     const element = document.createElement("cofy-dict-form");
-    await provideI18n(element);
+    provideI18n(element);
     element.schema = dictSchema;
     element.root = dictSchema;
     element.pointer = "/tariffs";
@@ -1083,7 +1083,7 @@ describe("cofy-dict-form", () => {
     // ".cofy-dict-add" item bubble past it and mistake it for its own.
     const dictSchema: JsonSchema = { type: "object", additionalProperties: { type: "object", additionalProperties: { type: "string" } } };
     const element = document.createElement("cofy-dict-form");
-    await provideI18n(element);
+    provideI18n(element);
     element.schema = dictSchema;
     element.root = dictSchema;
     element.pointer = "/tariffs";
@@ -1128,7 +1128,7 @@ describe("cofy-any-form: label and description", () => {
     };
 
     const element = document.createElement("cofy-any-form");
-    await provideI18n(element);
+    provideI18n(element);
     element.schema = propSchema;
     element.root = root;
     element.pointer = "/cost_group";
@@ -1153,7 +1153,7 @@ describe("cofy-any-form: label and description", () => {
     };
 
     const element = document.createElement("cofy-any-form");
-    await provideI18n(element);
+    provideI18n(element);
     element.schema = objectSchema;
     element.root = objectSchema;
     element.pointer = "/thing";
@@ -1180,7 +1180,7 @@ describe("cofy-any-form: label and description", () => {
       $defs: { Cyclic: { type: "object", properties: { nested: optionalCyclic } } },
     };
     const element = document.createElement("cofy-object-form");
-    await provideI18n(element);
+    provideI18n(element);
     element.schema = cyclicSchema;
     element.root = cyclicSchema;
     element.pointer = "";
@@ -1210,7 +1210,7 @@ describe("cofy-yaml-form", () => {
 
   it("dispatches field-change with the parsed value once the YAML is edited", async () => {
     const element = document.createElement("cofy-yaml-form");
-    await provideI18n(element);
+    provideI18n(element);
     element.schema = unknownSchema;
     element.root = unknownSchema;
     element.pointer = "/extra";
@@ -1231,7 +1231,7 @@ describe("cofy-yaml-form", () => {
 
   it("does not dispatch field-change while the YAML has syntax errors, and shows them instead", async () => {
     const element = document.createElement("cofy-yaml-form");
-    await provideI18n(element);
+    provideI18n(element);
     element.schema = unknownSchema;
     element.root = unknownSchema;
     element.pointer = "/extra";
@@ -1258,7 +1258,7 @@ describe("cofy-yaml-form", () => {
     // `cofy-yaml-editor` locates a pointer against that local text, so a document-rooted pointer
     // like "/extra/a" has to become "/a" to resolve to anything at all.
     const element = document.createElement("cofy-yaml-form");
-    await provideI18n(element);
+    provideI18n(element);
     element.schema = unknownSchema;
     element.root = unknownSchema;
     element.pointer = "/extra";
@@ -1283,7 +1283,7 @@ describe("cofy-yaml-form", () => {
 
   it("hands the editor no issues while bare - an ancestor's own boundary already owns showing them", async () => {
     const element = document.createElement("cofy-yaml-form");
-    await provideI18n(element);
+    provideI18n(element);
     element.schema = unknownSchema;
     element.root = unknownSchema;
     element.pointer = "/extra";
@@ -1307,7 +1307,7 @@ describe("cofy-field-shell", () => {
     options: { label?: string; description?: string; issues?: ValidationIssue[] } = {},
   ): Promise<HTMLElement> {
     const element = document.createElement("cofy-field-shell");
-    await provideI18n(element);
+    provideI18n(element);
     element.label = options.label ?? "";
     element.description = options.description ?? "";
     element.issues = options.issues ?? [];
@@ -1383,7 +1383,7 @@ async function mountModuleForm(
   options: { catalog?: CatalogEntry[]; locked?: boolean } = {},
 ): Promise<CofyModuleForm> {
   const element = document.createElement("cofy-module-form");
-  await provideI18n(element);
+  provideI18n(element);
   element.catalog = options.catalog ?? catalog;
   element.value = moduleValue;
   element.issues = [];

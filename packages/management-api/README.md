@@ -62,6 +62,16 @@ from its userinfo endpoint.
 Behind a TLS-terminating proxy, run uvicorn with `--proxy-headers` so that callback URL is built
 with the public scheme and host.
 
+### Served through another app
+
+An app embedding the console (see [apps/management-web](../../apps/management-web#embedding-the-console)) serves the
+API and console under a path of its own site, such as `https://app.example/cofy`, by proxying that path here. Then
+the session cookie is that site's, and logging in has to come back there. List such URLs in
+`COFY_MANAGEMENT_PROXIED_URLS`, comma-separated; the proxy sends the path it serves this under in
+`X-Forwarded-Prefix` (`/cofy`), and may strip it from the request's path or not. Only the URLs listed are honoured,
+each with a path of its own. Register each one's callback, such as `https://app.example/cofy/auth/callback`, at the
+identity provider too.
+
 ### Who may do what
 
 Everyone who may do something is listed in `access/users.yaml` in the data directory, each with
@@ -85,10 +95,13 @@ users:
   or remove any, and manage their resources and secrets. Their tokens and who has access are
   out of their reach.
 
+- **Clients** are programs, such as an app that creates communities for its users. See [Clients](#clients).
+
 Access is granted to an email, since that is all anyone knows of a person who hasn't logged in yet.
 At that person's first login with a verified email, their identity at the provider is written
 in beside it and matched on from then on, so changing their email there neither loses their
-access nor hands it to whoever gets the address next.
+access nor hands it to whoever gets the address next. Logging in with a changed, verified email updates it here, and
+brings along anything granted to the new address meanwhile - unless another account has that address.
 
 A permission is an action - `read` or `write` - on a subject of a community: its own settings,
 its modules, resources, secrets, grants, or the types it may use (`cofy/management/auth/access.py`). A role is a
@@ -99,9 +112,38 @@ refuses a route without one. One policy covers every subject alike: seeing it ta
 changing it `write`. A subject whose rules differ gets a subclass, as communities do, which only
 a system admin may delete. System admins are let through every rule.
 
-`/auth/me` reports what the person logged in may do, per community, and for a system admin also
-outside any one community (`slug: null`), such as creating communities. Listing communities takes
+`/auth/me` reports what the person logged in may do, per community, and outside any one community
+(`slug: null`), such as creating communities, for a system admin or with a global role. Listing communities takes
 being able to see at least one; anyone else is refused, as for a community they can't see.
+
+### Clients
+
+A program calls the API with an API key, as `Authorization: Bearer <key>`, instead of logging in. A header that is
+no client's key is left be, so an app proxying the API may pass on its own and its people stay logged in. Clients are listed
+in `access/users.yaml` beside the people, by a system admin, with the hash of their key:
+
+```yaml
+clients:
+  - name: energyid
+    hash: sha256:...
+    roles: [community_creator]
+```
+
+Make a key and its hash with
+`uv run python -c "from cofy.api import generate_key, hash_key; k = generate_key(); print(k, hash_key(k))"`, list the
+hash, and give the key to whoever runs the client; it is not stored.
+
+Besides the roles they are granted in a community, people and clients alike may have **global roles**, outside any
+one community, in `roles`. A **community creator** may create communities, and gets a role in each one it creates: a
+person becomes its community admin, and a client gets the **integration** role, to look after it for whoever it
+created it for: it may see that community, manage its API tokens, and manage who has access to it - but only through
+the grants it manages, never its configuration. A system admin can give a client that role in an existing community
+by adding it to the client's `grants`.
+
+A client manages grants as a whole: `PUT /management/communities/{slug}/managed-grants` with every grant it wants
+there replaces the grants it manages, granting, changing and revoking to match, and leaves every other grant be. Like
+any grant, a managed one is to an email, and goes to whoever logs in with it. Someone with a grant there the client
+doesn't manage is left as they are and reported back as `skipped`. People see a managed grant in the console, but can't change or revoke it: only its client does.
 
 ### Which types communities may configure
 

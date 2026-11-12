@@ -44,6 +44,7 @@ services:
             "RequireConsent": false,
             "RedirectUris": [
               "http://localhost:5173/auth/callback",
+              "http://localhost:5173/cofy/auth/callback",
               "http://localhost:8000/auth/callback",
               "http://localhost:8080/auth/callback"
             ],

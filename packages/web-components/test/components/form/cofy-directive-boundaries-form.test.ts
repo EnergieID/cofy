@@ -35,7 +35,7 @@ const catalog: CatalogEntry[] = [{ type: "directive", description: "Directives",
 
 async function mount(value: unknown): Promise<{ form: CofyModuleForm; values: unknown[] }> {
   const form = document.createElement("cofy-module-form");
-  new ContextProvider(form, { context: i18nContext, initialValue: await testI18n() });
+  new ContextProvider(form, { context: i18nContext, initialValue: testI18n() });
   form.catalog = catalog;
   form.value = value;
   const values: unknown[] = [];

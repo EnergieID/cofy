@@ -22,7 +22,7 @@ from ..policies.policy import PUBLIC, Policy, PolicyRouter
 from .access import Identity, Permission
 from .config import OidcConfig
 from .session import start_session
-from .user import User, current_user
+from .user import Client, Principal, User, current_principal
 
 logger = logging.getLogger(__name__)
 
@@ -35,10 +35,10 @@ class CommunityPermissions(BaseModel):
 
 
 class Me(BaseModel):
-    """The person logged in."""
+    """Who is asking: the person logged in, or a client."""
 
     email: str | None
-    name: str | None
+    name: str | None = Field(description="The person's name, or the client's.")
     system_admin: bool
     permissions: list[CommunityPermissions] = Field(
         description="What they may do, outside any one community and in each community they may do anything in."
@@ -128,12 +128,16 @@ class AuthRouter:
             params["id_token_hint"] = id_token
         return RedirectResponse(f"{end_session}?{urlencode(params)}", status_code=303)
 
-    def me(self, user: Annotated[User, Depends(current_user)]) -> Me:
+    def me(self, user: Annotated[Principal, Depends(current_principal)]) -> Me:
         slugs: list[str | None] = [None, *(slug for slug, _ in self.communities.all())]
         permissions = [(slug, user.permissions(slug)) for slug in slugs]
+        if isinstance(user, User):
+            email, name = user.identity.email, user.identity.name
+        else:
+            email, name = None, user.name if isinstance(user, Client) else None
         return Me(
-            email=user.identity.email,
-            name=user.identity.name,
+            email=email,
+            name=name,
             system_admin=user.system_admin,
             permissions=[
                 CommunityPermissions(

@@ -27,3 +27,8 @@ The person needs an account at your COFY host, with a verified email address.
 ## Taking access away
 
 Click **Revoke** beside the person. From then on they can no longer see or change the community.
+
+## Access managed elsewhere
+
+When an app looks after your community for you, such as EnergyID, it may manage some of the access itself. Those
+people are marked **Managed by** that app, and have no **Revoke**: change their access in the app instead.

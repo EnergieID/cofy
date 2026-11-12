@@ -17,7 +17,10 @@ import "../layout/cofy-heading.js";
 import "../cofy-problem-details.js";
 import "./cofy-grant-dialog.js";
 
-/** Who has access to a community: each grant with its role and whether its person has logged in since, and its revoke. */
+/**
+ * Who has access to a community: each grant with its role and whether its person has logged in since, and its revoke -
+ * but for a grant a client manages, which only that client changes.
+ */
 @customElement("cofy-grant-list")
 export class CofyGrantList extends CofyElement {
   public static override styles = [
@@ -121,9 +124,16 @@ export class CofyGrantList extends CofyElement {
           </wa-badge>
         </td>
         <td class="actions">
-          <wa-button appearance="plain" size="small" ?disabled=${this.revoking} @click=${(): void => void this.revoke(grant)}>
-            ${this.revoking ? this.t("grantList.revoking") : this.t("grantList.revoke")}
-          </wa-button>
+          ${grant.managed_by == null
+            ? html`<wa-button
+                appearance="plain"
+                size="small"
+                ?disabled=${this.revoking}
+                @click=${(): void => void this.revoke(grant)}
+              >
+                ${this.revoking ? this.t("grantList.revoking") : this.t("grantList.revoke")}
+              </wa-button>`
+            : html`<span class="secondary">${this.t("grantList.managed", { client: grant.managed_by })}</span>`}
         </td>
       </tr>
     `;

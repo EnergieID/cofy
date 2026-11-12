@@ -5,7 +5,7 @@ import { testI18n } from "../support/i18n.js";
 
 async function mount(): Promise<CofyHeading> {
   const element = new CofyHeading();
-  element.i18n = await testI18n();
+  element.i18n = testI18n();
   document.body.append(element);
   await element.updateComplete;
   return element;

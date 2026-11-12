@@ -1,0 +1,38 @@
+# Strings owned by the console: its pages, menu and trail. The components it is built from carry their own, in
+# components.yaml.
+
+community:
+  status: API status
+
+home:
+  title: No communities yet
+  noAccess: You don't have access to any community yet. Ask whoever manages your community, or your COFY host, to give you access.
+
+menu:
+  # The first group, the console's top level, has no heading.
+  groups:
+    console: General
+    configuration: Configuration
+    permissions: Permissions
+    administration: Administration
+  items:
+    communities: Communities
+    modules: Modules
+    resources: Resources
+    secrets: Secrets
+    tokens: API tokens
+    grants: Access
+    allowedTypes: Allowed types
+    typeAvailability: Allowed types
+
+allowed:
+  crumb: Allowed types
+
+newModule:
+  crumb: New module
+  heading: Add module
+
+newResource:
+  crumb: New resource
+
+notFound: No page for {{path}}.

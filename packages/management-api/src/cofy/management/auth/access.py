@@ -1,5 +1,5 @@
-"""Who may do what in the management API: the permissions there are, the roles carrying them, and the people they
-are granted to."""
+"""Who may do what in the management API: the permissions there are, the roles carrying them, and the people and
+clients they are granted to."""
 
 from __future__ import annotations
 
@@ -7,6 +7,8 @@ from collections.abc import Mapping
 from enum import StrEnum
 from typing import Annotated
 
+from cofy.api.secret import NAME_PATTERN
+from cofy.api.token_auth import HASH_PATTERN
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, PlainSerializer, model_validator
 
 
@@ -28,6 +30,7 @@ class Subject(StrEnum):
     secrets = "secrets"
     tokens = "tokens"
     grants = "grants"
+    managed_grants = "managed_grants"
     allowed_types = "allowed_types"
 
 
@@ -46,10 +49,15 @@ class Permission(BaseModel):
 
 
 class Role(StrEnum):
-    """A named set of permissions, granted to a person on a community."""
+    """A named set of permissions, granted on a community."""
 
     community_admin = "community_admin"
     community_editor = "community_editor"
+    integration = "integration"
+
+
+CLIENT_ROLES = frozenset({Role.integration})
+"""The roles only a client may hold, never a person."""
 
 
 def _permissions(subject: Subject, *actions: Action) -> frozenset[Permission]:
@@ -60,14 +68,33 @@ ROLE_PERMISSIONS: Mapping[Role, frozenset[Permission]] = {
     # Everything in their community, except changing the community itself or which types it may use.
     Role.community_admin: frozenset(Permission.all())
     - _permissions(Subject.community, Action.create, Action.update, Action.delete)
-    - _permissions(Subject.allowed_types, Action.create, Action.update, Action.delete),
+    - _permissions(Subject.allowed_types, Action.create, Action.update, Action.delete)
+    - _permissions(Subject.managed_grants, *Action),
     # Seeing their community and changing what is configured in it: its modules, but not which there are.
     Role.community_editor: _permissions(Subject.community, Action.read)
     | _permissions(Subject.modules, Action.read, Action.update)
     | _permissions(Subject.resources, *Action)
     | _permissions(Subject.secrets, *Action),
+    # A program looking after a community it created for someone else: its tokens, and who has access to it - through
+    # the grants it manages only.
+    Role.integration: _permissions(Subject.community, Action.read)
+    | _permissions(Subject.tokens, *Action)
+    | _permissions(Subject.grants, Action.read)
+    | _permissions(Subject.managed_grants, Action.update),
 }
 """The permissions each role carries, the only place a role turns into what it allows."""
+
+
+class GlobalRole(StrEnum):
+    """A named set of permissions outside any one community."""
+
+    community_creator = "community_creator"
+
+
+GLOBAL_ROLE_PERMISSIONS: Mapping[GlobalRole, frozenset[Permission]] = {
+    GlobalRole.community_creator: _permissions(Subject.community, Action.create),
+}
+"""The permissions each global role carries, outside any one community."""
 
 
 class Identity(BaseModel):
@@ -84,6 +111,7 @@ class Identity(BaseModel):
 
 # Stored from a Python-mode dump, which would otherwise keep the enum member.
 StoredRole = Annotated[Role, PlainSerializer(lambda role: role.value, return_type=str)]
+StoredGlobalRole = Annotated[GlobalRole, PlainSerializer(lambda role: role.value, return_type=str)]
 
 
 class UserRecord(BaseModel):
@@ -93,7 +121,18 @@ class UserRecord(BaseModel):
     issuer: str | None = Field(None, description="The identity provider of the person, bound at their first login.")
     subject: str | None = Field(None, description="The person's id at that identity provider, bound with it.")
     system_admin: bool = Field(False, description="Whether they may do anything, anywhere.")
+    roles: list[StoredGlobalRole] = Field([], description="The roles they have outside any one community.")
     grants: dict[str, StoredRole] = Field({}, description="The role they have in each community, by slug.")
+    managed_by: dict[str, str] = Field(
+        {}, description="The client managing their grant, by slug, for the grants a client manages."
+    )
+
+    @model_validator(mode="after")
+    def _check_managed_grants_exist(self):
+        unknown = sorted(set(self.managed_by) - set(self.grants))
+        if unknown:
+            raise ValueError(f"{self.email} has managed grants in {', '.join(unknown)}, but no role there")
+        return self
 
     @property
     def bound(self) -> bool:
@@ -117,12 +156,22 @@ class UserRecord(BaseModel):
         self.subject = identity.subject
 
 
+class ClientRecord(BaseModel):
+    """A program that may do something, known by the API key it sends."""
+
+    name: str = Field(description="The machine name of the client.", pattern=NAME_PATTERN)
+    hash: str = Field(description="The hash of its API key, see `cofy.api.token_auth.hash_key`.", pattern=HASH_PATTERN)
+    roles: list[StoredGlobalRole] = Field([], description="The roles it has outside any one community.")
+    grants: dict[str, StoredRole] = Field({}, description="The role it has in each community, by slug.")
+
+
 class Grant(BaseModel):
     """A role in one community, granted to the person with an email."""
 
     email: EmailStr = Field(description="The email address of the person the role is granted to.")
     role: Role = Field(description="The role granted.")
     bound: bool = Field(False, description="Whether that person has logged in since; reported, never written.")
+    managed_by: str | None = Field(None, description="The client managing the grant, if one does; reported.")
 
 
 class UsersFile(BaseModel):
@@ -132,6 +181,7 @@ class UsersFile(BaseModel):
     model_config = ConfigDict(hide_input_in_errors=True)
 
     users: list[UserRecord] = []
+    clients: list[ClientRecord] = []
 
     @model_validator(mode="after")
     def _check_emails_are_unique(self):
@@ -141,4 +191,12 @@ class UsersFile(BaseModel):
             raise ValueError(
                 f"Each person can only be listed once, but {', '.join(duplicates)} is listed several times"
             )
+        return self
+
+    @model_validator(mode="after")
+    def _check_clients_are_unique(self):
+        for field in ("name", "hash"):
+            values = [getattr(client, field) for client in self.clients]
+            if len(set(values)) != len(values):
+                raise ValueError(f"Each client needs a {field} of its own")
         return self

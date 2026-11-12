@@ -180,6 +180,7 @@ grantList:
   revokeConfirm: "Revoke the access of {{email}}?"
   bound: Account linked
   invited: Awaiting first login
+  managed: "Managed by {{client}}"
   columns:
     email: Email
     role: Role

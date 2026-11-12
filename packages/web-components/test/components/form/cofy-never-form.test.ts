@@ -8,7 +8,7 @@ import { testI18n } from "../../support/i18n.js";
 describe("cofy-never-form", () => {
   it("says the field isn't available as its only error, under its label, instead of offering a control", async () => {
     const host = document.createElement("div");
-    new ContextProvider(host, { context: i18nContext, initialValue: await testI18n() });
+    new ContextProvider(host, { context: i18nContext, initialValue: testI18n() });
     document.body.append(host);
     const element = new CofyNeverForm();
     element.schema = { not: {} };

@@ -8,10 +8,10 @@ import pytest
 import yaml
 
 from cofy.management.auth.access import Grant, Role
-from cofy.management.errors import ResourceAlreadyExistsError, ResourceNotFoundError
+from cofy.management.errors import ResourceAlreadyExistsError, ResourceManagedError, ResourceNotFoundError
 from cofy.management.persitance.file.grants import FileGrantsPersistence
 
-from ...access_fixture import ISSUER
+from ...access_fixture import ISSUER, client_record
 
 ADMIN = Role.community_admin
 
@@ -118,3 +118,105 @@ def test_deleting_all_grants_in_a_community_leaves_the_others(tmp_path: Path):
     FileGrantsPersistence(path).delete_all("test")
 
     assert stored(path) == [{"email": "ann@example.com", "grants": {"other": "community_admin"}}]
+
+
+# ── grants a client manages ───────────────────────────────────────────────
+
+EDITOR = Role.community_editor
+
+
+def editor(email: str = "bob@example.com") -> Grant:
+    return Grant(email=email, role=EDITOR)
+
+
+def test_a_managed_grant_says_who_manages_it(tmp_path: Path):
+    grants = FileGrantsPersistence(users_file(tmp_path))
+
+    managed, skipped = grants.replace_managed("test", "energyid", [editor()])
+
+    assert (managed, skipped) == ([Grant(email="bob@example.com", role=EDITOR, managed_by="energyid")], [])
+    assert grants.all("test") == managed
+
+
+def test_a_managed_grant_goes_to_whoever_has_the_email(tmp_path: Path):
+    path = users_file(tmp_path, {"email": "bob@example.com", "issuer": ISSUER, "subject": "bob-sub", "grants": {}})
+
+    FileGrantsPersistence(path).replace_managed("test", "energyid", [editor()])
+
+    assert stored(path)[0]["grants"] == {"test": "community_editor"}
+
+
+def test_a_client_only_replaces_its_own_managed_grants(tmp_path: Path):
+    path = users_file(
+        tmp_path,
+        {"email": "ann@example.com", "grants": {"test": "community_editor"}, "managed_by": {"test": "other-client"}},
+    )
+    grants = FileGrantsPersistence(path)
+
+    assert grants.replace_managed("test", "energyid", [editor("ann@example.com")]) == ([], ["ann@example.com"])
+    grants.replace_managed("test", "energyid", [])
+
+    assert [grant.managed_by for grant in grants.all("test")] == ["other-client"]
+
+
+def test_a_managed_grant_can_change_role(tmp_path: Path):
+    grants = FileGrantsPersistence(users_file(tmp_path))
+    grants.replace_managed("test", "energyid", [editor()])
+
+    managed, _ = grants.replace_managed("test", "energyid", [Grant(email="bob@example.com", role=ADMIN)])
+
+    assert [grant.role for grant in managed] == [ADMIN]
+
+
+def test_a_managed_grant_cannot_be_changed_or_revoked_one_by_one(tmp_path: Path):
+    grants = FileGrantsPersistence(users_file(tmp_path))
+    grants.replace_managed("test", "energyid", [editor()])
+
+    with pytest.raises(ResourceManagedError, match="energyid"):
+        grants.replace("test", "bob@example.com", Grant(email="bob@example.com", role=ADMIN))
+    with pytest.raises(ResourceManagedError, match="energyid"):
+        grants.delete("test", "bob@example.com")
+
+
+def test_revoking_a_managed_grant_forgets_who_managed_it(tmp_path: Path):
+    path = users_file(tmp_path, {"email": "bob@example.com", "grants": {"other": "community_admin"}})
+    grants = FileGrantsPersistence(path)
+    grants.replace_managed("test", "energyid", [editor()])
+
+    grants.replace_managed("test", "energyid", [])
+
+    assert stored(path) == [{"email": "bob@example.com", "grants": {"other": "community_admin"}}]
+
+
+# ── grants to clients ─────────────────────────────────────────────────────
+
+
+def with_clients(path: Path, *clients: dict) -> Path:
+    users = yaml.safe_load(path.read_text())
+    users["clients"] = list(clients)
+    path.write_text(yaml.safe_dump(users))
+    return path
+
+
+def test_a_client_is_granted_a_role(tmp_path: Path):
+    path = with_clients(users_file(tmp_path), client_record().model_dump(mode="json"))
+
+    FileGrantsPersistence(path).grant_client("test", "energyid", Role.integration)
+
+    assert yaml.safe_load(path.read_text())["clients"] == [
+        {"name": "energyid", "hash": client_record().hash, "grants": {"test": "integration"}}
+    ]
+
+
+def test_an_unknown_client_is_not_granted_a_role(tmp_path: Path):
+    with pytest.raises(ResourceNotFoundError, match="nobody"):
+        FileGrantsPersistence(users_file(tmp_path)).grant_client("test", "nobody", Role.integration)
+
+
+def test_deleting_every_grant_in_a_community_includes_the_clients(tmp_path: Path):
+    record = client_record(grants={"test": Role.integration, "other": Role.integration})
+    path = with_clients(users_file(tmp_path), record.model_dump(mode="json"))
+
+    FileGrantsPersistence(path).delete_all("test")
+
+    assert yaml.safe_load(path.read_text())["clients"][0]["grants"] == {"other": "integration"}

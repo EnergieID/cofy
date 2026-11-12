@@ -52,6 +52,22 @@ describe("Cache", () => {
     expect(requests).toHaveLength(1);
   });
 
+  it("tells a subscriber when what it holds changes, until stopped", async () => {
+    const { cache, requests } = controlled();
+    let told = 0;
+    const stop = cache.subscribe(() => told++);
+
+    cache.get("a");
+    requests[0]!.resolve("A");
+    await flush();
+    const answered = told;
+    stop();
+    cache.change("a", (value) => `${value}!`);
+
+    expect(answered).toBeGreaterThan(0);
+    expect(told).toBe(answered);
+  });
+
   it("shares one request between every read and fetch while it is under way", async () => {
     const { cache, requests } = controlled();
 

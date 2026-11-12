@@ -25,8 +25,12 @@ class UsersFileStore(FileStore[UsersFile]):
         # Validated again as a whole, as it will be read back, so a write can't store a file that can't be read.
         UsersFile.model_validate(document.model_dump())
         # Each person without the fields they leave at their defaults, as someone would write them by hand.
-        listed = [user.model_dump(mode="json", exclude_defaults=True) for user in document.users]
-        return yaml.safe_dump({"users": listed}, sort_keys=False)
+        listed: dict[str, list] = {
+            "users": [user.model_dump(mode="json", exclude_defaults=True) for user in document.users]
+        }
+        if document.clients:
+            listed["clients"] = [client.model_dump(mode="json", exclude_defaults=True) for client in document.clients]
+        return yaml.safe_dump(listed, sort_keys=False)
 
     @contextmanager
     def _open_users(self, mode: Literal["read", "write"]) -> Generator[UsersFile]:

@@ -1,32 +1,43 @@
-import i18next, { type BackendModule, type InitOptions } from "i18next";
+import i18next, { type InitOptions, type Resource, type ResourceKey } from "i18next";
+import { parse } from "yaml";
 
 import { CofyI18n } from "./cofy-i18n.js";
 
-/** The namespace this package's own strings live in. */
+/** The namespace this package's components keep their strings in; the console's are in `console`. */
 export const COMPONENTS_NAMESPACE = "components";
 
+/**
+ * This package's own translations, bundled: `locales/<language>/<namespace>.yaml`, YAML because that is what the rest
+ * of this project is written and reviewed in, and a translator editing it is less likely to break it than JSON.
+ */
+const files = import.meta.glob<string>("../../locales/*/*.yaml", { query: "?raw", import: "default", eager: true });
+
+/** The translations this package ships, by language and namespace. */
+export const BUNDLED: Resource = {};
+for (const [path, text] of Object.entries(files)) {
+  const [language, file] = path.split("/").slice(-2) as [string, string];
+  BUNDLED[language] = { ...BUNDLED[language], [file.replace(/\.yaml$/, "")]: parse(text) as Record<string, unknown> };
+}
+
 export interface I18nOptions {
-  /** Starting language. Defaults to the browser's, narrowed to one we serve. */
+  /** Starting language. Defaults to a remembered one, else the browser's, narrowed to one served. */
   language?: string;
-  /** Languages this deployment serves. The first is the fallback. */
+  /** Languages served. Defaults to every language there are translations for. */
   supportedLanguages?: readonly string[];
-  /** Namespaces to load. This package's own is always included. */
-  namespaces?: readonly string[];
-  /**
-   * How translations are loaded.
-   *
-   * Not assumed: a caller supplying `init.resources` directly needs none of this, and one
-   * fetching from a backend picks whichever i18next `BackendModule` fits - `yamlBackend`,
-   * ships alongside this function for that, `i18next-http-backend`, or one of their own.
-   */
-  backend?: BackendModule;
-  /** Escape hatch for anything else i18next takes, including `resources` for dict-based use. */
+  /** An app's own strings, by language and namespace, beside the bundled ones. */
+  resources?: Resource;
+  /** Strings replacing bundled ones - or an app's own - key by key, by language and namespace. */
+  overrides?: Resource;
+  /** Escape hatch for anything else i18next takes. */
   init?: InitOptions;
   /** Where the chosen language is remembered. Defaults to `localStorage`; `null` to not remember. */
   storage?: Pick<Storage, "getItem" | "setItem"> | null;
 }
 
 const STORAGE_KEY = "cofy.language";
+
+/** What is shown of a string missing from the language showing: every string has it. */
+const FALLBACK_LANGUAGE = "en";
 
 /**
  * Build an i18next instance for a console, as lit-state.
@@ -35,31 +46,36 @@ const STORAGE_KEY = "cofy.language";
  * like the stores are - two consoles on a page keep their own language, and a test does not
  * inherit another test's.
  *
- * Namespaces are what make this usable from a library: this package ships `components`, an
- * application adds its own, and a deployment overrides individual keys by supplying its own
- * resources. Fallback is per key, not per file, so a half-finished translation shows what it
- * has and English for the rest.
+ * It holds the bundled translations, an app's own beside them, and its overrides on top. Fallback is per key, not per
+ * file, so a half-finished translation shows what it has and English for the rest.
  *
- * Resolves once the starting language has loaded.
+ * Ready at once: every translation is bundled or handed in, so there is nothing to wait for.
  */
-export async function createI18n(options: I18nOptions = {}): Promise<CofyI18n> {
-  const supported = options.supportedLanguages ?? ["en"];
-  const namespaces = [...new Set([COMPONENTS_NAMESPACE, ...(options.namespaces ?? [])])];
+export function createI18n(options: I18nOptions = {}): CofyI18n {
+  const instance = i18next.createInstance();
+  // A copy, as i18next adds to what it is given, and the bundled translations are every instance's.
+  const resources = structuredClone(BUNDLED);
+  for (const extra of [options.resources, options.overrides]) {
+    for (const [language, namespaces] of Object.entries(extra ?? {})) {
+      for (const [namespace, strings] of Object.entries(namespaces)) {
+        resources[language] = { ...resources[language], [namespace]: merge(resources[language]?.[namespace], strings) as ResourceKey };
+      }
+    }
+  }
+  const supported = options.supportedLanguages ?? Object.keys(resources);
+  const namespaces = [...new Set(Object.values(resources).flatMap((byNamespace) => Object.keys(byNamespace)))];
 
   const storage = options.storage === undefined ? safeLocalStorage() : options.storage;
   const remembered = storage?.getItem(STORAGE_KEY);
 
-  const instance = i18next.createInstance();
-  if (options.backend !== undefined) instance.use(options.backend);
-
-  // Awaited rather than left running: a backend fetches, and a caller that rendered before it
-  // resolved would put raw keys on screen.
-  await instance.init({
+  void instance.init({
     lng: options.language ?? pick(remembered, supported) ?? preferredLanguage(supported),
-    fallbackLng: supported[0],
+    fallbackLng: FALLBACK_LANGUAGE,
     supportedLngs: [...supported],
     ns: namespaces,
     defaultNS: COMPONENTS_NAMESPACE,
+    resources,
+    initAsync: false,
     interpolation: {
       // Values come from our own code and the API, and Lit escapes what it renders.
       escapeValue: false,
@@ -72,6 +88,18 @@ export async function createI18n(options: I18nOptions = {}): Promise<CofyI18n> {
   instance.on("languageChanged", (language: string) => storage?.setItem(STORAGE_KEY, language));
 
   return new CofyI18n(instance);
+}
+
+/** *strings* over *base*, key by key, at every depth. */
+function merge(base: unknown, strings: unknown): unknown {
+  if (!isRecord(base) || !isRecord(strings)) return strings;
+  const merged: Record<string, unknown> = { ...base };
+  for (const [key, value] of Object.entries(strings)) merged[key] = merge(base[key], value);
+  return merged;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 /** *language*, if this deployment still serves it - a remembered one may have been dropped. */
@@ -96,5 +124,5 @@ export function preferredLanguage(supported: readonly string[]): string {
     const match = supported.find((language) => language === candidate || language === base);
     if (match !== undefined) return match;
   }
-  return supported[0] ?? "en";
+  return supported.includes(FALLBACK_LANGUAGE) ? FALLBACK_LANGUAGE : (supported[0] ?? FALLBACK_LANGUAGE);
 }

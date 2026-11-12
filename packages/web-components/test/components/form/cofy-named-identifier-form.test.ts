@@ -18,7 +18,7 @@ const identifier: JsonSchema = {
 
 async function mount(value: unknown): Promise<{ element: CofyNamedIdentifierForm; values: unknown[] }> {
   const element = new CofyNamedIdentifierForm();
-  element.i18n = await testI18n();
+  element.i18n = testI18n();
   element.schema = identifier;
   element.root = identifier;
   element.pointer = "/supplier";
@@ -85,7 +85,7 @@ describe("a field typed by a model", () => {
   async function shellOf(schema: JsonSchema): Promise<HTMLElement & { label: string; description: string }> {
     const root: JsonSchema = { $defs: { NamedIdentifier: { ...identifier, description: "Of the model." } } };
     const element = new CofyAnyForm();
-    element.i18n = await testI18n();
+    element.i18n = testI18n();
     element.schema = schema;
     element.root = root;
     element.pointer = "/distributor";

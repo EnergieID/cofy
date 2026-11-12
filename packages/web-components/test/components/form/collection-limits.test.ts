@@ -9,7 +9,7 @@ import { testI18n } from "../../support/i18n.js";
 
 async function mount(tag: "cofy-list-form" | "cofy-dict-form", schema: JsonSchema, value: unknown): Promise<HTMLElement> {
   const element = document.createElement(tag);
-  new ContextProvider(element, { context: i18nContext, initialValue: await testI18n() });
+  new ContextProvider(element, { context: i18nContext, initialValue: testI18n() });
   element.schema = schema;
   element.root = schema;
   element.pointer = "/field";

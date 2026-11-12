@@ -1,5 +1,5 @@
 import { State, stateProperty } from "@dodona/lit-state";
-import type { i18n, TOptions } from "i18next";
+import type { i18n, Resource, TOptions } from "i18next";
 
 /**
  * i18next as lit-state.
@@ -39,6 +39,16 @@ export class CofyI18n extends State {
 
   public changeLanguage(language: string): Promise<unknown> {
     return this.instance.changeLanguage(language);
+  }
+
+  /** Replace strings key by key, by language and namespace, as `overrides` does when creating it. */
+  public overrideStrings(strings: Resource): void {
+    for (const [language, namespaces] of Object.entries(strings)) {
+      for (const [namespace, keys] of Object.entries(namespaces)) {
+        this.instance.addResourceBundle(language, namespace, keys, true, true);
+      }
+    }
+    this.bump();
   }
 
   /** Translate *key*. */

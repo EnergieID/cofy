@@ -19,7 +19,7 @@ from fastapi import Body, Depends, Path
 from pydantic import BaseModel, Field
 
 from ..auth.access import Subject
-from ..auth.user import User, current_user
+from ..auth.user import Principal, current_principal
 from ..community_api import CommunityApi
 from ..persitance.allowed import AllowedPersistence
 from ..persitance.communities import CommunitiesPersistence
@@ -101,7 +101,7 @@ class CommunitiesRouter:
             "/{slug}", self.delete, methods=["DELETE"], rule=CommunityPolicy.delete, status_code=204
         )
 
-    def all(self, user: Annotated[User, Depends(current_user)]) -> list[CommunityInfo]:
+    def all(self, user: Annotated[Principal, Depends(current_principal)]) -> list[CommunityInfo]:
         communities = dict(self.persistence.all())
         return [self._info(slug, communities[slug]) for slug in CommunityPolicy.scope(user, list(communities))]
 
@@ -114,8 +114,13 @@ class CommunitiesRouter:
     def create(
         self,
         payload: Annotated[CommunityCreate, Body(description="Community settings")],
+        principal: Annotated[Principal, Depends(current_principal)],
     ) -> CommunityInfo:
-        return self._info(payload.slug, self.persistence.create(payload.slug, payload.to_settings()))
+        """Create a community, giving whoever created it a role in it: a person community admin, a client integration."""
+        settings = self.persistence.create(payload.slug, payload.to_settings())
+        # Only once it is created: granted first, a slug that is taken would hand its creator someone else's community.
+        principal.grant_as_creator(self.grants, payload.slug)
+        return self._info(payload.slug, settings)
 
     def put(
         self,

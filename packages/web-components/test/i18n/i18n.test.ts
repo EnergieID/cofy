@@ -1,23 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { COMPONENTS_NAMESPACE, createI18n, preferredLanguage } from "../../src/i18n/i18n.js";
-import { yamlBackend } from "../../src/i18n/yaml-backend.js";
-
-const FILES: Record<string, string> = {
-  "/locales/en/components.yaml": "moduleList:\n  title: Modules\n  add: Add module\n",
-  "/locales/en/app.yaml": "title: COFY management\n",
-  // Deliberately partial: `add` is missing, which is what per-key fallback has to cover.
-  "/locales/nl/components.yaml": "moduleList:\n  title: Modules NL\n",
-  "/locales/nl/app.yaml": "title: COFY-beheer\n",
-};
-
-const fetch = ((url: string) =>
-  Promise.resolve(
-    url in FILES ? new Response(FILES[url], { status: 200 }) : new Response(null, { status: 404 }),
-  )) as unknown as typeof globalThis.fetch;
-
-const backend = (): ReturnType<typeof yamlBackend> => yamlBackend({ fetch });
-
+import { BUNDLED, COMPONENTS_NAMESPACE, createI18n, preferredLanguage } from "../../src/i18n/i18n.js";
 function memoryStorage(initial?: string): Pick<Storage, "getItem" | "setItem"> {
   const values = new Map<string, string>(initial === undefined ? [] : [["cofy.language", initial]]);
   return {
@@ -31,60 +14,89 @@ describe("createI18n", () => {
     vi.restoreAllMocks();
   });
 
-  it("loads the namespaces it was given, this package's included", async () => {
-    const i18n = await createI18n({ language: "en", namespaces: ["app"], backend: backend(), storage: null });
+  it("bundles this package's translations, for its components and its console", () => {
+    const i18n = createI18n({ language: "en", storage: null });
 
     expect(i18n.t("moduleList.title")).toBe("Modules");
-    expect(i18n.t("title", { ns: "app" })).toBe("COFY management");
-    expect(i18n.options.ns).toContain(COMPONENTS_NAMESPACE);
+    expect(i18n.t("menu.items.secrets", { ns: "console" })).toBe("Secrets");
+    expect(i18n.options.ns).toEqual(expect.arrayContaining([COMPONENTS_NAMESPACE, "console"]));
   });
 
-  it("falls back key by key, so a half-finished translation is still worth serving", async () => {
-    const i18n = await createI18n({
+  it("serves every bundled language unless told which", () => {
+    const i18n = createI18n({ storage: null });
+
+    expect(i18n.options.supportedLngs).toEqual(expect.arrayContaining(Object.keys(BUNDLED)));
+  });
+
+  it("falls back key by key, so a half-finished translation is still worth serving", () => {
+    const i18n = createI18n({
       language: "nl",
-      supportedLanguages: ["en", "nl"],
-      backend: backend(),
+      resources: { en: { app: { title: "COFY", subtitle: "console" } }, nl: { app: { title: "COFY NL" } } },
       storage: null,
     });
 
-    expect(i18n.t("moduleList.title")).toBe("Modules NL");
-    expect(i18n.t("moduleList.add")).toBe("Add module");
+    expect(i18n.t("title", { ns: "app" })).toBe("COFY NL");
+    expect(i18n.t("subtitle", { ns: "app" })).toBe("console");
   });
 
-  it("takes resources supplied directly, with no backend at all", async () => {
-    // The point of decoupling the two: a caller does not have to fetch anything to use this.
-    const i18n = await createI18n({
-      language: "en",
-      init: { resources: { en: { components: { moduleList: { title: "Modules" } } } } },
-      storage: null,
-    });
+  it("takes an app's own strings in namespaces of its own", () => {
+    const i18n = createI18n({ language: "en", resources: { en: { app: { title: "COFY console" } } }, storage: null });
 
+    expect(i18n.t("title", { ns: "app" })).toBe("COFY console");
     expect(i18n.t("moduleList.title")).toBe("Modules");
   });
 
-  it("keeps instances apart, so two consoles on a page do not share a language", async () => {
-    const one = await createI18n({ language: "en", supportedLanguages: ["en", "nl"], backend: backend(), storage: null });
-    const two = await createI18n({ language: "nl", supportedLanguages: ["en", "nl"], backend: backend(), storage: null });
+  it("overrides bundled strings key by key, leaving the rest", () => {
+    const i18n = createI18n({
+      language: "en",
+      overrides: { en: { console: { menu: { items: { secrets: "Credentials" } } } } },
+      storage: null,
+    });
 
-    expect(one.t("moduleList.title")).toBe("Modules");
-    expect(two.t("moduleList.title")).toBe("Modules NL");
+    expect(i18n.t("menu.items.secrets", { ns: "console" })).toBe("Credentials");
+    expect(i18n.t("menu.items.resources", { ns: "console" })).toBe("Resources");
+  });
+
+  it("falls back to English, whichever languages it serves", () => {
+    const i18n = createI18n({
+      language: "nl",
+      supportedLanguages: ["de", "en", "nl"],
+      resources: { de: { app: { title: "Titel" } }, en: { app: { title: "Title" } } },
+      storage: null,
+    });
+
+    expect(i18n.t("title", { ns: "app" })).toBe("Title");
+  });
+
+  it("keeps an override to its own instance", () => {
+    createI18n({ language: "en", overrides: { en: { console: { notFound: "Gone" } } }, storage: null });
+    const other = createI18n({ language: "en", storage: null });
+
+    expect(other.t("notFound", { ns: "console", path: "/x" })).toBe("No page for /x.");
+  });
+
+  it("keeps instances apart, so two consoles on a page do not share a language", () => {
+    const one = createI18n({ language: "en", storage: null });
+    const two = createI18n({ language: "nl", storage: null });
+
+    expect(one.t("menu.items.resources", { ns: "console" })).toBe("Resources");
+    expect(two.t("menu.items.resources", { ns: "console" })).toBe("Bronnen");
   });
 
   it("remembers a language change, so the choice survives a reload", async () => {
     const storage = memoryStorage();
-    const i18n = await createI18n({ language: "en", supportedLanguages: ["en", "nl"], backend: backend(), storage });
+    const i18n = createI18n({ language: "en", supportedLanguages: ["en", "nl"], storage });
 
     await i18n.changeLanguage("nl");
 
     expect(storage.getItem("cofy.language")).toBe("nl");
-    const reloaded = await createI18n({ supportedLanguages: ["en", "nl"], backend: backend(), storage });
+    const reloaded = createI18n({ supportedLanguages: ["en", "nl"], storage });
     expect(reloaded.resolvedLanguage).toBe("nl");
   });
 
-  it("ignores a remembered language this deployment no longer serves", async () => {
-    const i18n = await createI18n({
+  it("ignores a remembered language this deployment no longer serves", () => {
+    const i18n = createI18n({
       supportedLanguages: ["en"],
-      backend: backend(),
       storage: memoryStorage("nl"),
     });
 
@@ -97,6 +109,7 @@ describe("preferredLanguage", () => {
     [["nl-BE", "en"], ["en", "nl"], "nl"],
     [["fr-FR"], ["en", "nl"], "en"],
     [["nl"], ["en", "nl"], "nl"],
+    [["fr-FR"], ["de", "en"], "en"],
   ])("picks %s out of %s as %s", (browser, supported, expected) => {
     vi.spyOn(globalThis.navigator, "languages", "get").mockReturnValue(browser);
 

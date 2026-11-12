@@ -43,7 +43,7 @@ function stubApi(state: State): ApiClient {
 
 async function mount(state: State): Promise<CofyModuleList> {
   const element = new CofyModuleList();
-  element.i18n = await testI18n();
+  element.i18n = testI18n();
   element.cofy = new CofyStore(stubApi(state));
   element.slug = "test";
   document.body.append(element);

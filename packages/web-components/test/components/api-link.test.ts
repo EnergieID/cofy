@@ -5,7 +5,7 @@ import { testI18n } from "../support/i18n.js";
 
 async function mount(url: string): Promise<CofyApiLink> {
   const element = new CofyApiLink();
-  element.i18n = await testI18n();
+  element.i18n = testI18n();
   element.url = url;
   document.body.append(element);
   await element.updateComplete;

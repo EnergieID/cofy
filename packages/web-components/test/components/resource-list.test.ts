@@ -41,7 +41,7 @@ function stubApi(state: Community): ApiClient {
 async function mount(state: Community): Promise<CofyResourceList> {
   // Provided rather than set, so the elements the list renders read the same translations.
   const host = document.createElement("div");
-  new ContextProvider(host, { context: i18nContext, initialValue: await testI18n() });
+  new ContextProvider(host, { context: i18nContext, initialValue: testI18n() });
   document.body.append(host);
   const element = new CofyResourceList();
   element.cofy = new CofyStore(stubApi(state));

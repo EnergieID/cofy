@@ -10,7 +10,7 @@ const schema: JsonSchema = { type: "object", title: "Source", properties: { type
 
 async function mount(menuActions: readonly MenuAction[], bare = false): Promise<CofyAnyForm> {
   const element = new CofyAnyForm();
-  element.i18n = await testI18n();
+  element.i18n = testI18n();
   element.schema = schema;
   element.root = schema;
   element.pointer = "/source";

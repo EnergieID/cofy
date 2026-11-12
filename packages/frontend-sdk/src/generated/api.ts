@@ -91,7 +91,10 @@ export interface paths {
         /** All */
         get: operations["all_management_communities_get"];
         put?: never;
-        /** Create */
+        /**
+         * Create
+         * @description Create a community, giving whoever created it a role in it: a person community admin, a client integration.
+         */
         post: operations["create_management_communities_post"];
         delete?: never;
         options?: never;
@@ -421,6 +424,26 @@ export interface paths {
         post?: never;
         /** Delete */
         delete: operations["delete_management_communities__slug__grants__email__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/management/communities/{slug}/managed-grants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Replace
+         * @description Replace the grants the client asking manages in the community with these, leaving every other grant be.
+         */
+        put: operations["replace_management_communities__slug__managed_grants_put"];
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1962,6 +1985,11 @@ export interface components {
              * @description Whether the person has logged in since, tying the grant to their account.
              */
             bound: boolean;
+            /**
+             * Managed By
+             * @description The client managing the grant, which alone may change it.
+             */
+            managed_by: string | null;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -2044,6 +2072,19 @@ export interface components {
             source?: string;
         };
         /**
+         * ManagedGrants
+         * @description The grants a client manages in a community, after replacing them.
+         */
+        ManagedGrants: {
+            /** Grants */
+            grants: components["schemas"]["GrantInfo"][];
+            /**
+             * Skipped
+             * @description The emails not granted: they have a role there the client doesn't manage.
+             */
+            skipped: string[];
+        };
+        /**
          * MaximumFormula
          * @description The most expensive of several formulas, per period.
          */
@@ -2109,12 +2150,15 @@ export interface components {
         };
         /**
          * Me
-         * @description The person logged in.
+         * @description Who is asking: the person logged in, or a client.
          */
         Me: {
             /** Email */
             email: string | null;
-            /** Name */
+            /**
+             * Name
+             * @description The person's name, or the client's.
+             */
             name: string | null;
             /** System Admin */
             system_admin: boolean;
@@ -2528,10 +2572,10 @@ export interface components {
         };
         /**
          * Role
-         * @description A named set of permissions, granted to a person on a community.
+         * @description A named set of permissions, granted on a community.
          * @enum {string}
          */
-        Role: "community_admin" | "community_editor";
+        Role: "community_admin" | "community_editor" | "integration";
         /**
          * ScheduledFormula
          * @description A formula that only applies during the given time windows.
@@ -2626,7 +2670,7 @@ export interface components {
         };
         /**
          * SecretBody
-         * @description A secret as written: its value is replaced on every write.
+         * @description A secret as written: its value is replaced on every write, and only stored encrypted.
          */
         SecretBody: {
             /**
@@ -2829,7 +2873,7 @@ export interface components {
          * @description A part of a community that permissions are given on.
          * @enum {string}
          */
-        Subject: "community" | "modules" | "resources" | "secrets" | "tokens" | "grants" | "allowed_types";
+        Subject: "community" | "modules" | "resources" | "secrets" | "tokens" | "grants" | "managed_grants" | "allowed_types";
         /**
          * Tariff
          * @description A tariff over time, as a list of versions.
@@ -4608,6 +4652,42 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    replace_management_communities__slug__managed_grants_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Community slug */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GrantBody"][];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManagedGrants"];
+                };
             };
             /** @description Validation Error */
             422: {

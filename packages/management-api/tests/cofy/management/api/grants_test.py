@@ -9,14 +9,14 @@ import yaml
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from cofy.management.api.grants import GrantsRouter
+from cofy.management.api.grants import GrantsRouter, ManagedGrantsRouter
 from cofy.management.auth.access import Role
 from cofy.management.auth.session import install_session
 from cofy.management.errors import EXCEPTION_HANDLERS
 from cofy.management.persitance.file.communities import FileCommunitiesPersistence
 from cofy.management.persitance.file.grants import FileGrantsPersistence
 
-from ..access_fixture import ISSUER, OIDC_CONFIG, log_in, log_in_as_system_admin, user
+from ..access_fixture import ISSUER, OIDC_CONFIG, api_client, log_in, log_in_as_system_admin, user
 
 GRANTS = "/management/communities/test/grants"
 ANN = {"email": "ann@example.com", "issuer": ISSUER, "subject": "ann-sub", "grants": {"test": "community_admin"}}
@@ -35,6 +35,7 @@ def app_for(tmp_data: Path) -> FastAPI:
     app = FastAPI(exception_handlers=EXCEPTION_HANDLERS)
     grants = FileGrantsPersistence(tmp_data / "access" / "users.yaml")
     app.include_router(GrantsRouter(grants, FileCommunitiesPersistence(tmp_data)).router)
+    app.include_router(ManagedGrantsRouter(grants, FileCommunitiesPersistence(tmp_data)).router)
     return app
 
 
@@ -50,14 +51,16 @@ def stored(tmp_data: Path) -> list[dict]:
 
 
 def test_lists_the_grants(client: TestClient):
-    assert client.get(GRANTS).json() == [{"email": "ann@example.com", "role": "community_admin", "bound": True}]
+    assert client.get(GRANTS).json() == [
+        {"email": "ann@example.com", "role": "community_admin", "bound": True, "managed_by": None}
+    ]
 
 
 def test_granting_a_role_to_someone_new_adds_them_unbound(client: TestClient, tmp_data: Path):
     r = client.post(GRANTS, json={"email": "bob@example.com", "role": "community_admin"})
 
     assert r.status_code == 201
-    assert r.json() == {"email": "bob@example.com", "role": "community_admin", "bound": False}
+    assert r.json() == {"email": "bob@example.com", "role": "community_admin", "bound": False, "managed_by": None}
     assert stored(tmp_data)[1] == {"email": "bob@example.com", "grants": {"test": "community_admin"}}
 
 
@@ -144,3 +147,103 @@ def test_a_broken_users_file_is_reported_without_its_contents(client: TestClient
     assert r.json()["code"] == "stored-data-invalid"
     assert "ann@example.com" not in r.text
     assert "users.yaml" not in r.text
+
+
+# ── Grants a client manages ───────────────────────────────────────────────
+
+MANAGED = "/management/communities/test/managed-grants"
+EDITOR = "community_editor"
+
+
+def as_client(tmp_data: Path) -> TestClient:
+    app = app_for(tmp_data)
+    log_in(app, api_client(grants={"test": Role.integration}))
+    return TestClient(app, raise_server_exceptions=False)
+
+
+def test_a_client_grants_whom_it_lists(tmp_data: Path):
+    r = as_client(tmp_data).put(MANAGED, json=[{"email": "bob@example.com", "role": EDITOR}])
+
+    assert r.status_code == 200
+    assert r.json() == {
+        "grants": [{"email": "bob@example.com", "role": EDITOR, "bound": False, "managed_by": "energyid"}],
+        "skipped": [],
+    }
+
+
+def test_a_managed_grant_is_tied_to_an_account_only_by_a_login(tmp_data: Path):
+    as_client(tmp_data).put(MANAGED, json=[{"email": "bob@example.com", "role": EDITOR, "subject": "forged"}])
+
+    assert "subject" not in stored(tmp_data)[-1]
+
+
+def test_a_client_revokes_whom_it_no_longer_lists(tmp_data: Path):
+    client = as_client(tmp_data)
+    client.put(MANAGED, json=[{"email": "bob@example.com", "role": EDITOR}])
+
+    r = client.put(MANAGED, json=[])
+
+    assert r.json() == {"grants": [], "skipped": []}
+    assert [person["email"] for person in stored(tmp_data)] == ["ann@example.com"]
+
+
+def test_a_client_leaves_a_grant_it_does_not_manage(tmp_data: Path):
+    r = as_client(tmp_data).put(MANAGED, json=[{"email": "ann@example.com", "role": EDITOR}])
+
+    assert r.json() == {"grants": [], "skipped": ["ann@example.com"]}
+    assert stored(tmp_data) == [ANN]
+
+
+def test_a_client_lists_each_person_once(tmp_data: Path):
+    grants = [{"email": "bob@example.com", "role": EDITOR}, {"email": "BOB@example.com", "role": EDITOR}]
+
+    assert as_client(tmp_data).put(MANAGED, json=grants).status_code == 422
+
+
+def test_a_client_does_not_grant_its_own_role_to_people(tmp_data: Path):
+    r = as_client(tmp_data).put(MANAGED, json=[{"email": "bob@example.com", "role": "integration"}])
+
+    assert r.status_code == 422
+
+
+def test_a_client_manages_grants_only_where_it_looks_after_the_community(tmp_data: Path):
+    app = app_for(tmp_data)
+    log_in(app, api_client(grants={"other": Role.integration}))
+
+    r = TestClient(app, raise_server_exceptions=False).put(MANAGED, json=[])
+
+    assert r.status_code == 403
+
+
+def test_a_client_only_manages_grants_as_a_whole(tmp_data: Path):
+    client = as_client(tmp_data)
+
+    assert client.get(GRANTS).status_code == 200
+    assert client.post(GRANTS, json={"email": "bob@example.com", "role": EDITOR}).status_code == 403
+    assert client.put(f"{GRANTS}/ann@example.com", json={"email": "ann@example.com", "role": EDITOR}).status_code == 403
+    assert client.delete(f"{GRANTS}/ann@example.com").status_code == 403
+
+
+def test_only_a_client_manages_grants(client: TestClient, tmp_data: Path):
+    app = app_for(tmp_data)
+    log_in(app, user("ann", grants={"test": Role.community_admin}))
+    community_admin = TestClient(app, raise_server_exceptions=False)
+
+    assert client.put(MANAGED, json=[]).status_code == 403
+    assert community_admin.put(MANAGED, json=[]).status_code == 403
+
+
+def test_people_cannot_change_a_grant_a_client_manages(client: TestClient, tmp_data: Path):
+    as_client(tmp_data).put(MANAGED, json=[{"email": "bob@example.com", "role": EDITOR}])
+
+    changed = client.put(f"{GRANTS}/bob@example.com", json={"email": "bob@example.com", "role": "community_admin"})
+    revoked = client.delete(f"{GRANTS}/bob@example.com")
+
+    assert (changed.status_code, changed.json()["code"]) == (409, "resource-managed")
+    assert (revoked.status_code, revoked.json()["code"]) == (409, "resource-managed")
+
+
+def test_people_cannot_grant_the_role_of_clients(client: TestClient):
+    r = client.post(GRANTS, json={"email": "bob@example.com", "role": "integration"})
+
+    assert r.status_code == 422

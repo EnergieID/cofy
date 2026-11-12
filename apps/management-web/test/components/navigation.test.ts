@@ -1,41 +1,22 @@
-import type { Me } from "@cofy/frontend-sdk";
 import { beforeEach, describe, expect, it } from "vitest";
 
+import type { ConsoleMenuItem } from "@cofy/web-components/console";
 import { CofyNavigation } from "../../src/components/cofy-navigation.js";
-import { MENU_FOOTER_GROUPS, MENU_GROUPS } from "../../src/routes.js";
+import { MENU_FOOTER_GROUPS, MENU_GROUPS } from "@cofy/web-components/console";
 import { ANN, mount } from "../support/mount.js";
 
-/** Everything to read in a community, but what types it may use. */
-const READ_ALL = (["modules", "resources", "secrets", "tokens", "grants"] as const).map((subject) => ({
-  action: "read" as const,
-  subject,
-}));
+function item(name: ConsoleMenuItem["name"], group: string, label: string, current = false): ConsoleMenuItem {
+  const path = `/communities/foo/${name}`;
+  return { name, group, label, icon: "lock", path, href: path, current };
+}
 
-/** Ann, who may read everything in the communities "foo" and "bar". */
-const MEMBER: Me = {
-  ...ANN,
-  permissions: [
-    { slug: "foo", permissions: READ_ALL },
-    { slug: "bar", permissions: READ_ALL },
-  ],
-};
-
-/** Ann, who has only the community "foo". */
-const SINGLE: Me = { ...ANN, permissions: [{ slug: "foo", permissions: READ_ALL }] };
-
-const ADMIN: Me = {
-  ...ANN,
-  system_admin: true,
-  permissions: [
-    {
-      slug: null,
-      permissions: [
-        { action: "create", subject: "community" },
-        { action: "read", subject: "allowed_types" },
-      ],
-    },
-  ],
-};
+/** Inside a community, on its secrets. */
+const ITEMS = [
+  item("communities", "console", "Communities"),
+  item("secrets", "configuration", "Secrets", true),
+  item("grants", "permissions", "Access"),
+  item("typeAvailability", "administration", "Allowed types"),
+];
 
 function groups(element: CofyNavigation): [string, string[]][] {
   return Array.from(element.shadowRoot!.querySelectorAll("section")).map((section) => [
@@ -44,9 +25,10 @@ function groups(element: CofyNavigation): [string, string[]][] {
   ]);
 }
 
-function menu(groups: readonly string[]): CofyNavigation {
+function menu(groups: readonly string[], items: ConsoleMenuItem[] = ITEMS): CofyNavigation {
   const element = new CofyNavigation();
   element.groups = groups;
+  element.items = items;
   return element;
 }
 
@@ -55,51 +37,32 @@ describe("cofy-navigation", () => {
     document.body.replaceChildren();
   });
 
-  it("lists only the communities outside a community, under the General heading", async () => {
-    const { element } = await mount(menu(MENU_GROUPS), MEMBER);
-
-    expect(groups(element)).toEqual([["General", ["Communities"]]]);
-  });
-
-  it("lists a community's pages inside it, grouped", async () => {
-    const { element } = await mount(menu(MENU_GROUPS), MEMBER, "#/communities/foo/secrets");
+  it("lists the items of its groups under their headings, in its order", async () => {
+    const { element } = await mount(menu(MENU_GROUPS), ANN);
 
     expect(groups(element)).toEqual([
       ["General", ["Communities"]],
-      ["Configuration", ["Modules", "Resources", "Secrets"]],
-      ["Permissions", ["API tokens", "Access"]],
+      ["Configuration", ["Secrets"]],
+      ["Permissions", ["Access"]],
     ]);
-    const current = element.shadowRoot!.querySelector("a[aria-current=page]")!;
-    expect(current.textContent.trim()).toBe("Secrets");
-    expect(current.getAttribute("href")).toBe("#/communities/foo/secrets");
   });
 
-  it("leaves out the communities for whoever has only one, whose home is that one", async () => {
-    const { element } = await mount(menu(MENU_GROUPS), SINGLE);
+  it("marks the item showing, linked where the console says it is", async () => {
+    const { element } = await mount(menu(MENU_GROUPS), ANN);
 
-    expect(groups(element)).toEqual([
-      ["Configuration", ["Modules", "Resources", "Secrets"]],
-      ["Permissions", ["API tokens", "Access"]],
-    ]);
-    expect(element.shadowRoot!.querySelector("a[aria-current=page]")!.getAttribute("href")).toBe("#/communities/foo");
+    const current = element.shadowRoot!.querySelector("a[aria-current=page]")!;
+    expect(current.textContent.trim()).toBe("Secrets");
+    expect(current.getAttribute("href")).toBe("/communities/foo/secrets");
   });
 
   it("lists only the groups it is given", async () => {
-    const { element } = await mount(menu(MENU_GROUPS), ADMIN, "#/allowed-types");
+    const { element } = await mount(menu(MENU_FOOTER_GROUPS), ANN);
 
-    expect(groups(element)).toEqual([["General", ["Communities"]]]);
-  });
-
-  it("lists the administration for a system admin", async () => {
-    const { element } = await mount(menu(MENU_FOOTER_GROUPS), ADMIN, "#/allowed-types");
-
-    expect(element.hidden).toBe(false);
     expect(groups(element)).toEqual([["Administration", ["Allowed types"]]]);
-    expect(element.shadowRoot!.querySelector("a[aria-current=page]")!.getAttribute("href")).toBe("#/allowed-types");
   });
 
   it("hides itself with nothing to list", async () => {
-    const { element } = await mount(menu(MENU_FOOTER_GROUPS), MEMBER);
+    const { element } = await mount(menu(MENU_FOOTER_GROUPS, ITEMS.slice(0, 2)), ANN);
 
     expect(element.hidden).toBe(true);
   });
