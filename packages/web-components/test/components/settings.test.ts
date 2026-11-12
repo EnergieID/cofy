@@ -29,7 +29,7 @@ describe("cofy-theme-picker", () => {
 
   it("offers system, light, dark and EnergyID, named in the reader's language", async () => {
     const element = new CofyThemePicker();
-    element.i18n = await testI18n();
+    element.i18n = testI18n();
     element.theme = new ThemeState({ storage: memoryStorage(), media: null });
     await mount(element);
 
@@ -41,7 +41,7 @@ describe("cofy-theme-picker", () => {
 
   it("switches the page's scheme when an item is picked", async () => {
     const element = new CofyThemePicker();
-    element.i18n = await testI18n();
+    element.i18n = testI18n();
     element.theme = new ThemeState({ storage: memoryStorage(), media: null });
     element.theme.start();
     await mount(element);
@@ -55,7 +55,7 @@ describe("cofy-theme-picker", () => {
 
   it("shows the same icon whatever is chosen", async () => {
     const element = new CofyThemePicker();
-    element.i18n = await testI18n();
+    element.i18n = testI18n();
     element.theme = new ThemeState({ storage: memoryStorage(), media: null });
     element.theme.select("light");
     await mount(element);
@@ -73,7 +73,7 @@ describe("cofy-locale-picker", () => {
 
   it("stays out of the way when there is only one language to pick", async () => {
     const element = new CofyLocalePicker();
-    element.i18n = await testI18n();
+    element.i18n = testI18n();
     await mount(element);
 
     expect(element.shadowRoot!.querySelector("wa-dropdown")).toBeNull();
@@ -84,7 +84,7 @@ describe("cofy-locale-picker", () => {
 
   it("names each language in that language, which is how a reader finds theirs", async () => {
     const element = new CofyLocalePicker();
-    element.i18n = await testI18n();
+    element.i18n = testI18n();
     element.languages = ["en", "nl"];
     await mount(element);
 
@@ -97,7 +97,7 @@ describe("cofy-locale-picker", () => {
 
   it("changes the language when one is chosen", async () => {
     const element = new CofyLocalePicker();
-    element.i18n = await testI18n("en", ["en", "nl"]);
+    element.i18n = testI18n("en", ["en", "nl"]);
     await mount(element);
     const changed = new Promise<string>((resolve) => element.i18n!.instance.on("languageChanged", resolve));
 

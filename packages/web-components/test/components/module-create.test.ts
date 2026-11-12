@@ -58,7 +58,7 @@ async function mount(preload = true): Promise<CofyModuleCreate> {
   if (preload) await cofy.moduleCatalog.fetch("test");
 
   const element = new CofyModuleCreate();
-  element.i18n = await testI18n();
+  element.i18n = testI18n();
   element.cofy = cofy;
   element.slug = "test";
   document.body.append(element);

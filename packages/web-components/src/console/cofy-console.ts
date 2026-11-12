@@ -7,7 +7,7 @@ import { cofyStoreContext, createI18n, i18nContext, nativeStyles, utilityStyles 
 import "../index.js";
 import { LitElement, css, html, nothing } from "lit";
 import type { PropertyValues, TemplateResult } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+import { customElement, property } from "lit/decorators.js";
 
 import { crumbStateContext, routeStateContext } from "./context.js";
 import { followLink } from "./follow-link.js";
@@ -65,7 +65,7 @@ export class CofyConsole extends LitElement {
 
   public readonly stateController = new StateController(this);
 
-  // Provided once there is a state, and the translations once loaded.
+  // Provided once there is a state.
   private readonly cofyProvider = new ContextProvider(this, { context: cofyStoreContext });
   private readonly routeProvider = new ContextProvider(this, { context: routeStateContext });
   private readonly crumbProvider = new ContextProvider(this, { context: crumbStateContext });
@@ -73,8 +73,7 @@ export class CofyConsole extends LitElement {
 
   /** The state the console made from its attributes, which it starts and stops; a host's is the host's to. */
   private own?: ConsoleState;
-  @state() private translated = false;
-  private unwatchPath?: () => void;
+  private unwatches: (() => void)[] = [];
 
   public constructor() {
     super();
@@ -96,13 +95,14 @@ export class CofyConsole extends LitElement {
     const attributes = changed.has("community") || changed.has("basePath") || changed.has("apiPath");
     if (changed.has("state") && this.state !== this.own) this.adopt();
     else if (attributes && (this.state === undefined || this.state === this.own)) this.makeState();
-    if (changed.has("lang") && this.lang !== "") void this.state?.i18n?.changeLanguage(this.lang);
+    if (changed.has("lang") && this.lang !== "") void this.state?.i18n.changeLanguage(this.lang);
+    if (changed.has("translations") && this.translations !== undefined) this.state?.i18n.overrideStrings(this.translations);
     if (changed.has("path") && this.path !== undefined) this.state?.show(this.path);
   }
 
   public override render(): TemplateResult | typeof nothing {
     const state = this.state;
-    if (state === undefined || state.i18n === undefined || !this.translated) return nothing;
+    if (state === undefined) return nothing;
 
     // Nothing until the login is known, which reading it asks for. Without one, the browser is already on its way to
     // log in.
@@ -127,11 +127,15 @@ export class CofyConsole extends LitElement {
     this.unfollow();
     const login = (): void => this.state?.store.session.login();
     const store = new CofyStore(new ApiClient({ baseUrl: this.apiPath, onUnauthenticated: login }));
-    this.own = new ConsoleState({ store, base: this.basePath, community: this.community, target: this });
+    const i18n = createI18n({
+      language: this.lang || document.documentElement.lang || undefined,
+      overrides: this.translations,
+      storage: null,
+    });
+    this.own = new ConsoleState({ store, base: this.basePath, community: this.community, target: this, i18n });
     this.state = this.own;
     this.provide(this.own);
     this.follow(this.own);
-    void this.loadTranslations(this.own);
   }
 
   /** The state a host handed in, replacing the console's own if it had made one. */
@@ -148,37 +152,27 @@ export class CofyConsole extends LitElement {
     this.cofyProvider.setValue(state.store);
     this.routeProvider.setValue(state.routes);
     this.crumbProvider.setValue(state.crumbs);
-    if (state.i18n !== undefined) this.useTranslations(state.i18n);
+    this.i18nProvider.setValue(state.i18n);
   }
 
   /** Follow where *state* is, starting it if it is the console's own. */
   private follow(state: ConsoleState): void {
     if (state === this.own) state.start();
-    // The path the host sees, also after the console went somewhere itself, so the host setting it again is a change.
-    this.unwatchPath = state.location.subscribe(() => {
-      this.path = state.location.hostPath;
-    }, "path");
+    this.unwatches = [
+      // The path the host sees, also after the console went somewhere itself, so the host setting it again is a change.
+      state.location.subscribe(() => {
+        this.path = state.location.hostPath;
+      }, "path"),
+      // Translations a host replaces.
+      state.subscribe(() => this.i18nProvider.setValue(state.i18n), "i18n"),
+    ];
   }
 
   private unfollow(): void {
-    if (this.unwatchPath === undefined) return;
-    this.unwatchPath();
-    this.unwatchPath = undefined;
+    if (this.unwatches.length === 0) return;
+    for (const unwatch of this.unwatches) unwatch();
+    this.unwatches = [];
     this.own?.stop();
-  }
-
-  private async loadTranslations(state: ConsoleState): Promise<void> {
-    state.i18n = await createI18n({
-      language: this.lang || document.documentElement.lang || undefined,
-      overrides: this.translations,
-      storage: null,
-    });
-    if (state === this.state) this.useTranslations(state.i18n);
-  }
-
-  private useTranslations(i18n: NonNullable<ConsoleState["i18n"]>): void {
-    this.i18nProvider.setValue(i18n);
-    this.translated = true;
   }
 
   private readonly onClick = (event: MouseEvent): void => {

@@ -25,7 +25,7 @@ function stubApi(puts: unknown[]): ApiClient {
 async function mount(puts: unknown[] = []): Promise<CofyResourceEditor> {
   const api = stubApi(puts);
   const element = new CofyResourceEditor();
-  element.i18n = await testI18n();
+  element.i18n = testI18n();
   element.cofy = new CofyStore(api);
   element.slug = "test";
   element.name = "day_ahead";

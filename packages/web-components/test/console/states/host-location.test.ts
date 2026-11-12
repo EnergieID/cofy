@@ -41,6 +41,14 @@ describe("HostLocation", () => {
     expect(standalone().href("/")).toBe("/console");
   });
 
+  it("takes a host's prefix with a trailing slash as without", () => {
+    window.history.replaceState(null, "", "/w/1/cofy/secrets");
+    const location = new HostLocation("/w/1/cofy/", "/communities/foo", new EventTarget());
+
+    expect(location.path).toBe("/communities/foo/secrets");
+    expect(location.href("/communities/foo/resources")).toBe("/w/1/cofy/resources");
+  });
+
   it("links to a path outside the console's prefix whole, under the host's", () => {
     expect(embedded().href("/communities")).toBe("/w/1/cofy/communities");
   });

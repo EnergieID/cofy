@@ -5,7 +5,7 @@ import { testI18n } from "../support/i18n.js";
 
 async function mount(crumbs: { label: string; href?: string }[]): Promise<CofyBreadcrumbs> {
   const element = new CofyBreadcrumbs();
-  element.i18n = await testI18n();
+  element.i18n = testI18n();
   element.crumbs = crumbs;
   document.body.append(element);
   await element.updateComplete;

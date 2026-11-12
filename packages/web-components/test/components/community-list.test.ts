@@ -75,7 +75,7 @@ async function mount(
   // Provided rather than set, so the dialog inside the list gets them too.
   const host = document.createElement("div");
   new ContextProvider(host, { context: cofyStoreContext, initialValue: new CofyStore(stubApi(state)) });
-  new ContextProvider(host, { context: i18nContext, initialValue: await testI18n() });
+  new ContextProvider(host, { context: i18nContext, initialValue: testI18n() });
   document.body.append(host);
   host.append(element);
   await settle(element);

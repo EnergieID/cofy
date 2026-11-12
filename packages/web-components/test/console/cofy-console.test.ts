@@ -2,6 +2,8 @@ import { ApiClient, CofyStore, type Me } from "@cofy/frontend-sdk";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CofyConsole, type ConsoleMenuItem } from "../../src/console/cofy-console.js";
+import type { CofyElement} from "../../src/index.js";
+import { createI18n } from "../../src/index.js";
 import { ConsoleState } from "../../src/console/states/console-state.js";
 import type { NavigateDetail } from "../../src/console/states/host-location.js";
 
@@ -197,6 +199,34 @@ describe("cofy-console", () => {
     expect(element.shadowRoot!.querySelector("cofy-secrets-page")).not.toBeNull();
     expect(own.location.path).toBe("/communities/foo");
     handed.stop();
+  });
+
+  it("shows the language a host sets later", async () => {
+    const element = await embedded();
+
+    element.lang = "nl";
+    await settled(element);
+
+    expect(menu(element).map((item) => item.label)).toEqual(["Modules", "Bronnen", "Geheimen"]);
+  });
+
+  it("shows the strings a host replaces later", async () => {
+    const element = await embedded();
+
+    element.translations = { en: { console: { menu: { items: { secrets: "Keys" } } } } };
+    await settled(element);
+
+    expect(menu(element).find((item) => item.name === "secrets")?.label).toBe("Keys");
+  });
+
+  it("hands its pages the translations a host replaces in its state", async () => {
+    const element = await embedded(EDITOR, { path: "/secrets" });
+    const dutch = createI18n({ language: "nl", storage: null });
+
+    element.state!.i18n = dutch;
+    await settled(element);
+
+    expect(element.shadowRoot!.querySelector<CofyElement>("cofy-secrets-page")!.i18n).toBe(dutch);
   });
 
   describe("without a community", () => {

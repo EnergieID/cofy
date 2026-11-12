@@ -17,7 +17,7 @@ const cache: JsonSchema = {
 
 async function mountObjectForm(schema: JsonSchema): Promise<CofyObjectForm> {
   const element = document.createElement("cofy-object-form");
-  element.i18n = await testI18n();
+  element.i18n = testI18n();
   element.schema = schema;
   element.root = schema;
   element.value = {};

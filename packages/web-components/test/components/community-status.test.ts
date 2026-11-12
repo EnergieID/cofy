@@ -45,9 +45,9 @@ function badge(element: CofyCommunityStatus): HTMLElement | null {
 }
 
 describe("cofy-community-status", () => {
-  beforeEach(async () => {
+  beforeEach(() => {
     // Loaded first, as loading the translations needs time to pass.
-    i18n = await testI18n();
+    i18n = testI18n();
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
     document.body.replaceChildren();
   });

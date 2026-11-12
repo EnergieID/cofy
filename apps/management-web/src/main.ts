@@ -35,8 +35,8 @@ import "@cofy/web-components/theme/energyid.css";
 import "./brand.css";
 import "@cofy/web-components/theme/syntax.css";
 
-// Awaited before anything renders: the shell's strings beside the console's and its components', bundled.
-const i18n = await createI18n({
+// The shell's strings beside the console's and its components', bundled.
+const i18n = createI18n({
   supportedLanguages: LANGUAGES,
   resources: APP_RESOURCES,
 });

@@ -17,7 +17,7 @@ function optional(inner: JsonSchema, title = "Field"): JsonSchema {
 /** Mounted through `cofy-any-form`, as every form mounts its fields, inside a provider of the translations it uses. */
 async function mount(schema: JsonSchema, value: unknown): Promise<{ element: CofyAnyForm; changes: unknown[] }> {
   const host = document.createElement("div");
-  new ContextProvider(host, { context: i18nContext, initialValue: await testI18n() });
+  new ContextProvider(host, { context: i18nContext, initialValue: testI18n() });
   document.body.append(host);
 
   const element = document.createElement("cofy-any-form");

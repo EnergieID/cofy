@@ -22,7 +22,7 @@ for (const [path, text] of Object.entries(files)) {
 export interface I18nOptions {
   /** Starting language. Defaults to a remembered one, else the browser's, narrowed to one served. */
   language?: string;
-  /** Languages served, the first the fallback. Defaults to every language there are translations for. */
+  /** Languages served. Defaults to every language there are translations for. */
   supportedLanguages?: readonly string[];
   /** An app's own strings, by language and namespace, beside the bundled ones. */
   resources?: Resource;
@@ -36,6 +36,9 @@ export interface I18nOptions {
 
 const STORAGE_KEY = "cofy.language";
 
+/** What is shown of a string missing from the language showing: every string has it. */
+const FALLBACK_LANGUAGE = "en";
+
 /**
  * Build an i18next instance for a console, as lit-state.
  *
@@ -46,9 +49,9 @@ const STORAGE_KEY = "cofy.language";
  * It holds the bundled translations, an app's own beside them, and its overrides on top. Fallback is per key, not per
  * file, so a half-finished translation shows what it has and English for the rest.
  *
- * Resolves once the starting language is set.
+ * Ready at once: every translation is bundled or handed in, so there is nothing to wait for.
  */
-export async function createI18n(options: I18nOptions = {}): Promise<CofyI18n> {
+export function createI18n(options: I18nOptions = {}): CofyI18n {
   const instance = i18next.createInstance();
   // A copy, as i18next adds to what it is given, and the bundled translations are every instance's.
   const resources = structuredClone(BUNDLED);
@@ -65,13 +68,14 @@ export async function createI18n(options: I18nOptions = {}): Promise<CofyI18n> {
   const storage = options.storage === undefined ? safeLocalStorage() : options.storage;
   const remembered = storage?.getItem(STORAGE_KEY);
 
-  await instance.init({
+  void instance.init({
     lng: options.language ?? pick(remembered, supported) ?? preferredLanguage(supported),
-    fallbackLng: supported[0] ?? "en",
+    fallbackLng: FALLBACK_LANGUAGE,
     supportedLngs: [...supported],
     ns: namespaces,
     defaultNS: COMPONENTS_NAMESPACE,
     resources,
+    initAsync: false,
     interpolation: {
       // Values come from our own code and the API, and Lit escapes what it renders.
       escapeValue: false,
@@ -120,5 +124,5 @@ export function preferredLanguage(supported: readonly string[]): string {
     const match = supported.find((language) => language === candidate || language === base);
     if (match !== undefined) return match;
   }
-  return supported[0] ?? "en";
+  return supported.includes(FALLBACK_LANGUAGE) ? FALLBACK_LANGUAGE : (supported[0] ?? FALLBACK_LANGUAGE);
 }

@@ -30,7 +30,7 @@ export async function mount<T extends HTMLElement & { updateComplete: Promise<bo
   };
   const cofy = new CofyStore(new ApiClient({ fetch: fetchStub, baseUrl: "http://localhost" }));
   await cofy.session.fetch();
-  const i18n = await createI18n({ language: "en", storage: null });
+  const i18n = createI18n({ language: "en", storage: null });
   const host = document.createElement("div");
   new ContextProvider(host, { context: cofyStoreContext, initialValue: cofy });
   new ContextProvider(host, { context: i18nContext, initialValue: i18n });

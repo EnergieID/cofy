@@ -17,7 +17,12 @@ describe("ConsoleState", () => {
 
   beforeEach(() => {
     window.history.replaceState(null, "", "/console");
-    state = new ConsoleState({ store: store(), base: "/console", target: new EventTarget() });
+    state = new ConsoleState({
+      store: store(),
+      base: "/console",
+      target: new EventTarget(),
+      i18n: createI18n({ storage: null }),
+    });
     told = [];
     state.subscribe((_state, key) => told.push(key));
     state.start();
@@ -45,8 +50,15 @@ describe("ConsoleState", () => {
     expect(told).toContain("session");
   });
 
-  it("passes on translations arriving, and their language changing", async () => {
-    state.i18n = await createI18n({ storage: null, init: { resources: { en: {}, nl: {} } } });
+  it("passes on its translations changing language", async () => {
+    await state.i18n.changeLanguage("nl");
+
+    expect(told).toContain("i18n");
+  });
+
+  it("passes on its translations being replaced, and then their changes", async () => {
+    state.i18n = createI18n({ storage: null });
+    expect(told).toContain("i18n");
     told = [];
 
     await state.i18n.changeLanguage("nl");

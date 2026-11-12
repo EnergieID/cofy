@@ -35,8 +35,8 @@ export interface ConsoleStateOptions {
   community?: string;
   /** Where to ask the host to navigate, with a `cofy-navigate` event. */
   target: EventTarget;
-  /** The translations the menu is labelled in, if loaded yet. */
-  i18n?: CofyI18n;
+  /** The translations the menu is labelled in. */
+  i18n: CofyI18n;
 }
 
 /**
@@ -49,7 +49,7 @@ export interface ConsoleStateOptions {
  */
 export class ConsoleState extends State {
   /** The translations the menu is labelled in. */
-  @stateProperty public i18n?: CofyI18n;
+  @stateProperty public i18n: CofyI18n;
 
   public readonly store: CofyStore;
   public readonly location: HostLocation;
@@ -75,7 +75,7 @@ export class ConsoleState extends State {
       this.location.subscribe(() => this.dispatchStateEvent("location")),
       this.crumbs.subscribe(() => this.dispatchStateEvent("crumbs")),
       this.store.session.subscribe(() => this.dispatchStateEvent("session")),
-      // Translations arrive, or are replaced, after it starts.
+      // Translations replaced after it starts.
       this.subscribe(() => this.relayTranslations(), "i18n"),
     ];
     this.relayTranslations();
@@ -102,7 +102,7 @@ export class ConsoleState extends State {
       .map((item) => ({
         name: item.name,
         group: item.group,
-        label: this.i18n?.t(`menu.items.${item.name}`, { ns: CONSOLE_NAMESPACE }) ?? item.name,
+        label: this.i18n.t(`menu.items.${item.name}`, { ns: CONSOLE_NAMESPACE }),
         icon: item.icon,
         path: this.location.hostPathOf(item.path),
         href: item.href,
@@ -112,6 +112,6 @@ export class ConsoleState extends State {
 
   private relayTranslations(): void {
     this.translationsRelay?.();
-    this.translationsRelay = this.i18n?.subscribe(() => this.dispatchStateEvent("i18n"));
+    this.translationsRelay = this.i18n.subscribe(() => this.dispatchStateEvent("i18n"));
   }
 }

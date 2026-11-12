@@ -6,7 +6,7 @@ import { testI18n } from "../support/i18n.js";
 
 async function mount(problem: ProblemError): Promise<CofyProblemDetails> {
   const element = new CofyProblemDetails();
-  element.i18n = await testI18n();
+  element.i18n = testI18n();
   element.problem = problem;
   document.body.append(element);
   await element.updateComplete;

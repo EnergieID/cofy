@@ -29,7 +29,7 @@ function stubApi(moduleCatalog: unknown = catalog): ApiClient {
 async function mount(moduleCatalog?: unknown): Promise<CofyModuleEditor> {
   const api = stubApi(moduleCatalog);
   const element = new CofyModuleEditor();
-  element.i18n = await testI18n();
+  element.i18n = testI18n();
   element.cofy = new CofyStore(api);
   element.slug = "test";
   element.moduleId = { type: "tariff", name: "spot" };

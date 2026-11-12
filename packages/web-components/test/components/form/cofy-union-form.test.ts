@@ -13,7 +13,7 @@ const schema: JsonSchema = { oneOf: [{ type: "integer" }, { type: "string" }] };
 
 async function mountUnionForm(value: unknown): Promise<CofyUnionForm> {
   const element = document.createElement("cofy-union-form");
-  new ContextProvider(element, { context: i18nContext, initialValue: await testI18n() });
+  new ContextProvider(element, { context: i18nContext, initialValue: testI18n() });
   element.schema = schema;
   element.root = schema;
   element.pointer = "/value";
@@ -63,7 +63,7 @@ const single: JsonSchema = {
 
 async function mountSingle(unionSchema: JsonSchema, value: unknown): Promise<CofyUnionForm> {
   const element = document.createElement("cofy-union-form");
-  element.i18n = await testI18n();
+  element.i18n = testI18n();
   element.schema = unionSchema;
   element.root = unionSchema;
   element.pointer = "/source";

@@ -21,12 +21,16 @@ export class HostLocation extends State {
   /** The console's path shown now, such as `/communities/demo/secrets`. */
   @stateProperty public path: string;
 
+  private readonly hostPrefix: string;
+
   public constructor(
-    private readonly hostPrefix: string,
+    hostPrefix: string,
     public readonly consolePrefix: string,
     private readonly target: EventTarget,
   ) {
     super();
+    // `/w/1/cofy/` is `/w/1/cofy`, as its pages lie under it either way.
+    this.hostPrefix = hostPrefix.replace(/\/+$/, "");
     this.path = this.fromHost(window.location.pathname) ?? (consolePrefix || "/");
   }
 

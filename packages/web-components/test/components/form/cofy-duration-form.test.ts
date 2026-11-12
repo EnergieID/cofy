@@ -8,7 +8,7 @@ type Control = HTMLElement & { value: string | null };
 
 async function mount(value: unknown): Promise<{ element: CofyDurationForm; values: unknown[] }> {
   const element = new CofyDurationForm();
-  element.i18n = await testI18n();
+  element.i18n = testI18n();
   element.schema = { type: "string", format: "duration" };
   element.root = element.schema;
   element.pointer = "/chunk_size";

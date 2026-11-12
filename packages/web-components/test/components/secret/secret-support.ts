@@ -61,7 +61,7 @@ export async function mountIn<T extends HTMLElement & { updateComplete: Promise<
   const host = document.createElement("div");
   new ContextProvider(host, { context: cofyStoreContext, initialValue: new CofyStore(api) });
   new ContextProvider(host, { context: communitySlugContext, initialValue: "test" });
-  new ContextProvider(host, { context: i18nContext, initialValue: await testI18n() });
+  new ContextProvider(host, { context: i18nContext, initialValue: testI18n() });
   document.body.append(host);
   host.append(element);
   await settle(element);

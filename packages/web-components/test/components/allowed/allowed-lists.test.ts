@@ -70,7 +70,7 @@ async function settle(element: HTMLElement & { updateComplete: Promise<unknown> 
 async function mount<T extends HTMLElement & { updateComplete: Promise<unknown> }>(element: T, state: Server): Promise<T> {
   const host = document.createElement("div");
   new ContextProvider(host, { context: cofyStoreContext, initialValue: new CofyStore(stubApi(state)) });
-  new ContextProvider(host, { context: i18nContext, initialValue: await testI18n() });
+  new ContextProvider(host, { context: i18nContext, initialValue: testI18n() });
   document.body.append(host);
   host.append(element);
   await settle(element);

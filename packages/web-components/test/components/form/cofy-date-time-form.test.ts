@@ -16,7 +16,7 @@ afterAll(() => {
 
 async function mount(value: unknown): Promise<{ element: CofyDateTimeForm; values: unknown[] }> {
   const element = new CofyDateTimeForm();
-  element.i18n = await testI18n();
+  element.i18n = testI18n();
   element.schema = { type: "string", format: "date-time" };
   element.root = element.schema;
   element.pointer = "/start";
