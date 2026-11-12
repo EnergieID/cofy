@@ -1,15 +1,14 @@
-import type { Me } from "@cofy/frontend-sdk";
+import { ApiClient, CofyStore, type Me } from "@cofy/frontend-sdk";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CofyConsole, type ConsoleMenuItem } from "../../src/console/cofy-console.js";
+import { ConsoleState } from "../../src/console/states/console-state.js";
 import type { NavigateDetail } from "../../src/console/states/host-location.js";
 
 const API = "http://localhost/cofy";
 
 /** May see community "foo" and edit what is configured in it, as a community editor. */
 const EDITOR: Me = {
-  issuer: "https://identity.example",
-  subject: "ann-sub",
   email: "ann@example.com",
   name: "Ann",
   system_admin: false,
@@ -147,18 +146,6 @@ describe("cofy-console", () => {
     expect(asked).toEqual([]);
   });
 
-  it("shows nothing of a session of someone else than the host has logged in, logging in again instead", async () => {
-    const element = await embedded(EDITOR, { user: "bob-sub" });
-
-    expect(element.shadowRoot!.querySelector("main")).toBeNull();
-  });
-
-  it("shows the session of whoever the host has logged in", async () => {
-    const element = await embedded(EDITOR, { user: "ann-sub" });
-
-    expect(element.shadowRoot!.querySelector("main")).not.toBeNull();
-  });
-
   it("leaves the host's page as it is", async () => {
     const before = { classes: document.documentElement.className, head: document.head.innerHTML };
 
@@ -180,6 +167,36 @@ describe("cofy-console", () => {
     await settled(element);
 
     expect(element.shadowRoot!.querySelector("cofy-secrets-page")).not.toBeNull();
+  });
+
+  it("follows the back button again once put back on the page", async () => {
+    const element = await embedded();
+    element.remove();
+    document.body.append(element);
+
+    window.history.pushState(null, "", "/w/1/cofy/secrets");
+    window.dispatchEvent(new PopStateEvent("popstate"));
+    await settled(element);
+
+    expect(element.shadowRoot!.querySelector("cofy-secrets-page")).not.toBeNull();
+  });
+
+  it("shows from a state the host hands in after it made its own, leaving its own behind", async () => {
+    const element = await embedded();
+    const own = element.state!;
+    const store = new CofyStore(new ApiClient({ baseUrl: API }));
+    const handed = new ConsoleState({ store, base: "/w/1/cofy", community: "foo", target: element, i18n: own.i18n });
+    handed.start();
+
+    element.state = handed;
+    await element.updateComplete;
+    window.history.pushState(null, "", "/w/1/cofy/secrets");
+    window.dispatchEvent(new PopStateEvent("popstate"));
+    await settled(element);
+
+    expect(element.shadowRoot!.querySelector("cofy-secrets-page")).not.toBeNull();
+    expect(own.location.path).toBe("/communities/foo");
+    handed.stop();
   });
 
   describe("without a community", () => {

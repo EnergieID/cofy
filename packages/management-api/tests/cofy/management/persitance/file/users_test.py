@@ -99,3 +99,60 @@ def test_binding_without_a_match_leaves_the_file_alone(tmp_path: Path):
     FileUsersPersistence(path).bind(identity("ann"))
 
     assert path.read_text() == before
+
+
+# ── a changed email ───────────────────────────────────────────────────────
+
+ADMIN_BOUND = {"email": "admin@example.com", "issuer": ISSUER, "subject": "admin-sub"}
+
+
+def renamed(email: str = "new@example.com", *, verified: bool = True):
+    return identity("admin").model_copy(update={"email": email, "email_verified": verified})
+
+
+def test_a_login_with_a_changed_email_keeps_it(tmp_path: Path):
+    path = users_file(tmp_path, {**ADMIN_BOUND, "grants": {"demo": "community_admin"}})
+
+    FileUsersPersistence(path).bind(renamed())
+
+    assert stored(path) == [{**ADMIN_BOUND, "email": "new@example.com", "grants": {"demo": "community_admin"}}]
+
+
+def test_a_login_with_a_changed_email_takes_what_was_granted_to_it(tmp_path: Path):
+    path = users_file(
+        tmp_path,
+        {**ADMIN_BOUND, "grants": {"demo": "community_admin"}},
+        {
+            "email": "new@example.com",
+            "grants": {"demo": "community_editor", "other": "community_editor"},
+            "managed_by": {"other": "energyid"},
+        },
+    )
+
+    FileUsersPersistence(path).bind(renamed())
+
+    assert stored(path) == [
+        {
+            **ADMIN_BOUND,
+            "email": "new@example.com",
+            "grants": {"demo": "community_admin", "other": "community_editor"},
+            "managed_by": {"other": "energyid"},
+        }
+    ]
+
+
+def test_a_login_with_an_unverified_email_keeps_the_old_one(tmp_path: Path):
+    path = users_file(tmp_path, ADMIN_BOUND)
+
+    FileUsersPersistence(path).bind(renamed(verified=False))
+
+    assert stored(path) == [ADMIN_BOUND]
+
+
+def test_a_login_with_the_email_of_another_account_keeps_the_old_one(tmp_path: Path):
+    other = {"email": "new@example.com", "issuer": ISSUER, "subject": "someone-else"}
+    path = users_file(tmp_path, ADMIN_BOUND, other)
+
+    FileUsersPersistence(path).bind(renamed())
+
+    assert stored(path) == [ADMIN_BOUND, other]

@@ -5,7 +5,6 @@ from collections.abc import Mapping
 from typing import Annotated
 
 from cofy.api import hash_key
-from cofy.api.errors import NotAuthenticatedError
 from fastapi import Depends, FastAPI, Request
 from fastapi.security import APIKeyHeader
 
@@ -130,15 +129,16 @@ _authorization = APIKeyHeader(name="Authorization", auto_error=False, scheme_nam
 
 
 def current_principal(request: Request, authorization: Annotated[str | None, Depends(_authorization)]) -> Principal:
-    """Who makes this request: the client whose API key it carries, or else the person logged in."""
-    if authorization is None:
-        identity = current_identity(request)
-        return User(identity, _users(request).match(identity))
-    scheme, _, key = authorization.partition(" ")
-    if scheme.lower() != "bearer" or not key:
-        raise NotAuthenticatedError("Invalid token format")
-    # Looked up by hash, which an attacker can't steer, so the lookup's timing reveals nothing of the stored keys.
-    record = _users(request).client(hash_key(key))
-    if record is None:
-        raise NotAuthenticatedError("Invalid token")
-    return Client(record)
+    """Who makes this request: the client whose API key it carries, or else the person logged in.
+
+    A header that isn't a client's key is left for whatever else reads it, such as an app proxying the API passing on
+    its own, rather than refusing a person logged in.
+    """
+    scheme, _, key = (authorization or "").partition(" ")
+    if scheme.lower() == "bearer" and key:
+        # Looked up by hash, which an attacker can't steer, so the lookup's timing reveals nothing of the stored keys.
+        record = _users(request).client(hash_key(key))
+        if record is not None:
+            return Client(record)
+    identity = current_identity(request)
+    return User(identity, _users(request).match(identity))

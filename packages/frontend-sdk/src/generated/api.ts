@@ -2072,30 +2072,6 @@ export interface components {
             source?: string;
         };
         /**
-         * ManagedGrantBody
-         * @description A grant a client manages, which may say whose account it is for.
-         */
-        ManagedGrantBody: {
-            /**
-             * Email
-             * Format: email
-             * @description The email address of the person the role is granted to.
-             */
-            email: string;
-            /** @description The role granted. */
-            role: components["schemas"]["Role"];
-            /**
-             * Issuer
-             * @description The identity provider of the person's account, with `subject`.
-             */
-            issuer?: string | null;
-            /**
-             * Subject
-             * @description The person's id at that identity provider: the grant is theirs from the start.
-             */
-            subject?: string | null;
-        };
-        /**
          * ManagedGrants
          * @description The grants a client manages in a community, after replacing them.
          */
@@ -2104,7 +2080,7 @@ export interface components {
             grants: components["schemas"]["GrantInfo"][];
             /**
              * Skipped
-             * @description The emails not granted: they have a role there the client doesn't manage, or belong to another account than the one given.
+             * @description The emails not granted: they have a role there the client doesn't manage.
              */
             skipped: string[];
         };
@@ -2177,16 +2153,6 @@ export interface components {
          * @description Who is asking: the person logged in, or a client.
          */
         Me: {
-            /**
-             * Issuer
-             * @description The identity provider the person logged in through; `null` for a client.
-             */
-            issuer: string | null;
-            /**
-             * Subject
-             * @description Their id at that identity provider; `null` for a client.
-             */
-            subject: string | null;
             /** Email */
             email: string | null;
             /**
@@ -4710,7 +4676,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ManagedGrantBody"][];
+                "application/json": components["schemas"]["GrantBody"][];
             };
         };
         responses: {

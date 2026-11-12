@@ -53,8 +53,6 @@ describe("routes", () => {
     /** Someone with a role in *slugs*, who may create communities if *creates*. */
     function person(slugs: string[], creates = false): Access {
       const me = {
-        issuer: null,
-        subject: null,
         email: "ann@example.com",
         name: null,
         system_admin: false,

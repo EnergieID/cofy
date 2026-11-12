@@ -171,24 +171,10 @@ def test_a_client_grants_whom_it_lists(tmp_data: Path):
     }
 
 
-def test_a_grant_to_an_account_is_bound_from_the_start(tmp_data: Path):
-    as_client(tmp_data).put(
-        MANAGED, json=[{"email": "bob@example.com", "role": EDITOR, "issuer": ISSUER, "subject": "bob-sub"}]
-    )
+def test_a_managed_grant_is_tied_to_an_account_only_by_a_login(tmp_data: Path):
+    as_client(tmp_data).put(MANAGED, json=[{"email": "bob@example.com", "role": EDITOR, "subject": "forged"}])
 
-    assert stored(tmp_data)[-1] == {
-        "email": "bob@example.com",
-        "issuer": ISSUER,
-        "subject": "bob-sub",
-        "grants": {"test": EDITOR},
-        "managed_by": {"test": "energyid"},
-    }
-
-
-def test_an_account_needs_both_an_issuer_and_a_subject(tmp_data: Path):
-    r = as_client(tmp_data).put(MANAGED, json=[{"email": "bob@example.com", "role": EDITOR, "subject": "bob-sub"}])
-
-    assert r.status_code == 422
+    assert "subject" not in stored(tmp_data)[-1]
 
 
 def test_a_client_revokes_whom_it_no_longer_lists(tmp_data: Path):

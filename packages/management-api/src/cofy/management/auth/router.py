@@ -37,8 +37,6 @@ class CommunityPermissions(BaseModel):
 class Me(BaseModel):
     """Who is asking: the person logged in, or a client."""
 
-    issuer: str | None = Field(description="The identity provider the person logged in through; `null` for a client.")
-    subject: str | None = Field(description="Their id at that identity provider; `null` for a client.")
     email: str | None
     name: str | None = Field(description="The person's name, or the client's.")
     system_admin: bool
@@ -134,21 +132,12 @@ class AuthRouter:
         slugs: list[str | None] = [None, *(slug for slug, _ in self.communities.all())]
         permissions = [(slug, user.permissions(slug)) for slug in slugs]
         if isinstance(user, User):
-            who = {
-                "issuer": user.identity.issuer,
-                "subject": user.identity.subject,
-                "email": user.identity.email,
-                "name": user.identity.name,
-            }
+            email, name = user.identity.email, user.identity.name
         else:
-            who = {
-                "issuer": None,
-                "subject": None,
-                "email": None,
-                "name": user.name if isinstance(user, Client) else None,
-            }
+            email, name = None, user.name if isinstance(user, Client) else None
         return Me(
-            **who,
+            email=email,
+            name=name,
             system_admin=user.system_admin,
             permissions=[
                 CommunityPermissions(

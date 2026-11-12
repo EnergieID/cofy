@@ -165,20 +165,6 @@ class ClientRecord(BaseModel):
     grants: dict[str, StoredRole] = Field({}, description="The role it has in each community, by slug.")
 
 
-class Account(BaseModel):
-    """A person's account at an identity provider."""
-
-    model_config = ConfigDict(frozen=True)
-
-    issuer: str = Field(description="The identity provider's issuer URL.")
-    subject: str = Field(description="The person's id at that identity provider.")
-
-    @property
-    def key(self) -> tuple[str, str]:
-        """What a bound person is matched on."""
-        return (self.issuer, self.subject)
-
-
 class Grant(BaseModel):
     """A role in one community, granted to the person with an email."""
 

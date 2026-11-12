@@ -6,12 +6,12 @@ them for a community it looks after, replacing those as a whole; only it changes
 
 from __future__ import annotations
 
-from typing import Annotated, Self, cast
+from typing import Annotated, cast
 
 from fastapi import Body, Depends, Path
-from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
-from ..auth.access import CLIENT_ROLES, Account, Grant, Role, Subject
+from ..auth.access import CLIENT_ROLES, Grant, Role, Subject
 from ..auth.user import Client, Principal, current_principal
 from ..persitance.communities import CommunitiesPersistence
 from ..persitance.grants import GrantsPersistence
@@ -33,27 +33,6 @@ class GrantBody(BaseModel):
         return role
 
 
-class ManagedGrantBody(GrantBody):
-    """A grant a client manages, which may say whose account it is for."""
-
-    issuer: str | None = Field(None, description="The identity provider of the person's account, with `subject`.")
-    subject: str | None = Field(
-        None, description="The person's id at that identity provider: the grant is theirs from the start."
-    )
-
-    @model_validator(mode="after")
-    def _check_account_is_whole(self) -> Self:
-        if (self.issuer is None) != (self.subject is None):
-            raise ValueError("An account needs both an issuer and a subject")
-        return self
-
-    @property
-    def account(self) -> Account | None:
-        if self.issuer is None or self.subject is None:
-            return None
-        return Account(issuer=self.issuer, subject=self.subject)
-
-
 class GrantInfo(BaseModel):
     """A grant as reported."""
 
@@ -71,10 +50,7 @@ class ManagedGrants(BaseModel):
     """The grants a client manages in a community, after replacing them."""
 
     grants: list[GrantInfo]
-    skipped: list[str] = Field(
-        description="The emails not granted: they have a role there the client doesn't manage, or belong to another "
-        "account than the one given."
-    )
+    skipped: list[str] = Field(description="The emails not granted: they have a role there the client doesn't manage.")
 
 
 class GrantsRouter:
@@ -132,7 +108,7 @@ class ManagedGrantsRouter:
     def replace(
         self,
         slug: Annotated[str, Path(description="Community slug")],
-        payload: Annotated[list[ManagedGrantBody], Body(description="Every grant the client manages here.")],
+        payload: Annotated[list[GrantBody], Body(description="Every grant the client manages here.")],
         principal: Annotated[Principal, Depends(current_principal)],
     ) -> ManagedGrants:
         """Replace the grants the client asking manages in the community with these, leaving every other grant be."""
@@ -143,6 +119,6 @@ class ManagedGrantsRouter:
         # The policy lets only a client through.
         client = cast(Client, principal)
         managed, skipped = self.persistence.replace_managed(
-            slug, client.name, [(Grant(email=grant.email, role=grant.role), grant.account) for grant in payload]
+            slug, client.name, [Grant(email=grant.email, role=grant.role) for grant in payload]
         )
         return ManagedGrants(grants=[GrantInfo.of(grant) for grant in managed], skipped=skipped)

@@ -4,7 +4,7 @@ import { cofyStoreContext, createI18n, i18nContext } from "@cofy/web-components"
 
 import { APP_RESOURCES } from "../../src/i18n.js";
 
-export const ANN: Me = { issuer: null, subject: null, email: "ann@example.com", name: "Ann Peeters", system_admin: false, permissions: [] };
+export const ANN: Me = { email: "ann@example.com", name: "Ann Peeters", system_admin: false, permissions: [] };
 
 /** *element*, rendered in the shell's contexts - its store, for *me*, and its translations. */
 export async function mount<T extends HTMLElement & { updateComplete: Promise<boolean> }>(

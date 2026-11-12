@@ -100,7 +100,8 @@ users:
 Access is granted to an email, since that is all anyone knows of a person who hasn't logged in yet.
 At that person's first login with a verified email, their identity at the provider is written
 in beside it and matched on from then on, so changing their email there neither loses their
-access nor hands it to whoever gets the address next.
+access nor hands it to whoever gets the address next. Logging in with a changed, verified email updates it here, and
+brings along anything granted to the new address meanwhile - unless another account has that address.
 
 A permission is an action - `read` or `write` - on a subject of a community: its own settings,
 its modules, resources, secrets, grants, or the types it may use (`cofy/management/auth/access.py`). A role is a
@@ -113,12 +114,12 @@ a system admin may delete. System admins are let through every rule.
 
 `/auth/me` reports what the person logged in may do, per community, and outside any one community
 (`slug: null`), such as creating communities, for a system admin or with a global role. Listing communities takes
-being able to see at least one; anyone else is refused, as for a community they can't see. It also reports the
-person's account at the provider (`issuer`, `subject`), for an app embedding the console to check it is theirs.
+being able to see at least one; anyone else is refused, as for a community they can't see.
 
 ### Clients
 
-A program calls the API with an API key, as `Authorization: Bearer <key>`, instead of logging in. Clients are listed
+A program calls the API with an API key, as `Authorization: Bearer <key>`, instead of logging in. A header that is
+no client's key is left be, so an app proxying the API may pass on its own and its people stay logged in. Clients are listed
 in `access/users.yaml` beside the people, by a system admin, with the hash of their key:
 
 ```yaml
@@ -140,11 +141,9 @@ the grants it manages, never its configuration. A system admin can give a client
 by adding it to the client's `grants`.
 
 A client manages grants as a whole: `PUT /management/communities/{slug}/managed-grants` with every grant it wants
-there replaces the grants it manages, granting, changing and revoking to match, and leaves every other grant be. A
-grant may name the person's account (`issuer` and `subject`), so it is theirs from the start rather than from their
-first login; the client is trusted to say whose account goes with an email. Someone with a grant there the client
-doesn't manage, or whose email is bound to another account than the one given, is left as they are and reported back
-as `skipped`. People see a managed grant in the console, but can't change or revoke it: only its client does.
+there replaces the grants it manages, granting, changing and revoking to match, and leaves every other grant be. Like
+any grant, a managed one is to an email, and goes to whoever logs in with it. Someone with a grant there the client
+doesn't manage is left as they are and reported back as `skipped`. People see a managed grant in the console, but can't change or revoke it: only its client does.
 
 ### Which types communities may configure
 

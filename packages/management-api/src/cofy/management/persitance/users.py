@@ -15,7 +15,8 @@ class UsersPersistence(ABC):
 
     @abstractmethod
     def bind(self, identity: Identity) -> None:
-        """Bind *identity* to the person still waiting for its first login, if there is one."""
+        """Bind *identity* to the person still waiting for its first login, if there is one - or, for someone bound
+        already, take on the verified email they log in with now, and what was granted to it meanwhile."""
 
     @abstractmethod
     def client(self, digest: str) -> ClientRecord | None:

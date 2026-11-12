@@ -1,4 +1,4 @@
-from ...auth.access import Account, Grant, Role, UserRecord, UsersFile
+from ...auth.access import Grant, Role, UserRecord, UsersFile
 from ...errors import ResourceAlreadyExistsError, ResourceManagedError, ResourceNotFoundError
 from ..grants import GrantsPersistence
 from .base import UsersFileStore
@@ -50,29 +50,14 @@ class FileGrantsPersistence(UsersFileStore, GrantsPersistence):
                 raise ResourceNotFoundError(f"Client {client!r} not found")
             record.grants[slug] = role
 
-    def replace_managed(
-        self, slug: str, client: str, grants: list[tuple[Grant, Account | None]]
-    ) -> tuple[list[Grant], list[str]]:
+    def replace_managed(self, slug: str, client: str, grants: list[Grant]) -> tuple[list[Grant], list[str]]:
         with self._open_users("write") as users:
             wanted: list[UserRecord] = []
             skipped: list[str] = []
-            for grant, account in grants:
-                user = self._holder(users, str(grant.email), account)
-                if (
-                    user is not None
-                    and account is not None
-                    and user.bound
-                    and (user.issuer, user.subject) != account.key
-                ):
-                    # The email is another account's now: granting it would give the role to someone else.
-                    skipped.append(str(grant.email))
-                    continue
+            for grant in grants:
+                user = self._find(users, str(grant.email))
                 if user is None:
-                    user = UserRecord(
-                        email=grant.email,
-                        issuer=account.issuer if account is not None else None,
-                        subject=account.subject if account is not None else None,
-                    )
+                    user = UserRecord(email=grant.email)
                     users.users.append(user)
                 elif slug in user.grants and user.managed_by.get(slug) != client:
                     skipped.append(str(grant.email))
@@ -102,20 +87,6 @@ class FileGrantsPersistence(UsersFileStore, GrantsPersistence):
         if client is not None:
             raise ResourceManagedError(f"The grant to {email!r} in {slug!r} is managed by {client!r}")
         return user
-
-    @staticmethod
-    def _holder(users: UsersFile, email: str, account: Account | None) -> UserRecord | None:
-        """The person a grant to *email*, of *account* if given, goes to - or `None` for someone not listed yet.
-
-        The account is matched first, as the person's email may have changed since it was given.
-        """
-        if account is not None:
-            holder = next(
-                (user for user in users.users if user.bound and (user.issuer, user.subject) == account.key), None
-            )
-            if holder is not None:
-                return holder
-        return UsersFileStore._find(users, email)
 
     @staticmethod
     def _revoke(users: UsersFile, user: UserRecord, slug: str) -> None:

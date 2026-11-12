@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from cofy.management.auth.access import Account, Grant, Role
+from cofy.management.auth.access import Grant, Role
 from cofy.management.errors import ResourceAlreadyExistsError, ResourceManagedError, ResourceNotFoundError
 from cofy.management.persitance.file.grants import FileGrantsPersistence
 
@@ -123,7 +123,6 @@ def test_deleting_all_grants_in_a_community_leaves_the_others(tmp_path: Path):
 # ── grants a client manages ───────────────────────────────────────────────
 
 EDITOR = Role.community_editor
-BOB = Account(issuer=ISSUER, subject="bob-sub")
 
 
 def editor(email: str = "bob@example.com") -> Grant:
@@ -133,45 +132,18 @@ def editor(email: str = "bob@example.com") -> Grant:
 def test_a_managed_grant_says_who_manages_it(tmp_path: Path):
     grants = FileGrantsPersistence(users_file(tmp_path))
 
-    managed, skipped = grants.replace_managed("test", "energyid", [(editor(), None)])
+    managed, skipped = grants.replace_managed("test", "energyid", [editor()])
 
     assert (managed, skipped) == ([Grant(email="bob@example.com", role=EDITOR, managed_by="energyid")], [])
     assert grants.all("test") == managed
 
 
-def test_a_managed_grant_finds_its_account_by_subject_after_an_email_change(tmp_path: Path):
-    path = users_file(
-        tmp_path,
-        {"email": "old@example.com", "issuer": ISSUER, "subject": "bob-sub", "grants": {"other": "community_admin"}},
-    )
+def test_a_managed_grant_goes_to_whoever_has_the_email(tmp_path: Path):
+    path = users_file(tmp_path, {"email": "bob@example.com", "issuer": ISSUER, "subject": "bob-sub", "grants": {}})
 
-    FileGrantsPersistence(path).replace_managed("test", "energyid", [(editor("new@example.com"), BOB)])
+    FileGrantsPersistence(path).replace_managed("test", "energyid", [editor()])
 
-    assert stored(path) == [
-        {
-            "email": "old@example.com",
-            "issuer": ISSUER,
-            "subject": "bob-sub",
-            "grants": {"other": "community_admin", "test": "community_editor"},
-            "managed_by": {"test": "energyid"},
-        }
-    ]
-
-
-def test_a_managed_grant_skips_an_email_bound_to_another_account(tmp_path: Path):
-    path = users_file(tmp_path, {"email": "bob@example.com", "issuer": ISSUER, "subject": "someone-else", "grants": {}})
-
-    managed, skipped = FileGrantsPersistence(path).replace_managed("test", "energyid", [(editor(), BOB)])
-
-    assert (managed, skipped) == ([], ["bob@example.com"])
-
-
-def test_a_managed_grant_goes_to_an_unbound_email_without_binding_it(tmp_path: Path):
-    path = users_file(tmp_path, {"email": "bob@example.com", "grants": {"other": "community_admin"}})
-
-    FileGrantsPersistence(path).replace_managed("test", "energyid", [(editor(), BOB)])
-
-    assert "subject" not in stored(path)[0]
+    assert stored(path)[0]["grants"] == {"test": "community_editor"}
 
 
 def test_a_client_only_replaces_its_own_managed_grants(tmp_path: Path):
@@ -181,7 +153,7 @@ def test_a_client_only_replaces_its_own_managed_grants(tmp_path: Path):
     )
     grants = FileGrantsPersistence(path)
 
-    assert grants.replace_managed("test", "energyid", [(editor("ann@example.com"), None)]) == ([], ["ann@example.com"])
+    assert grants.replace_managed("test", "energyid", [editor("ann@example.com")]) == ([], ["ann@example.com"])
     grants.replace_managed("test", "energyid", [])
 
     assert [grant.managed_by for grant in grants.all("test")] == ["other-client"]
@@ -189,16 +161,16 @@ def test_a_client_only_replaces_its_own_managed_grants(tmp_path: Path):
 
 def test_a_managed_grant_can_change_role(tmp_path: Path):
     grants = FileGrantsPersistence(users_file(tmp_path))
-    grants.replace_managed("test", "energyid", [(editor(), None)])
+    grants.replace_managed("test", "energyid", [editor()])
 
-    managed, _ = grants.replace_managed("test", "energyid", [(Grant(email="bob@example.com", role=ADMIN), None)])
+    managed, _ = grants.replace_managed("test", "energyid", [Grant(email="bob@example.com", role=ADMIN)])
 
     assert [grant.role for grant in managed] == [ADMIN]
 
 
 def test_a_managed_grant_cannot_be_changed_or_revoked_one_by_one(tmp_path: Path):
     grants = FileGrantsPersistence(users_file(tmp_path))
-    grants.replace_managed("test", "energyid", [(editor(), None)])
+    grants.replace_managed("test", "energyid", [editor()])
 
     with pytest.raises(ResourceManagedError, match="energyid"):
         grants.replace("test", "bob@example.com", Grant(email="bob@example.com", role=ADMIN))
@@ -209,7 +181,7 @@ def test_a_managed_grant_cannot_be_changed_or_revoked_one_by_one(tmp_path: Path)
 def test_revoking_a_managed_grant_forgets_who_managed_it(tmp_path: Path):
     path = users_file(tmp_path, {"email": "bob@example.com", "grants": {"other": "community_admin"}})
     grants = FileGrantsPersistence(path)
-    grants.replace_managed("test", "energyid", [(editor(), None)])
+    grants.replace_managed("test", "energyid", [editor()])
 
     grants.replace_managed("test", "energyid", [])
 

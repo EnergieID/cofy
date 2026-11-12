@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from ..auth.access import Account, Grant, Role
+from ..auth.access import Grant, Role
 
 
 class GrantsPersistence(ABC):
@@ -37,13 +37,9 @@ class GrantsPersistence(ABC):
         """Grant the client named *client* a role in a community."""
 
     @abstractmethod
-    def replace_managed(
-        self, slug: str, client: str, grants: list[tuple[Grant, Account | None]]
-    ) -> tuple[list[Grant], list[str]]:
+    def replace_managed(self, slug: str, client: str, grants: list[Grant]) -> tuple[list[Grant], list[str]]:
         """Make *grants* the grants *client* manages in a community: granting, changing and revoking its own grants
-        to match. A grant with an account goes to that account from the start, rather than from the person's first
-        login. A person with a grant of someone else's keeps it, as does an email bound to another account than the
-        one given; either is reported back by email as skipped.
+        to match. A person with a grant of someone else's there keeps it, and is reported back by email as skipped.
 
         Returns the grants the client manages afterwards, and the emails skipped.
         """

@@ -8,7 +8,7 @@ import { CrumbState } from "../../../src/console/states/crumb-state.js";
 import { HostLocation } from "../../../src/console/states/host-location.js";
 import { RouteState } from "../../../src/console/states/route-state.js";
 
-export const ANN: Me = { issuer: null, subject: null, email: "ann@example.com", name: "Ann Peeters", system_admin: false, permissions: [] };
+export const ANN: Me = { email: "ann@example.com", name: "Ann Peeters", system_admin: false, permissions: [] };
 
 /** *element*, rendered for *me* in the console's contexts, at *path*. */
 export async function mount<T extends HTMLElement & { updateComplete: Promise<boolean> }>(

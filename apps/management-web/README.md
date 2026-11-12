@@ -59,11 +59,13 @@ its own version installs `@cofy/web-components` and imports `@cofy/web-component
 
 The app proxies a path of its own site, say `/cofy`, to the management API, and lists that URL in the API's
 `COFY_MANAGEMENT_PROXIED_URLS` (see [its README](../../packages/management-api/README.md#served-through-another-app)).
-Then COFY's session cookie is the app's site's, and a login comes back to the page it started on.
+Then COFY's session cookie is the app's site's, and a login comes back to the page it started on. That cookie,
+`cofy_session` under the proxied path, outlives the app's own session unless the app ends it: an app deletes it
+whenever someone logs in or out of it, so the console never shows one person's COFY session to the next.
 
 ```html
 <script type="module" src="/cofy/embed.js"></script>
-<cofy-console community="demo" base-path="/w/1/cofy" api-path="/cofy" lang="nl" user="..."></cofy-console>
+<cofy-console community="demo" base-path="/w/1/cofy" api-path="/cofy" lang="nl"></cofy-console>
 ```
 
 - `community` - the community shown, by slug. Without one, every page is, by its whole path, as in the console's
@@ -72,8 +74,6 @@ Then COFY's session cookie is the app's site's, and a login comes back to the pa
   community, so `/communities/demo/secrets` is `/w/1/cofy/secrets`.
 - `api-path` - where the app serves COFY's API, and its login.
 - `path` - the page shown, within the community, such as `/secrets`. An app that routes itself sets it.
-- `user` - the id at the identity provider of whoever the app has logged in. With a COFY session of someone else,
-  the console logs in again, which replaces it.
 - `lang` - the language to show; the page's when left out. What isn't translated falls back to English, string by
   string.
 - `translations` - a property, not an attribute: strings replacing the console's own, by language, namespace

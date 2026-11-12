@@ -54,9 +54,6 @@ export class CofyConsole extends LitElement {
   /** The page shown as the host shows it, under the base, such as `/secrets`: set by a host that navigates itself. */
   @property() public path?: string;
 
-  /** The id at the identity provider of whoever the host has logged in: a COFY session of someone else is ended. */
-  @property() public user?: string;
-
   /** The language to show, falling back to English for what isn't translated; the page's when not set. */
   @property() public override lang = "";
 
@@ -74,26 +71,31 @@ export class CofyConsole extends LitElement {
   private readonly crumbProvider = new ContextProvider(this, { context: crumbStateContext });
   private readonly i18nProvider = new ContextProvider(this, { context: i18nContext });
 
-  /** Whether the state is the console's own, made from its attributes, rather than its host's. */
-  private ownState = false;
+  /** The state the console made from its attributes, which it starts and stops; a host's is the host's to. */
+  private own?: ConsoleState;
   @state() private translated = false;
   private unwatchPath?: () => void;
-  private switchingUser = false;
 
   public constructor() {
     super();
     this.addEventListener("click", this.onClick);
   }
 
+  public override connectedCallback(): void {
+    super.connectedCallback();
+    // Put back on a page after being taken off it: follow its state again.
+    if (this.hasUpdated && this.state !== undefined) this.follow(this.state);
+  }
+
   public override disconnectedCallback(): void {
     super.disconnectedCallback();
-    this.release();
+    this.unfollow();
   }
 
   protected override willUpdate(changed: PropertyValues<this>): void {
     const attributes = changed.has("community") || changed.has("basePath") || changed.has("apiPath");
-    if (changed.has("state") && !this.ownState) this.adopt();
-    else if (attributes && (this.state === undefined || this.ownState)) this.makeState();
+    if (changed.has("state") && this.state !== this.own) this.adopt();
+    else if (attributes && (this.state === undefined || this.state === this.own)) this.makeState();
     if (changed.has("lang") && this.lang !== "") void this.state?.i18n?.changeLanguage(this.lang);
     if (changed.has("path") && this.path !== undefined) this.state?.show(this.path);
   }
@@ -111,9 +113,6 @@ export class CofyConsole extends LitElement {
         ? html`<cofy-problem-details .problem=${error}></cofy-problem-details>`
         : html``;
     }
-    // Logged in as someone else than the host has: on the way to log in again, see `updated`.
-    if (this.isSomeoneElse()) return html``;
-
     return html`
       <main class="wa-stack">
         <cofy-breadcrumbs part="breadcrumbs" .crumbs=${state.crumbs.crumbs}></cofy-breadcrumbs>
@@ -123,45 +122,49 @@ export class CofyConsole extends LitElement {
     `;
   }
 
-  protected override updated(): void {
-    if (this.isSomeoneElse()) this.switchUser();
-  }
-
   /** The console's own state, from its attributes, replacing any earlier one. */
   private makeState(): void {
-    this.release();
+    this.unfollow();
     const login = (): void => this.state?.store.session.login();
     const store = new CofyStore(new ApiClient({ baseUrl: this.apiPath, onUnauthenticated: login }));
-    this.ownState = true;
-    this.state = new ConsoleState({ store, base: this.basePath, community: this.community, target: this });
-    this.state.start();
-    this.provide();
-    void this.loadTranslations(this.state);
+    this.own = new ConsoleState({ store, base: this.basePath, community: this.community, target: this });
+    this.state = this.own;
+    this.provide(this.own);
+    this.follow(this.own);
+    void this.loadTranslations(this.own);
   }
 
-  /** The state a host handed in, which the host starts and stops. */
+  /** The state a host handed in, replacing the console's own if it had made one. */
   private adopt(): void {
-    this.release();
-    this.provide();
+    this.unfollow();
+    this.own = undefined;
+    if (this.state === undefined) return;
+    this.provide(this.state);
+    this.follow(this.state);
   }
 
-  /** Provide the state's parts to the pages, and follow where it is. */
-  private provide(): void {
-    const state = this.state;
-    if (state === undefined) return;
+  /** Provide *state*'s parts to the pages. */
+  private provide(state: ConsoleState): void {
     this.cofyProvider.setValue(state.store);
     this.routeProvider.setValue(state.routes);
     this.crumbProvider.setValue(state.crumbs);
     if (state.i18n !== undefined) this.useTranslations(state.i18n);
+  }
+
+  /** Follow where *state* is, starting it if it is the console's own. */
+  private follow(state: ConsoleState): void {
+    if (state === this.own) state.start();
     // The path the host sees, also after the console went somewhere itself, so the host setting it again is a change.
     this.unwatchPath = state.location.subscribe(() => {
       this.path = state.location.hostPath;
     }, "path");
   }
 
-  private release(): void {
-    this.unwatchPath?.();
-    if (this.ownState) this.state?.stop();
+  private unfollow(): void {
+    if (this.unwatchPath === undefined) return;
+    this.unwatchPath();
+    this.unwatchPath = undefined;
+    this.own?.stop();
   }
 
   private async loadTranslations(state: ConsoleState): Promise<void> {
@@ -176,19 +179,6 @@ export class CofyConsole extends LitElement {
   private useTranslations(i18n: NonNullable<ConsoleState["i18n"]>): void {
     this.i18nProvider.setValue(i18n);
     this.translated = true;
-  }
-
-  /** Whether COFY's session is someone else's than whoever the host has logged in. */
-  private isSomeoneElse(): boolean {
-    const me = this.state?.store.session.get();
-    return this.user !== undefined && me !== undefined && me.subject !== this.user;
-  }
-
-  /** Log in as whoever the host has, whose login replaces a session that is someone else's. */
-  private switchUser(): void {
-    if (this.switchingUser) return;
-    this.switchingUser = true;
-    this.state?.store.session.login();
   }
 
   private readonly onClick = (event: MouseEvent): void => {

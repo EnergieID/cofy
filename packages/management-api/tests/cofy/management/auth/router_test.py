@@ -33,8 +33,6 @@ METADATA = {
     "userinfo_endpoint": f"{ISSUER}/connect/userinfo",
 }
 ANN = {
-    "issuer": ISSUER,
-    "subject": "ann-sub",
     "email": "ann@example.com",
     "name": "Ann",
     "system_admin": False,
@@ -302,8 +300,6 @@ def test_a_client_is_known_by_its_api_key(data: Path, monkeypatch: pytest.Monkey
     r = client_for(data, monkeypatch).get("/auth/me", headers={"Authorization": "Bearer energyid-key"})
 
     assert r.json() == {
-        "issuer": None,
-        "subject": None,
         "email": None,
         "name": "energyid",
         "system_admin": False,
@@ -325,7 +321,9 @@ def test_a_client_is_known_by_its_api_key(data: Path, monkeypatch: pytest.Monkey
 
 
 @pytest.mark.parametrize("authorization", ["Bearer someone-else", "energyid-key", "Basic energyid-key", "Bearer "])
-def test_an_unknown_or_malformed_api_key_is_refused(data: Path, monkeypatch: pytest.MonkeyPatch, authorization: str):
+def test_an_unknown_or_malformed_api_key_without_a_session_is_refused(
+    data: Path, monkeypatch: pytest.MonkeyPatch, authorization: str
+):
     with_client(data)
 
     r = client_for(data, monkeypatch).get("/auth/me", headers={"Authorization": authorization})
@@ -333,11 +331,22 @@ def test_an_unknown_or_malformed_api_key_is_refused(data: Path, monkeypatch: pyt
     assert r.status_code == 401
 
 
-def test_an_api_key_is_asked_for_instead_of_the_session(data: Path, monkeypatch: pytest.MonkeyPatch):
+def test_a_header_that_is_no_api_key_leaves_the_session_be(data: Path, monkeypatch: pytest.MonkeyPatch):
     client = client_for(data, monkeypatch)
     log_in(client)
 
-    assert client.get("/auth/me", headers={"Authorization": "Bearer someone-else"}).status_code == 401
+    r = client.get("/auth/me", headers={"Authorization": "Bearer the-proxying-apps-own"})
+
+    assert r.status_code == 200
+    assert r.json()["email"] is not None
+
+
+def test_an_api_key_goes_before_the_session(data: Path, monkeypatch: pytest.MonkeyPatch):
+    with_client(data)
+    client = client_for(data, monkeypatch)
+    log_in(client)
+
+    assert client.get("/auth/me", headers={"Authorization": "Bearer energyid-key"}).json()["name"] == "energyid"
 
 
 # ── behind a proxy ────────────────────────────────────────────────────────
