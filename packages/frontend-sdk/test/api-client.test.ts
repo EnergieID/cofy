@@ -92,6 +92,26 @@ describe("ApiClient", () => {
     expect(calls[0]!.headers["authorization"]).toBe("Bearer t");
   });
 
+  it("sends the access token it is given, asking for it before every request", async () => {
+    const { fetch, calls } = stubFetch(() => ({ body: [] }));
+    const tokens = ["first", "renewed"];
+    const accessToken = (): Promise<string | undefined> => Promise.resolve(tokens.shift());
+    const api = new ApiClient({ fetch, baseUrl: ORIGIN, accessToken });
+
+    await api.GET(COLLECTION, {});
+    await api.GET(COLLECTION, {});
+
+    expect(calls.map((call) => call.headers["authorization"])).toEqual(["Bearer first", "Bearer renewed"]);
+  });
+
+  it("sends no token when it is given none", async () => {
+    const { fetch, calls } = stubFetch(() => ({ body: [] }));
+
+    await new ApiClient({ fetch, baseUrl: ORIGIN, accessToken: (): undefined => undefined }).GET(COLLECTION, {});
+
+    expect(calls[0]!.headers["authorization"]).toBeUndefined();
+  });
+
   it("prefixes requests with a configured base url", async () => {
     const { fetch, calls } = stubFetch(() => ({ body: [] }));
 

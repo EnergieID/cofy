@@ -5,6 +5,7 @@ from collections.abc import Mapping
 from typing import Annotated
 
 from cofy.api import hash_key
+from cofy.api.errors import NotAuthenticatedError
 from fastapi import Depends, FastAPI, Request
 from fastapi.security import APIKeyHeader
 
@@ -23,6 +24,7 @@ from .access import (
     Subject,
     UserRecord,
 )
+from .host_tokens import host_tokens
 from .session import current_identity
 
 
@@ -129,16 +131,23 @@ _authorization = APIKeyHeader(name="Authorization", auto_error=False, scheme_nam
 
 
 def current_principal(request: Request, authorization: Annotated[str | None, Depends(_authorization)]) -> Principal:
-    """Who makes this request: the client whose API key it carries, or else the person logged in.
+    """Who makes this request: the client whose API key it carries, the person whose access token from an app
+    embedding the console it carries, or else the person logged in.
 
-    A header that isn't a client's key is left for whatever else reads it, such as an app proxying the API passing on
-    its own, rather than refusing a person logged in.
+    A token that doesn't hold is refused, even with a login beside it, so whoever sent it knows to get a fresh one.
     """
-    scheme, _, key = (authorization or "").partition(" ")
-    if scheme.lower() == "bearer" and key:
-        # Looked up by hash, which an attacker can't steer, so the lookup's timing reveals nothing of the stored keys.
-        record = _users(request).client(hash_key(key))
-        if record is not None:
-            return Client(record)
-    identity = current_identity(request)
+    if authorization is None:
+        identity = current_identity(request)
+        return User(identity, _users(request).match(identity))
+    scheme, _, key = authorization.partition(" ")
+    if scheme.lower() != "bearer" or not key:
+        raise NotAuthenticatedError("Invalid token format")
+    # Looked up by hash, which an attacker can't steer, so the lookup's timing reveals nothing of the stored keys.
+    record = _users(request).client(hash_key(key))
+    if record is not None:
+        return Client(record)
+    tokens = host_tokens(request)
+    if tokens is None:
+        raise NotAuthenticatedError("Invalid token")
+    identity = tokens.identity(key)
     return User(identity, _users(request).match(identity))

@@ -44,7 +44,7 @@
   <body>
     <header>Host app</header>
     <nav></nav>
-    <cofy-console api-path="/cofy"></cofy-console>
+    <cofy-console></cofy-console>
     <script type="module">
       import "/src/embed.ts";
       // The host brings the theme, as for any Web Awesome component: here COFY's.
@@ -63,6 +63,11 @@
       }
       const base = `/host/${slug}`;
       Object.assign(console_, { community: slug, basePath: base, path: location.pathname.slice(base.length) });
+
+      // The host logs in, here through COFY's own login on this same site, as it sets no access token.
+      console_.addEventListener("cofy-unauthenticated", () => {
+        location.assign(`/auth/login?return_to=${encodeURIComponent(location.pathname)}`);
+      });
 
       // The host routes: it follows a navigation the console asks for, and the back button.
       function go(href) {

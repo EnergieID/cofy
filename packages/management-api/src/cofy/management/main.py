@@ -17,11 +17,13 @@ from .api.status import StatusRouter
 from .api.tokens import TokensRouter
 from .auth.access import Subject
 from .auth.config import OidcConfig
+from .auth.host_tokens import HostTokens, install_host_tokens
 from .auth.router import AuthRouter
 from .auth.session import install_session
 from .auth.user import install_users
 from .community_api import CommunityApi
 from .console_files import ConsoleFiles
+from .cors import install_cors
 from .domain.allowed import AllowedTypes
 from .errors import EXCEPTION_HANDLERS
 from .persitance.file.allowed import FileAllowedPersistence
@@ -33,12 +35,11 @@ from .persitance.file.resources import FileResourcesPersistence
 from .persitance.file.secrets import FileSecretsPersistence
 from .persitance.file.tokens import FileTokensPersistence
 from .persitance.file.users import FileUsersPersistence
-from .proxied import ProxiedUrls
 
 STATIC_DIR_ENV_VAR = "COFY_MANAGEMENT_STATIC_DIR"
 COMMUNITIES_URL_ENV_VAR = "COFY_MANAGEMENT_COMMUNITIES_URL"
 ENCRYPTION_KEY_ENV_VAR = "COFY_MANAGEMENT_SECRETS_ENCRYPTION_KEY"
-PROXIED_URLS_ENV_VAR = "COFY_MANAGEMENT_PROXIED_URLS"
+CORS_ORIGINS_ENV_VAR = "COFY_MANAGEMENT_CORS_ORIGINS"
 
 #: Each `OidcConfig` field, and the environment variable it is read from.
 OIDC_ENV_VARS = {
@@ -49,12 +50,15 @@ OIDC_ENV_VARS = {
     "session_secret": "COFY_MANAGEMENT_SESSION_SECRET",
     "session_lifetime": "COFY_MANAGEMENT_SESSION_LIFETIME",
     "secure_cookies": "COFY_MANAGEMENT_SECURE_COOKIES",
+    "host_clients": "COFY_MANAGEMENT_HOST_CLIENTS",
 }
 
 
 def oidc_config_from_env() -> OidcConfig:
     """The login configuration, from the environment; there is no running without one."""
-    values = {field: os.environ[var] for field, var in OIDC_ENV_VARS.items() if os.environ.get(var)}
+    values: dict[str, object] = {field: os.environ[var] for field, var in OIDC_ENV_VARS.items() if os.environ.get(var)}
+    if "host_clients" in values:
+        values["host_clients"] = _comma_separated(OIDC_ENV_VARS["host_clients"])
     try:
         return OidcConfig.model_validate(values)
     except ValidationError as exc:
@@ -81,9 +85,13 @@ def encryption_key_from_env() -> str:
     return key
 
 
-def proxied_urls_from_env() -> list[str]:
-    """The URLs reverse proxies serve the API and console at, under a path of their own site; none by default."""
-    return [url.strip() for url in os.environ.get(PROXIED_URLS_ENV_VAR, "").split(",") if url.strip()]
+def _comma_separated(var: str) -> list[str]:
+    return [value.strip() for value in os.environ.get(var, "").split(",") if value.strip()]
+
+
+def cors_origins_from_env() -> list[str]:
+    """The sites of apps embedding the console, which call the API from their own pages; none by default."""
+    return _comma_separated(CORS_ORIGINS_ENV_VAR)
 
 
 oidc_config = oidc_config_from_env()
@@ -103,8 +111,10 @@ app = FastAPI(
 )
 install_session(app, oidc_config)
 install_users(app, users)
-# Added last, so it runs first: the session and everything after it see the URL the request was made to.
-app.add_middleware(ProxiedUrls, urls=proxied_urls_from_env())
+if oidc_config.host_clients:
+    install_host_tokens(app, HostTokens(oidc_config, users))
+# Last, so it runs first, around the console's files too: a host loads `embed.js` from its own pages.
+install_cors(app, cors_origins_from_env())
 
 app.include_router(AuthRouter(oidc_config, users, FileCommunitiesPersistence()).router)
 app.include_router(CommunitiesRouter(FileCommunitiesPersistence(), grants, allowed_types, community_api).router)

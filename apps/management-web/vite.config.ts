@@ -1,14 +1,11 @@
 import { fileURLToPath } from "node:url";
-import { defineConfig, searchForWorkspaceRoot, type Plugin, type ProxyOptions } from "vite";
+import { defineConfig, searchForWorkspaceRoot, type Plugin } from "vite";
 
 const workspace = (path: string): string => fileURLToPath(new URL(path, import.meta.url));
 
 /**
  * In development, a stand-in for an app embedding the console: `/host/<slug>/...` serves `host.html`, which places
- * `<cofy-console>` for that community, and COFY is under `/cofy` as such an app's proxy would put it.
- *
- * The API learns it is served there from `X-Forwarded-Prefix`, given `COFY_MANAGEMENT_PROXIED_URLS` lists
- * `http://localhost:5173/cofy`.
+ * `<cofy-console>` for that community, on the API this dev server proxies, logged in through COFY's own login.
  */
 function embeddingHost(): Plugin {
   return {
@@ -21,19 +18,6 @@ function embeddingHost(): Plugin {
       });
     },
   };
-}
-
-/** The API under `/cofy`, as an app embedding the console proxies it. */
-function proxiedUnderCofy(path: string): [string, ProxyOptions] {
-  return [
-    `/cofy${path}`,
-    {
-      target: process.env["COFY_MANAGEMENT_API"] ?? "http://127.0.0.1:8000",
-      changeOrigin: false,
-      rewrite: (url: string): string => url.slice("/cofy".length),
-      headers: { "X-Forwarded-Prefix": "/cofy" },
-    },
-  ];
 }
 
 export default defineConfig(({ command }) => ({
@@ -84,7 +68,6 @@ export default defineConfig(({ command }) => ({
         target: process.env["COFY_MANAGEMENT_API"] ?? "http://127.0.0.1:8000",
         changeOrigin: false,
       },
-      ...Object.fromEntries([proxiedUnderCofy("/management"), proxiedUnderCofy("/auth")]),
     },
   },
   build: {

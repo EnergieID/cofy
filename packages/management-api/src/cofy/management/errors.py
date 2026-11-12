@@ -22,6 +22,14 @@ class StoredDataInvalidError(CofyError):
     code = "stored-data-invalid"
 
 
+class IdentityProviderUnavailableError(CofyError):
+    """The identity provider, asked who a token is for, didn't answer."""
+
+    status = 503
+    title = "Service Unavailable"
+    code = "identity-provider-unavailable"
+
+
 class ResourceNotFoundError(CofyError):
     status = 404
     title = "Not Found"
