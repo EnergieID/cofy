@@ -57,22 +57,28 @@ console's header, menu or pickers, in the app's language and look. The build put
 console's own files, so the management API serves it with them, in the version it runs. An app that would rather pick
 its own version installs `@cofy/web-components` and imports `@cofy/web-components/console` instead.
 
-The app proxies a path of its own site, say `/cofy`, to the management API, and lists that URL in the API's
-`COFY_MANAGEMENT_PROXIED_URLS` (see [its README](../../packages/management-api/README.md#served-through-another-app)).
-Then COFY's session cookie is the app's site's, and a login comes back to the page it started on. That cookie,
-`cofy_session` under the proxied path, outlives the app's own session unless the app ends it: an app deletes it
-whenever someone logs in or out of it, so the console never shows one person's COFY session to the next.
+An app that logs its users in at the same identity provider as COFY hands the console its own access token, and
+loads the console from COFY's site:
 
 ```html
-<script type="module" src="/cofy/embed.js"></script>
-<cofy-console community="demo" base-path="/w/1/cofy" api-path="/cofy" lang="nl"></cofy-console>
+<script type="module" src="https://app.cofy.example/embed.js"></script>
+<cofy-console community="demo" base-path="/w/1/cofy" api-path="https://app.cofy.example" lang="nl"></cofy-console>
+<script>
+  document.querySelector("cofy-console").accessToken = () => auth.accessToken();
+</script>
 ```
+
+The console is then whoever is logged in to the app, with no login or session of its own: it sends the token with
+every request, asking for it each time, so a renewed one is used. When COFY turns it away, the console shows nothing
+and fires `cofy-unauthenticated`, for the app to renew the token or log in. The management API takes the app's tokens
+once its client id and site are listed (see [its README](../../packages/management-api/README.md#logged-in-by-another-app)).
 
 - `community` - the community shown, by slug. Without one, every page is, by its whole path, as in the console's
   own shell.
 - `base-path` - where the app shows the console: a page of the community lies under it by its path within the
   community, so `/communities/demo/secrets` is `/w/1/cofy/secrets`.
-- `api-path` - where the app serves COFY's API, and its login.
+- `api-path` - where COFY's API is, such as `https://app.cofy.example`; the page's own site when left out.
+- `accessToken` - a property, not an attribute: a function giving the app's access token, or a promise of it.
 - `path` - the page shown, within the community, such as `/secrets`. An app that routes itself sets it.
 - `lang` - the language to show; the page's when left out. What isn't translated falls back to English, string by
   string.
@@ -97,8 +103,8 @@ What the app draws around the console comes from its `state`, a `ConsoleState`, 
 The console adds nothing to the app's page but itself, and brings no theme: as for any Web Awesome component, the
 app loads one, or sets its custom properties, such as `--wa-color-brand-fill-loud`, on `cofy-console` or its page.
 
-In development, `npm run dev` serves a stand-in for such an app at http://localhost:5173/host/demo/, proxying
-`/cofy` to the API, which needs `COFY_MANAGEMENT_PROXIED_URLS=http://localhost:5173/cofy`.
+In development, `npm run dev` serves a stand-in for such an app at http://localhost:5173/host/demo/. It sets no
+`accessToken`, so the console logs in through COFY's own login, on the API the dev server proxies.
 
 ## Development
 

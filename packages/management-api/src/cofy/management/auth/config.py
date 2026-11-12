@@ -16,6 +16,11 @@ class OidcConfig(BaseModel):
     session_secret: SecretStr = Field(description="The key session cookies are signed with.")
     session_lifetime: ISOTimedelta = Field(dt.timedelta(hours=8), description="How long a login lasts.")
     secure_cookies: bool = Field(True, description="Whether the session cookie is only sent over HTTPS.")
+    host_clients: list[str] = Field(
+        [],
+        description="The client ids of apps embedding the console whose access tokens, from this identity provider, "
+        "log in whoever they were issued to.",
+    )
 
     @property
     def server_metadata_url(self) -> str:

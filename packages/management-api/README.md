@@ -62,15 +62,25 @@ from its userinfo endpoint.
 Behind a TLS-terminating proxy, run uvicorn with `--proxy-headers` so that callback URL is built
 with the public scheme and host.
 
-### Served through another app
+### Logged in by another app
 
-An app embedding the console (see [apps/management-web](../../apps/management-web#embedding-the-console)) serves the
-API and console under a path of its own site, such as `https://app.example/cofy`, by proxying that path here. Then
-the session cookie is that site's, and logging in has to come back there. List such URLs in
-`COFY_MANAGEMENT_PROXIED_URLS`, comma-separated; the proxy sends the path it serves this under in
-`X-Forwarded-Prefix` (`/cofy`), and may strip it from the request's path or not. Only the URLs listed are honoured,
-each with a path of its own. Register each one's callback, such as `https://app.example/cofy/auth/callback`, at the
-identity provider too.
+An app embedding the console (see [apps/management-web](../../apps/management-web#embedding-the-console)) that logs
+its users in at the same provider hands the console its own access token, which the console sends as
+`Authorization: Bearer`. Then the console is whoever is logged in to that app, without a login or a session here.
+
+| Variable                         | Meaning                                                                          |
+|----------------------------------|----------------------------------------------------------------------------------|
+| `COFY_MANAGEMENT_HOST_CLIENTS`   | The client ids of such apps at the provider, comma-separated; none by default.    |
+| `COFY_MANAGEMENT_CORS_ORIGINS`   | The sites their pages are on, such as `https://app.example`, comma-separated.      |
+
+Only the clients listed are taken, by the `client_id` of their tokens - not their audience, which is the app's own
+APIs. Such a token, a JWT from this issuer, goes to the provider's userinfo endpoint, once per token: the provider
+only answers for a token it issued that still holds, and the answer says whose it is, with their email. So the app's
+client has to ask for the `email` scope, or nothing granted by email is theirs. A token that doesn't hold is refused,
+even beside a session cookie, so the app knows to renew it.
+
+The sites listed may call the API and load the console's files from their pages. They never get the cookies: an
+app on another site always brings its token.
 
 ### Who may do what
 
@@ -118,8 +128,7 @@ being able to see at least one; anyone else is refused, as for a community they 
 
 ### Clients
 
-A program calls the API with an API key, as `Authorization: Bearer <key>`, instead of logging in. A header that is
-no client's key is left be, so an app proxying the API may pass on its own and its people stay logged in. Clients are listed
+A program calls the API with an API key, as `Authorization: Bearer <key>`, instead of logging in. Clients are listed
 in `access/users.yaml` beside the people, by a system admin, with the hash of their key:
 
 ```yaml
@@ -190,7 +199,10 @@ management API needs a client there with:
 - the redirect URI `https://<host>/auth/callback`, and `https://<host>/` as post-logout redirect URI;
 - the scopes `openid`, `profile` and `email`, with the `email` identity resource present.
 
-Each such client counts towards the clients the Duende license allows.
+Each such client counts towards the clients the Duende license allows. EnergyID's own web app needs none: it embeds
+the console with its own tokens, as `EnergyID-WebApp` in `COFY_MANAGEMENT_HOST_CLIENTS` - see
+[Logged in by another app](#logged-in-by-another-app). Its tokens have to be JWTs, not reference tokens, and it has
+to ask for the `email` scope.
 
 For development, `task dev-idp` runs a local provider built on Duende as well - see
 [apps/demo_multitenant](../../apps/demo_multitenant).

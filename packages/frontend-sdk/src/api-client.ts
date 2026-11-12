@@ -10,6 +10,11 @@ export interface ApiClientOptions {
   baseUrl?: string;
   /** Sent with every request. */
   headers?: Record<string, string>;
+  /**
+   * The access token to send, as `Authorization: Bearer`, asked for before every request so a renewed one is used; none
+   * when it gives nothing. For an app embedding the console, which logs its users in at COFY's identity provider.
+   */
+  accessToken?: () => string | undefined | Promise<string | undefined>;
   /** Called when a request is turned away for want of a login, before the failure is thrown. */
   onUnauthenticated?: () => void;
   /** Overridable so tests and non-browser hosts can supply their own transport. */
@@ -61,6 +66,16 @@ export class ApiClient {
       headers: options.headers,
       fetch: options.fetch,
     });
+    const accessToken = options.accessToken;
+    if (accessToken !== undefined) {
+      this.client.use({
+        async onRequest({ request }) {
+          const token = await accessToken();
+          if (token !== undefined) request.headers.set("Authorization", `Bearer ${token}`);
+          return request;
+        },
+      });
+    }
   }
 
   public async GET<Path extends PathsWithMethod<paths, "get">>(

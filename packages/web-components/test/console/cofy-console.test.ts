@@ -1,4 +1,4 @@
-import { ApiClient, CofyStore, type Me } from "@cofy/frontend-sdk";
+import { ApiClient, CofyStore, SessionStore, type Me } from "@cofy/frontend-sdk";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CofyConsole, type ConsoleMenuItem } from "../../src/console/cofy-console.js";
@@ -28,10 +28,16 @@ const EDITOR: Me = {
   ],
 };
 
-/** COFY under `/cofy`, for *me*: who is logged in, and the community "foo". */
-function serve(me: Me): void {
+/** The `Authorization` header of every request COFY was sent. */
+let authorizations: (string | null)[] = [];
+
+/** COFY under `/cofy`, for *me* - or for nobody, turning every request away: who is logged in, and the community "foo". */
+function serve(me: Me | null): void {
+  authorizations = [];
   vi.stubGlobal("fetch", (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const request = input instanceof Request ? input : new Request(new URL(input.toString(), "http://localhost"), init);
+    authorizations.push(request.headers.get("Authorization"));
+    if (me === null) return Promise.resolve(Response.json({ title: "Not logged in" }, { status: 401 }));
     return Promise.resolve(answer(new URL(request.url).pathname, me));
   });
 }
@@ -45,7 +51,7 @@ function answer(path: string, me: Me): Response {
 }
 
 /** The console for community "foo", under `/w/1/cofy`, once it has rendered what it knows. */
-async function embedded(me: Me = EDITOR, attributes: Partial<CofyConsole> = {}): Promise<CofyConsole> {
+async function embedded(me: Me | null = EDITOR, attributes: Partial<CofyConsole> = {}): Promise<CofyConsole> {
   serve(me);
   const element = Object.assign(new CofyConsole(), { community: "foo", basePath: "/w/1/cofy", apiPath: API }, attributes);
   document.body.append(element);
@@ -72,6 +78,7 @@ describe("cofy-console", () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   it("lists in its state the community's pages it may see, as the host links to them", async () => {
@@ -227,6 +234,33 @@ describe("cofy-console", () => {
     await settled(element);
 
     expect(element.shadowRoot!.querySelector<CofyElement>("cofy-secrets-page")!.i18n).toBe(dutch);
+  });
+
+  it("sends the host's access token with every request", async () => {
+    await embedded(EDITOR, { accessToken: (): string => "the-hosts-token" });
+
+    expect(authorizations.length).toBeGreaterThan(0);
+    expect(authorizations.every((header) => header === "Bearer the-hosts-token")).toBe(true);
+  });
+
+  it("asks the host for a new token rather than logging in itself when it no longer holds", async () => {
+    const login = vi.spyOn(SessionStore.prototype, "login").mockImplementation(() => undefined);
+    const asked: Event[] = [];
+    document.addEventListener("cofy-unauthenticated", (event) => asked.push(event), { once: true });
+
+    const element = await embedded(null, { accessToken: (): string => "an-expired-token" });
+
+    expect(asked).toHaveLength(1);
+    expect(login).not.toHaveBeenCalled();
+    expect(element.shadowRoot!.querySelector("main")).toBeNull();
+  });
+
+  it("logs in itself without a token from the host", async () => {
+    const login = vi.spyOn(SessionStore.prototype, "login").mockImplementation(() => undefined);
+
+    await embedded(null);
+
+    expect(login).toHaveBeenCalled();
   });
 
   describe("without a community", () => {
