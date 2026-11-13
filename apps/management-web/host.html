@@ -40,16 +40,15 @@
         padding: 1rem;
       }
     </style>
+    <!-- Web Awesome's theme, as COFY serves it beside `embed.js`, which the console opts into with its class. -->
+    <link rel="stylesheet" href="/embed.css" />
   </head>
   <body>
     <header>Host app</header>
     <nav></nav>
-    <cofy-console></cofy-console>
+    <cofy-console class="wa-theme-default"></cofy-console>
     <script type="module">
-      import "/src/embed.ts";
-      // The host brings the theme, as for any Web Awesome component: here COFY's.
-      import "@awesome.me/webawesome/dist/styles/themes/default.css";
-      import "@cofy/web-components/theme/cofy.css";
+      import "/embed.js";
 
       const slug = location.pathname.split("/")[2];
       const console_ = document.querySelector("cofy-console");
