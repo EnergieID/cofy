@@ -61,8 +61,15 @@ An app that logs its users in at the same identity provider as COFY hands the co
 loads the console from COFY's site:
 
 ```html
+<link rel="stylesheet" href="https://app.cofy.example/embed.css" />
 <script type="module" src="https://app.cofy.example/embed.js"></script>
-<cofy-console community="demo" base-path="/w/1/cofy" api-path="https://app.cofy.example" lang="nl"></cofy-console>
+<cofy-console
+  class="wa-theme-default"
+  community="demo"
+  base-path="/w/1/cofy"
+  api-path="https://app.cofy.example"
+  lang="nl"
+></cofy-console>
 <script>
   document.querySelector("cofy-console").accessToken = () => auth.accessToken();
 </script>
@@ -101,12 +108,16 @@ What the app draws around the console comes from its `state`, a `ConsoleState`, 
   passes on every change of its parts - its location, trail, session and translations - under the part's name. A Lit
   app needn't: the state is lit-state, so it renders from it as from the stores.
 
-The console adds nothing to the app's page but itself, and brings no theme: as for any Web Awesome component, the
-app loads one, or sets its custom properties, such as `--wa-color-brand-fill-loud`, on `cofy-console` or its page.
+The console adds nothing to the app's page but itself. Its base theme is `embed.css`, beside `embed.js`: Web
+Awesome's default theme as Web Awesome ships it, in the version the console is built with, so the two never drift
+apart. The app loads it and opts the console in with `class="wa-theme-default"`, as Web Awesome's tokens resolve
+where the theme's class is. The app brings its own brand on top, setting Web Awesome's custom properties, such as
+`--wa-color-brand-fill-loud`, on `cofy-console` or its page.
 
-In development, `npm run dev` serves a stand-in for such an app at http://localhost:5173/host/demo/. It sets no
-`accessToken`: on `cofy-unauthenticated` it sends the browser through COFY's own login, on the API the dev server
-proxies.
+In development, `npm run dev` serves `embed.js` and `embed.css` from their sources too, so an app can embed
+http://localhost:5173 while the console is being worked on. It also serves a stand-in for such an app at
+http://localhost:5173/host/demo/. It sets no `accessToken`: on `cofy-unauthenticated` it sends the browser through
+COFY's own login, on the API the dev server proxies.
 
 ## Development
 

@@ -4,24 +4,45 @@ import { defineConfig, searchForWorkspaceRoot, type Plugin } from "vite";
 const workspace = (path: string): string => fileURLToPath(new URL(path, import.meta.url));
 
 /**
- * In development, a stand-in for an app embedding the console: `/host/<slug>/...` serves `host.html`, which places
+ * In development, `embed.js` and `embed.css` from their sources, under the names the build gives them, so an app can
+ * embed this dev server; and a stand-in for such an app: `/host/<slug>/...` serves `host.html`, which places
  * `<cofy-console>` for that community, on the API this dev server proxies, logged in through COFY's own login.
  */
 function embeddingHost(): Plugin {
   return {
     name: "cofy-embedding-host",
+    apply: "serve",
+    resolveId(id): string | undefined {
+      return id === "/embed.js" ? workspace("src/embed.ts") : undefined;
+    },
     configureServer(server): void {
       server.middlewares.use((request, _response, next) => {
-        const url = request.url ?? "";
-        if (url.startsWith("/host/")) request.url = "/host.html";
+        const path = (request.url ?? "").split("?")[0] ?? "";
+        // `?direct`: a stylesheet loaded with `<link>` comes as CSS, not as the module Vite makes of an imported one.
+        if (path === "/embed.css") request.url = "/src/embed.css?direct";
+        else if (path.startsWith("/host/")) request.url = "/host.html";
         next();
       });
     },
   };
 }
 
+/** Fails the build when `embed.css` is missing or isn't Web Awesome's default theme, so no build change drops it. */
+function embedThemeCheck(): Plugin {
+  return {
+    name: "cofy-embed-theme-check",
+    apply: "build",
+    generateBundle(_options, bundle): void {
+      const theme = bundle["embed.css"];
+      if (theme?.type !== "asset" || !String(theme.source).includes(".wa-theme-default")) {
+        this.error("embed.css is missing from the build, or isn't Web Awesome's default theme");
+      }
+    },
+  };
+}
+
 export default defineConfig(({ command }) => ({
-  plugins: [embeddingHost()],
+  plugins: [embeddingHost(), embedThemeCheck()],
   resolve: {
     // `@dodona/lit-state` keeps a module-level recorder and `lit` a module-level element
     // registry, so a second copy of either silently breaks reactivity. Each package has its
@@ -74,10 +95,16 @@ export default defineConfig(({ command }) => ({
     outDir: "dist",
     sourcemap: true,
     rollupOptions: {
-      // The console, and `embed.js` for an app embedding it, under a name that app can rely on.
-      input: { console: workspace("index.html"), embed: workspace("src/embed.ts") },
+      // The console, and `embed.js` and `embed.css` for an app embedding it, under names that app can rely on.
+      input: {
+        console: workspace("index.html"),
+        embed: workspace("src/embed.ts"),
+        "embed-theme": workspace("src/embed.css"),
+      },
       output: {
         entryFileNames: (chunk): string => (chunk.name === "embed" ? "embed.js" : "assets/[name]-[hash].js"),
+        assetFileNames: (asset): string =>
+          asset.names.includes("embed-theme.css") ? "embed.css" : "assets/[name]-[hash][extname]",
       },
     },
   },
