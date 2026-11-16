@@ -46,6 +46,28 @@ def test_api_endpoint_returns_directives():
     assert [entry["value"] for entry in payload["data"]] == ["--", "-", "0"]
 
 
+class QuarterHourFirstSource(DummyNumericSource):
+    def __init__(self, resolutions: list[str]):
+        super().__init__()
+        self.resolutions = resolutions
+
+    @property
+    def supported_resolutions(self) -> list[str]:
+        return self.resolutions
+
+
+def test_defaults_to_hourly_resolution():
+    module = DirectiveModule(
+        source=DirectiveSource(QuarterHourFirstSource(["PT15M", "PT1H"]), boundaries=(5, 15, 25, 35))
+    )
+    assert module.merged_default_args["resolution"] == "PT1H"
+
+
+def test_defaults_to_the_first_resolution_without_hourly_one():
+    module = DirectiveModule(source=DirectiveSource(QuarterHourFirstSource(["PT15M"]), boundaries=(5, 15, 25, 35)))
+    assert module.merged_default_args["resolution"] == "PT15M"
+
+
 def test_can_create_from_settings():
     module = Module.create(
         {
