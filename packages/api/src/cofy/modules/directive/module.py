@@ -42,3 +42,10 @@ class DirectiveModule(TimeseriesModule[DirectiveSeriesSource], settings=Directiv
             formats = [DirectiveFormat()]
 
         super().__init__(source=source, formats=formats, **kwargs)
+
+    @property
+    def default_args(self):
+        # directives are hourly unless the source can't give hours
+        supported = self._supported_resolutions
+        resolution = "PT1H" if not supported or "PT1H" in supported else supported[0]
+        return super().default_args | {"resolution": resolution}
