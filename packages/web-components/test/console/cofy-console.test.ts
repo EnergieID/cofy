@@ -85,7 +85,7 @@ describe("cofy-console", () => {
     const element = await embedded();
 
     expect(menu(element).map((item) => [item.name, item.label, item.path, item.href, item.current])).toEqual([
-      ["modules", "Modules", "/", "/w/1/cofy", true],
+      ["modules", "Modules", "/modules", "/w/1/cofy/modules", true],
       ["resources", "Resources", "/resources", "/w/1/cofy/resources", false],
       ["secrets", "Secrets", "/secrets", "/w/1/cofy/secrets", false],
     ]);
@@ -301,7 +301,7 @@ describe("cofy-console", () => {
 
       expect(menu(element).map((item) => [item.name, item.path, item.current])).toEqual([
         ["communities", "/communities", false],
-        ["modules", "/communities/foo", false],
+        ["modules", "/communities/foo/modules", false],
         ["resources", "/communities/foo/resources", false],
         ["secrets", "/communities/foo/secrets", true],
         ["tokens", "/communities/foo/tokens", false],

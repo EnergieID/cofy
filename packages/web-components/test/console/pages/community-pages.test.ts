@@ -30,7 +30,7 @@ describe("a community's pages", () => {
   });
 
   it("lead from the community to its modules", async () => {
-    const { element, crumbs } = await mount(page(new CofyModulesPage()), ANN, "/communities/foo");
+    const { element, crumbs } = await mount(page(new CofyModulesPage()), ANN, "/communities/foo/modules");
     await settled(element);
 
     expect(crumbs.crumbs).toEqual([{ label: "Klimaan", href: "/communities/foo" }, { label: "Modules" }]);
