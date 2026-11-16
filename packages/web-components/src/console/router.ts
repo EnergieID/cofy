@@ -23,13 +23,14 @@ export interface MenuEntry {
 export interface RouteDefinition {
   /** A pattern such as `/communities/:slug/modules/:type/:name`. Segments starting with `:` capture. */
   path: string;
-  render: (params: RouteParams) => TemplateResult;
+  /** The page; a route that always redirects needs none. */
+  render?: (params: RouteParams) => TemplateResult;
   /** Whether the person logged in may see the page; anyone logged in may, without a rule. */
   allows?: (access: Access, params: RouteParams) => boolean;
   /** The page's place in the menu; a page reached only from another one has none. */
   menu?: MenuEntry;
   /** Another path to show instead, for some: their own home, say. Without one, or when it gives none, this page shows. */
-  redirect?: (access: Access) => string | undefined;
+  redirect?: (access: Access, params: RouteParams) => string | undefined;
 }
 
 /** A set of routes, keyed by name. */

@@ -77,7 +77,8 @@ export class RouteState<Name extends string = string> {
 
   /** The path whose page is shown: the current one, or where its route sends the person logged in. */
   private shown(): string {
-    return matchRoute(this.routes, this.path)?.route.redirect?.(this.access) ?? this.path;
+    const match = matchRoute(this.routes, this.path);
+    return match?.route.redirect?.(this.access, match.params) ?? this.path;
   }
 
   /**
@@ -115,6 +116,6 @@ export class RouteState<Name extends string = string> {
     if (!this.allows(match.name, match.params)) {
       return html`<cofy-problem-details .problem=${NO_ACCESS}></cofy-problem-details>`;
     }
-    return match.route.render(match.params);
+    return match.route.render?.(match.params);
   }
 }

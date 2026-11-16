@@ -74,8 +74,13 @@ export const routes = {
     allows: may("read", "allowed_types"),
     menu: { group: "administration", icon: "sliders" },
   },
-  modules: {
+  /** A community leads to its modules. */
+  community: {
     path: "/communities/:slug",
+    redirect: (_access, { slug }): string => buildPath(routes.modules.path, { slug: slug! }),
+  },
+  modules: {
+    path: "/communities/:slug/modules",
     render: ({ slug }) => html`<cofy-modules-page .slug=${slug}></cofy-modules-page>`,
     allows: may("read", "modules"),
     menu: { group: "configuration", icon: "cubes" },

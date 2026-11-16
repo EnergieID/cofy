@@ -7,7 +7,9 @@ describe("routes", () => {
   it.each([
     ["/", "home", {}],
     ["/communities", "communities", {}],
-    ["/communities/foo", "modules", { slug: "foo" }],
+    ["/communities/foo", "community", { slug: "foo" }],
+    ["/communities/foo/modules", "modules", { slug: "foo" }],
+    ["/communities/foo/modules/new", "newModule", { slug: "foo" }],
     ["/communities/foo/resources", "resources", { slug: "foo" }],
     ["/communities/foo/secrets", "secrets", { slug: "foo" }],
     ["/communities/foo/tokens", "tokens", { slug: "foo" }],
@@ -49,6 +51,12 @@ describe("routes", () => {
     expect(asked).toEqual([[action, subject, slug]]);
   });
 
+  it("sends a community to its modules", () => {
+    const access: Access = { get: () => undefined, can: () => false };
+
+    expect(routes.community.redirect(access, { slug: "foo" })).toBe("/communities/foo/modules");
+  });
+
   describe("home", () => {
     /** Someone with a role in *slugs*, who may create communities if *creates*. */
     function person(slugs: string[], creates = false): Access {
@@ -62,7 +70,7 @@ describe("routes", () => {
     }
 
     it("is the one community of whoever has only that one, who has no list to pick from", () => {
-      expect(routes.home.redirect(person(["demo"]))).toBe("/communities/demo");
+      expect(routes.home.redirect(person(["demo"]))).toBe("/communities/demo/modules");
       expect(routes.communities.allows(person(["demo"]))).toBe(false);
     });
 
