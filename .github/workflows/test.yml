@@ -19,6 +19,7 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           version: '0.9.21'
+          python-version: '3.14'
       - name: Install dependencies
         run: uv sync --project packages/api --group dev
       - name: Run API tests
@@ -42,6 +43,7 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           version: '0.9.21'
+          python-version: '3.14'
       - name: Install dependencies
         run: uv sync --project packages/management-api --group dev
       - name: Run management API tests
@@ -65,6 +67,7 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           version: '0.9.21'
+          python-version: '3.14'
       - name: Install dependencies
         run: uv sync --project packages/runner --group dev
       - name: Run runner tests
@@ -80,7 +83,7 @@ jobs:
           name: coverage-runner
           path: cov-runner.xml
 
-  # Each package against the lowest versions its own ranges allow: a floor nothing installs isn't one.
+  # Each package against the lowest versions its own ranges allow, on the lowest Python it allows: a floor nothing installs isn't one.
   lowest-versions:
     runs-on: ubuntu-latest
     strategy:
@@ -93,6 +96,7 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           version: '0.9.21'
+          python-version: '3.11'
       - name: Install the lowest versions
         run: |
           uv lock --project packages/${{ matrix.package }} --resolution lowest-direct
