@@ -91,14 +91,12 @@ def test_every_global_role_carries_permissions():
     assert set(GLOBAL_ROLE_PERMISSIONS) == set(GlobalRole)
 
 
-def test_a_community_editor_can_see_their_community_update_its_modules_and_manage_its_resources_and_secrets():
+def test_a_community_editor_can_see_their_community_and_manage_its_modules_resources_and_secrets():
     assert ROLE_PERMISSIONS[Role.community_editor] == {
         Permission(action=Action.read, subject=Subject.community),
-        Permission(action=Action.read, subject=Subject.modules),
-        Permission(action=Action.update, subject=Subject.modules),
         *(
             Permission(action=action, subject=subject)
-            for subject in (Subject.resources, Subject.secrets)
+            for subject in (Subject.modules, Subject.resources, Subject.secrets)
             for action in Action
         ),
     }

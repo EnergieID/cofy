@@ -71,15 +71,11 @@ def test_a_community_admin_may_see_but_not_set_the_allowed_types(subject: Subjec
     assert allowed(users["admin_of_a"], subject) == {"all", "get"}
 
 
-@pytest.mark.parametrize("subject", [Subject.resources, Subject.secrets])
-def test_a_community_editor_may_do_anything_to_the_resources_and_secrets_of_their_community(
+@pytest.mark.parametrize("subject", [Subject.modules, Subject.resources, Subject.secrets])
+def test_a_community_editor_may_do_anything_to_the_modules_resources_and_secrets_of_their_community(
     subject: Subject, users: dict[str, User]
 ):
     assert allowed(users["editor_of_a"], subject) == EVERYTHING
-
-
-def test_a_community_editor_may_see_and_change_modules_but_not_add_or_remove_them(users: dict[str, User]):
-    assert allowed(users["editor_of_a"], Subject.modules) == {"all", "get", "put"}
 
 
 @pytest.mark.parametrize("subject", [Subject.tokens, Subject.grants, *ALLOWED_TYPES])

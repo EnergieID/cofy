@@ -101,8 +101,8 @@ users:
 - **Community admins** may manage the communities they are granted, including who else has
   access to them, through `/management/communities/{slug}/grants`. Deleting a community takes
   away every role in it.
-- **Community editors** may change the modules of the communities they are granted, but not add
-  or remove any, and manage their resources and secrets. Their tokens and who has access are
+- **Community editors** may manage the modules, resources and secrets of the communities they
+  are granted. Their tokens and who has access are
   out of their reach.
 
 - **Clients** are programs, such as an app that creates communities for its users. See [Clients](#clients).
