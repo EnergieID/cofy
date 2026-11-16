@@ -17,10 +17,11 @@ import ast
 import re
 import sys
 import tomllib
-from importlib import resources
 from pathlib import Path, PurePosixPath
 
 import pytest
+
+import cofy
 
 # ── Manual config (everything else is derived from pyproject.toml) ───────
 
@@ -209,10 +210,9 @@ def _classify(module: str, level: int, relpath: str, third_party: set[str], inte
 
 # ── Test ─────────────────────────────────────────────────────────────────
 def _collect() -> list[tuple[str, str]]:
-    # cofy is a namespace package, so resources.files() returns a MultiplexedPath whose
-    # as_file() materializes a temp copy — read contents now, while it's still alive.
-    with resources.as_file(resources.files("cofy")) as root:
-        return [(str(f.relative_to(root)), f.read_text()) for f in sorted(root.rglob("*.py"))]
+    # cofy is a namespace package, spread over every directory on its path
+    roots = [Path(path) for path in cofy.__path__]
+    return [(str(f.relative_to(root)), f.read_text()) for root in roots for f in sorted(root.rglob("*.py"))]
 
 
 _CASES = _collect()
