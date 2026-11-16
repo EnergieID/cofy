@@ -14,8 +14,8 @@ type Permission = { action: Action; subject: "modules" };
 
 /** What a community admin may do to modules: everything. */
 const ADMIN: Permission[] = (["create", "read", "update", "delete"] as const).map((action) => ({ action, subject: "modules" }));
-/** What a community editor may do to modules: see and change them, but not add or remove any. */
-const EDITOR: Permission[] = (["read", "update"] as const).map((action) => ({ action, subject: "modules" }));
+/** Seeing and changing modules, but not adding or removing any. */
+const UPDATE_ONLY: Permission[] = (["read", "update"] as const).map((action) => ({ action, subject: "modules" }));
 
 interface State {
   modules: ModuleSettings[];
@@ -176,7 +176,7 @@ describe("cofy-module-list", () => {
   });
 
   it("offers neither adding nor deleting to whoever may only change modules", async () => {
-    const element = await mount({ modules: [...modules], permissions: EDITOR });
+    const element = await mount({ modules: [...modules], permissions: UPDATE_ONLY });
     const root = element.shadowRoot!;
 
     expect(rowNames(element)).toEqual(["tariff:entsoe", "tariff:kiwatt", "billing:default"]);

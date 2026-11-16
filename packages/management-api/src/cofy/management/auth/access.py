@@ -70,9 +70,9 @@ ROLE_PERMISSIONS: Mapping[Role, frozenset[Permission]] = {
     - _permissions(Subject.community, Action.create, Action.update, Action.delete)
     - _permissions(Subject.allowed_types, Action.create, Action.update, Action.delete)
     - _permissions(Subject.managed_grants, *Action),
-    # Seeing their community and changing what is configured in it: its modules, but not which there are.
+    # Seeing their community and changing what is configured in it: its modules, resources and secrets.
     Role.community_editor: _permissions(Subject.community, Action.read)
-    | _permissions(Subject.modules, Action.read, Action.update)
+    | _permissions(Subject.modules, *Action)
     | _permissions(Subject.resources, *Action)
     | _permissions(Subject.secrets, *Action),
     # A program looking after a community it created for someone else: its tokens, and who has access to it - through
