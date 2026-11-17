@@ -15,7 +15,7 @@ A [source](/docs/concepts/#source) is where a module gets its data from. Each so
 | [`entsoe_day_ahead`](/docs/sources/entsoe/) | Day-ahead electricity prices | `tariff`, `directive` | `entsoe` |
 | [`energy_cost`](/docs/sources/energy-cost/) | Prices from your own tariff | `tariff`, `directive` | `energy-cost` |
 | [`energyid_production`](/docs/sources/energyid/) | Production of a meter | `production`, `directive` | `energyid` |
-| [`acc_forecast`](/docs/sources/evo/) | Forecast net volume of a connection, from EvO | `simultaneity` source, `directive` | `acc` |
+| [`evo_forecast`, `evo_allocation`](/docs/sources/evo/) | Forecast or measured energy balance of a connection, from EvO | `simultaneity` source | `evo` |
 | [`elia_solar_forecast`](/docs/sources/elia/) | Solar forecast of a Belgian region | `timeseries`, `directive` | `elia` |
 | [`ned_production_forecast`](/docs/sources/ned/) | Production forecast of Dutch installations | `timeseries`, `directive` | `ned` |
 | [`simultaneity`](/docs/modules/simultaneity/#the-simultaneity-source) | Simultaneity, from net volumes | `simultaneity`, `directive` | `simultaneity` |

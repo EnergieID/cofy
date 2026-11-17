@@ -19,4 +19,4 @@ class SimultaneityModuleSettings(TimeseriesModuleSettings):
 
 class SimultaneityModule(TimeseriesModule[RatioSource], settings=SimultaneityModuleSettings):
     type: str = "simultaneity"
-    type_description: str = "Serves how much of the production is consumed at the same time, as a time series."
+    type_description: str = "Serves production as a percentage of consumption at the same time, as a time series."

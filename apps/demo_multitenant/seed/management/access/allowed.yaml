@@ -13,7 +13,7 @@ source:
     default: false
     exceptions:
     - demo
-  demo_net_volume:
+  demo_energy_balance:
     default: false
     exceptions:
     - demo

@@ -15,7 +15,11 @@ discover_installed_types()
 
 ENTSOE = {"type": "entsoe_day_ahead", "api_key": {"type": "secret", "name": "key"}}
 ENERGYID = {"type": "energyid_production", "api_key": {"type": "secret", "name": "key"}, "record_id": "record"}
-ACC = {"type": "acc_forecast", "ean": "541", "credentials": {"type": "secret", "name": "acc_credentials"}}
+EVO = {
+    "type": "evo_forecast",
+    "ean": "541234567890123456",
+    "credentials": {"type": "secret", "name": "evo_credentials"},
+}
 
 
 def cached(source: dict) -> dict:
@@ -49,8 +53,8 @@ def source_branches(module_type: str) -> set[str]:
         module("tariff", cached(ENTSOE), formats=[{"type": "kiwatt"}, {"type": "json"}]),
         module("production", cached(ENERGYID)),
         module("directive", directive(cached(ENTSOE)), formats=[{"type": "directive"}, {"type": "csv"}]),
-        module("directive", directive(cached({"type": "simultaneity", "sources": [ACC]}))),
-        module("simultaneity", {"type": "simultaneity", "sources": [cached(ACC)]}),
+        module("directive", directive(cached({"type": "simultaneity", "sources": [EVO]}))),
+        module("simultaneity", {"type": "simultaneity", "sources": [cached(EVO)]}),
     ],
     ids=[
         "tariff_entsoe",
@@ -58,7 +62,7 @@ def source_branches(module_type: str) -> set[str]:
         "production_energyid",
         "directive_of_price",
         "directive_of_simultaneity",
-        "simultaneity_of_net_volumes",
+        "simultaneity_of_energy_balances",
     ],
 )
 def test_valid_combinations_are_accepted(data):
@@ -84,8 +88,8 @@ def test_valid_combinations_are_accepted(data):
         "directive_as_production",
         "directive_of_directive",
         "directive_of_cached_directive",
-        "price_as_net_volume",
-        "production_as_net_volume",
+        "price_as_energy_balance",
+        "production_as_energy_balance",
         "directive_format_for_prices",
         "price_format_for_production",
     ],

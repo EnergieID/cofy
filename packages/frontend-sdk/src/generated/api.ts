@@ -1011,6 +1011,123 @@ export interface components {
             period?: string;
         };
         /**
+         * DemoEnergyBalanceSourceSettings
+         * @description A generated energy balance of a household with solar panels, for demos: it consumes or injects the pattern's net volume.
+         */
+        "DemoEnergyBalanceSourceSettings-Input": {
+            /**
+             * Period
+             * Format: duration
+             * @description How long it takes the pattern to repeat.
+             * @default P1D
+             * @example PT15M
+             * @example P1D
+             */
+            period?: string;
+            /**
+             * Noise
+             * @description Random variation of each value, as a fraction of it.
+             * @default 0
+             */
+            noise?: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "demo_energy_balance";
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
+            cache?: components["schemas"]["CacheSettings-Input"] | null;
+            /**
+             * Pattern
+             * @description The values, spread evenly over each period.
+             * @default [
+             *       0.4,
+             *       0.3,
+             *       0.3,
+             *       0.3,
+             *       0.3,
+             *       0.4,
+             *       0.6,
+             *       0.5,
+             *       -0.2,
+             *       -0.8,
+             *       -1.4,
+             *       -1.7,
+             *       -1.8,
+             *       -1.6,
+             *       -1.2,
+             *       -0.6,
+             *       0.1,
+             *       0.8,
+             *       1.2,
+             *       1.1,
+             *       0.9,
+             *       0.7,
+             *       0.6,
+             *       0.5
+             *     ]
+             */
+            pattern?: number[];
+        };
+        /**
+         * DemoEnergyBalanceSourceSettings
+         * @description A generated energy balance of a household with solar panels, for demos: it consumes or injects the pattern's net volume.
+         */
+        "DemoEnergyBalanceSourceSettings-Output": {
+            /**
+             * Period
+             * @description How long it takes the pattern to repeat.
+             * @default P1D
+             * @example PT15M
+             * @example P1D
+             */
+            period?: string;
+            /**
+             * Noise
+             * @description Random variation of each value, as a fraction of it.
+             * @default 0
+             */
+            noise?: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "demo_energy_balance";
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
+            cache?: components["schemas"]["CacheSettings-Output"] | null;
+            /**
+             * Pattern
+             * @description The values, spread evenly over each period.
+             * @default [
+             *       0.4,
+             *       0.3,
+             *       0.3,
+             *       0.3,
+             *       0.3,
+             *       0.4,
+             *       0.6,
+             *       0.5,
+             *       -0.2,
+             *       -0.8,
+             *       -1.4,
+             *       -1.7,
+             *       -1.8,
+             *       -1.6,
+             *       -1.2,
+             *       -0.6,
+             *       0.1,
+             *       0.8,
+             *       1.2,
+             *       1.1,
+             *       0.9,
+             *       0.7,
+             *       0.6,
+             *       0.5
+             *     ]
+             */
+            pattern?: number[];
+        };
+        /**
          * DemoMembersSourceSettings
          * @description Example members, for demos.
          */
@@ -1118,123 +1235,6 @@ export interface components {
              *     ]
              */
             members?: components["schemas"]["Member"][];
-        };
-        /**
-         * DemoNetVolumeSourceSettings
-         * @description Generated net volumes of a household with solar panels, for demos.
-         */
-        "DemoNetVolumeSourceSettings-Input": {
-            /**
-             * Period
-             * Format: duration
-             * @description How long it takes the pattern to repeat.
-             * @default P1D
-             * @example PT15M
-             * @example P1D
-             */
-            period?: string;
-            /**
-             * Noise
-             * @description Random variation of each value, as a fraction of it.
-             * @default 0
-             */
-            noise?: number;
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            type: "demo_net_volume";
-            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
-            cache?: components["schemas"]["CacheSettings-Input"] | null;
-            /**
-             * Pattern
-             * @description The values, spread evenly over each period.
-             * @default [
-             *       0.4,
-             *       0.3,
-             *       0.3,
-             *       0.3,
-             *       0.3,
-             *       0.4,
-             *       0.6,
-             *       0.5,
-             *       -0.2,
-             *       -0.8,
-             *       -1.4,
-             *       -1.7,
-             *       -1.8,
-             *       -1.6,
-             *       -1.2,
-             *       -0.6,
-             *       0.1,
-             *       0.8,
-             *       1.2,
-             *       1.1,
-             *       0.9,
-             *       0.7,
-             *       0.6,
-             *       0.5
-             *     ]
-             */
-            pattern?: number[];
-        };
-        /**
-         * DemoNetVolumeSourceSettings
-         * @description Generated net volumes of a household with solar panels, for demos.
-         */
-        "DemoNetVolumeSourceSettings-Output": {
-            /**
-             * Period
-             * @description How long it takes the pattern to repeat.
-             * @default P1D
-             * @example PT15M
-             * @example P1D
-             */
-            period?: string;
-            /**
-             * Noise
-             * @description Random variation of each value, as a fraction of it.
-             * @default 0
-             */
-            noise?: number;
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            type: "demo_net_volume";
-            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
-            cache?: components["schemas"]["CacheSettings-Output"] | null;
-            /**
-             * Pattern
-             * @description The values, spread evenly over each period.
-             * @default [
-             *       0.4,
-             *       0.3,
-             *       0.3,
-             *       0.3,
-             *       0.3,
-             *       0.4,
-             *       0.6,
-             *       0.5,
-             *       -0.2,
-             *       -0.8,
-             *       -1.4,
-             *       -1.7,
-             *       -1.8,
-             *       -1.6,
-             *       -1.2,
-             *       -0.6,
-             *       0.1,
-             *       0.8,
-             *       1.2,
-             *       1.1,
-             *       0.9,
-             *       0.7,
-             *       0.6,
-             *       0.5
-             *     ]
-             */
-            pattern?: number[];
         };
         /**
          * DemoPriceSourceSettings
@@ -1688,7 +1688,7 @@ export interface components {
              * Source
              * @description The values to turn into directive steps, e.g. a price or a forecast.
              */
-            source: (components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["DemoNetVolumeSourceSettings-Input"] | components["schemas"]["DemoPriceSourceSettings-Input"] | components["schemas"]["DemoProductionSourceSettings-Input"] | components["schemas"]["DemoRatioSourceSettings-Input"] | components["schemas"]["EliaSolarForecastSourceSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"] | components["schemas"]["NedProductionForecastSourceSettings-Input"]) | components["schemas"]["RefSettings"];
+            source: (components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["DemoPriceSourceSettings-Input"] | components["schemas"]["DemoProductionSourceSettings-Input"] | components["schemas"]["DemoRatioSourceSettings-Input"] | components["schemas"]["EliaSolarForecastSourceSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"] | components["schemas"]["NedProductionForecastSourceSettings-Input"]) | components["schemas"]["RefSettings"];
             /**
              * Boundaries
              * @description The four values, in ascending order, above which the directive moves up a step.
@@ -1722,7 +1722,7 @@ export interface components {
              * Source
              * @description The values to turn into directive steps, e.g. a price or a forecast.
              */
-            source: (components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["DemoNetVolumeSourceSettings-Output"] | components["schemas"]["DemoPriceSourceSettings-Output"] | components["schemas"]["DemoProductionSourceSettings-Output"] | components["schemas"]["DemoRatioSourceSettings-Output"] | components["schemas"]["EliaSolarForecastSourceSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"] | components["schemas"]["NedProductionForecastSourceSettings-Output"]) | components["schemas"]["RefSettings"];
+            source: (components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["DemoPriceSourceSettings-Output"] | components["schemas"]["DemoProductionSourceSettings-Output"] | components["schemas"]["DemoRatioSourceSettings-Output"] | components["schemas"]["EliaSolarForecastSourceSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"] | components["schemas"]["NedProductionForecastSourceSettings-Output"]) | components["schemas"]["RefSettings"];
             /**
              * Boundaries
              * @description The four values, in ascending order, above which the directive moves up a step.
@@ -1756,7 +1756,7 @@ export interface components {
              * Signal Source
              * @description The values to turn into directive steps, e.g. a price or a forecast.
              */
-            signal_source: (components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["DemoNetVolumeSourceSettings-Input"] | components["schemas"]["DemoPriceSourceSettings-Input"] | components["schemas"]["DemoProductionSourceSettings-Input"] | components["schemas"]["DemoRatioSourceSettings-Input"] | components["schemas"]["EliaSolarForecastSourceSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"] | components["schemas"]["NedProductionForecastSourceSettings-Input"]) | components["schemas"]["RefSettings"];
+            signal_source: (components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["DemoPriceSourceSettings-Input"] | components["schemas"]["DemoProductionSourceSettings-Input"] | components["schemas"]["DemoRatioSourceSettings-Input"] | components["schemas"]["EliaSolarForecastSourceSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"] | components["schemas"]["NedProductionForecastSourceSettings-Input"]) | components["schemas"]["RefSettings"];
             /**
              * Boundary Source
              * @description The four values, in ascending order, above which the directive moves up a step, at each moment.
@@ -1785,7 +1785,7 @@ export interface components {
              * Signal Source
              * @description The values to turn into directive steps, e.g. a price or a forecast.
              */
-            signal_source: (components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["DemoNetVolumeSourceSettings-Output"] | components["schemas"]["DemoPriceSourceSettings-Output"] | components["schemas"]["DemoProductionSourceSettings-Output"] | components["schemas"]["DemoRatioSourceSettings-Output"] | components["schemas"]["EliaSolarForecastSourceSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"] | components["schemas"]["NedProductionForecastSourceSettings-Output"]) | components["schemas"]["RefSettings"];
+            signal_source: (components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["DemoPriceSourceSettings-Output"] | components["schemas"]["DemoProductionSourceSettings-Output"] | components["schemas"]["DemoRatioSourceSettings-Output"] | components["schemas"]["EliaSolarForecastSourceSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"] | components["schemas"]["NedProductionForecastSourceSettings-Output"]) | components["schemas"]["RefSettings"];
             /**
              * Boundary Source
              * @description The four values, in ascending order, above which the directive moves up a step, at each moment.
@@ -1957,6 +1957,114 @@ export interface components {
              * @description The bidding zone, e.g. BE or NL. When empty, each request picks one, BE by default.
              */
             country_code?: string | null;
+        };
+        /**
+         * EvoAllocationSourceSettings
+         * @description The allocated (measured) energy balance of a connection, from EvO (Energie van Ons), up to a few days ago.
+         */
+        "EvoAllocationSourceSettings-Input": {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "evo_allocation";
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
+            cache?: components["schemas"]["CacheSettings-Input"] | null;
+            /**
+             * Ean
+             * @description The EAN code of the connection. When empty, each request picks one.
+             */
+            ean?: string | null;
+            /** @description The service account key, in JSON, that EvO (Energie van Ons) provided. */
+            credentials: components["schemas"]["SecretRef"];
+            /**
+             * Base Url
+             * @description The address of EvO's Connection Usage Service. Only change it to use another environment.
+             * @default https://connection-usage-service-prd-730943142752.europe-west1.run.app
+             */
+            base_url?: string;
+        };
+        /**
+         * EvoAllocationSourceSettings
+         * @description The allocated (measured) energy balance of a connection, from EvO (Energie van Ons), up to a few days ago.
+         */
+        "EvoAllocationSourceSettings-Output": {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "evo_allocation";
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
+            cache?: components["schemas"]["CacheSettings-Output"] | null;
+            /**
+             * Ean
+             * @description The EAN code of the connection. When empty, each request picks one.
+             */
+            ean?: string | null;
+            /** @description The service account key, in JSON, that EvO (Energie van Ons) provided. */
+            credentials: components["schemas"]["SecretRef"];
+            /**
+             * Base Url
+             * @description The address of EvO's Connection Usage Service. Only change it to use another environment.
+             * @default https://connection-usage-service-prd-730943142752.europe-west1.run.app
+             */
+            base_url?: string;
+        };
+        /**
+         * EvoForecastSourceSettings
+         * @description The forecast energy balance of a connection, from EvO (Energie van Ons): a few days ahead, and past forecasts kept.
+         *
+         *     EvO only forecasts the net volume, so a quarter-hour either consumes or injects, never both.
+         */
+        "EvoForecastSourceSettings-Input": {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "evo_forecast";
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
+            cache?: components["schemas"]["CacheSettings-Input"] | null;
+            /**
+             * Ean
+             * @description The EAN code of the connection. When empty, each request picks one.
+             */
+            ean?: string | null;
+            /** @description The service account key, in JSON, that EvO (Energie van Ons) provided. */
+            credentials: components["schemas"]["SecretRef"];
+            /**
+             * Base Url
+             * @description The address of EvO's Connection Usage Service. Only change it to use another environment.
+             * @default https://connection-usage-service-prd-730943142752.europe-west1.run.app
+             */
+            base_url?: string;
+        };
+        /**
+         * EvoForecastSourceSettings
+         * @description The forecast energy balance of a connection, from EvO (Energie van Ons): a few days ahead, and past forecasts kept.
+         *
+         *     EvO only forecasts the net volume, so a quarter-hour either consumes or injects, never both.
+         */
+        "EvoForecastSourceSettings-Output": {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "evo_forecast";
+            /** @description Keep what this source fetches, to answer repeated requests faster and spare the upstream service. */
+            cache?: components["schemas"]["CacheSettings-Output"] | null;
+            /**
+             * Ean
+             * @description The EAN code of the connection. When empty, each request picks one.
+             */
+            ean?: string | null;
+            /** @description The service account key, in JSON, that EvO (Energie van Ons) provided. */
+            credentials: components["schemas"]["SecretRef"];
+            /**
+             * Base Url
+             * @description The address of EvO's Connection Usage Service. Only change it to use another environment.
+             * @default https://connection-usage-service-prd-730943142752.europe-west1.run.app
+             */
+            base_url?: string;
         };
         /**
          * GrantBody
@@ -2714,7 +2822,7 @@ export interface components {
         };
         /**
          * SimultaneityModuleSettings
-         * @description Serves how much of the production is consumed at the same time, as a time series.
+         * @description Serves production as a percentage of consumption at the same time, as a time series.
          */
         "SimultaneityModuleSettings-Input": {
             /**
@@ -2751,7 +2859,7 @@ export interface components {
         };
         /**
          * SimultaneityModuleSettings
-         * @description Serves how much of the production is consumed at the same time, as a time series.
+         * @description Serves production as a percentage of consumption at the same time, as a time series.
          */
         "SimultaneityModuleSettings-Output": {
             /**
@@ -2788,7 +2896,7 @@ export interface components {
         };
         /**
          * SimultaneitySourceSettings
-         * @description Consumption as a percentage of production per timestamp, over sources of net volumes.
+         * @description Production as a percentage of consumption per timestamp, over the energy balances of connections.
          */
         "SimultaneitySourceSettings-Input": {
             /**
@@ -2800,13 +2908,13 @@ export interface components {
             cache?: components["schemas"]["CacheSettings-Input"] | null;
             /**
              * Sources
-             * @description The net volumes to total, consumption positive and production negative.
+             * @description The energy balances of the connections to total.
              */
-            sources: ((components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["DemoNetVolumeSourceSettings-Input"]) | components["schemas"]["RefSettings"])[];
+            sources: ((components["schemas"]["DemoEnergyBalanceSourceSettings-Input"] | components["schemas"]["EvoAllocationSourceSettings-Input"] | components["schemas"]["EvoForecastSourceSettings-Input"]) | components["schemas"]["RefSettings"])[];
         };
         /**
          * SimultaneitySourceSettings
-         * @description Consumption as a percentage of production per timestamp, over sources of net volumes.
+         * @description Production as a percentage of consumption per timestamp, over the energy balances of connections.
          */
         "SimultaneitySourceSettings-Output": {
             /**
@@ -2818,9 +2926,9 @@ export interface components {
             cache?: components["schemas"]["CacheSettings-Output"] | null;
             /**
              * Sources
-             * @description The net volumes to total, consumption positive and production negative.
+             * @description The energy balances of the connections to total.
              */
-            sources: ((components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["DemoNetVolumeSourceSettings-Output"]) | components["schemas"]["RefSettings"])[];
+            sources: ((components["schemas"]["DemoEnergyBalanceSourceSettings-Output"] | components["schemas"]["EvoAllocationSourceSettings-Output"] | components["schemas"]["EvoForecastSourceSettings-Output"]) | components["schemas"]["RefSettings"])[];
         };
         /**
          * SourceResourceSettings
@@ -2843,7 +2951,7 @@ export interface components {
              */
             description?: string | null;
             /** Value */
-            value: (components["schemas"]["DirectiveSourceSettings-Input"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Input"] | components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["DemoBoundarySourceSettings-Input"] | components["schemas"]["DemoNetVolumeSourceSettings-Input"] | components["schemas"]["DemoPriceSourceSettings-Input"] | components["schemas"]["DemoProductionSourceSettings-Input"] | components["schemas"]["DemoRatioSourceSettings-Input"] | components["schemas"]["EliaSolarForecastSourceSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"] | components["schemas"]["NedProductionForecastSourceSettings-Input"]) | components["schemas"]["RefSettings"];
+            value: (components["schemas"]["DirectiveSourceSettings-Input"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Input"] | components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["DemoBoundarySourceSettings-Input"] | components["schemas"]["DemoEnergyBalanceSourceSettings-Input"] | components["schemas"]["DemoPriceSourceSettings-Input"] | components["schemas"]["DemoProductionSourceSettings-Input"] | components["schemas"]["DemoRatioSourceSettings-Input"] | components["schemas"]["EliaSolarForecastSourceSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"] | components["schemas"]["EvoAllocationSourceSettings-Input"] | components["schemas"]["EvoForecastSourceSettings-Input"] | components["schemas"]["NedProductionForecastSourceSettings-Input"]) | components["schemas"]["RefSettings"];
         };
         /**
          * SourceResourceSettings
@@ -2866,7 +2974,7 @@ export interface components {
              */
             description?: string | null;
             /** Value */
-            value: (components["schemas"]["DirectiveSourceSettings-Output"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Output"] | components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["DemoBoundarySourceSettings-Output"] | components["schemas"]["DemoNetVolumeSourceSettings-Output"] | components["schemas"]["DemoPriceSourceSettings-Output"] | components["schemas"]["DemoProductionSourceSettings-Output"] | components["schemas"]["DemoRatioSourceSettings-Output"] | components["schemas"]["EliaSolarForecastSourceSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"] | components["schemas"]["NedProductionForecastSourceSettings-Output"]) | components["schemas"]["RefSettings"];
+            value: (components["schemas"]["DirectiveSourceSettings-Output"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Output"] | components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["DemoBoundarySourceSettings-Output"] | components["schemas"]["DemoEnergyBalanceSourceSettings-Output"] | components["schemas"]["DemoPriceSourceSettings-Output"] | components["schemas"]["DemoProductionSourceSettings-Output"] | components["schemas"]["DemoRatioSourceSettings-Output"] | components["schemas"]["EliaSolarForecastSourceSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"] | components["schemas"]["EvoAllocationSourceSettings-Output"] | components["schemas"]["EvoForecastSourceSettings-Output"] | components["schemas"]["NedProductionForecastSourceSettings-Output"]) | components["schemas"]["RefSettings"];
         };
         /**
          * Subject
@@ -3220,7 +3328,7 @@ export interface components {
              * Source
              * @description Where the data comes from.
              */
-            source: (components["schemas"]["DirectiveSourceSettings-Input"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Input"] | components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["DemoBoundarySourceSettings-Input"] | components["schemas"]["DemoNetVolumeSourceSettings-Input"] | components["schemas"]["DemoPriceSourceSettings-Input"] | components["schemas"]["DemoProductionSourceSettings-Input"] | components["schemas"]["DemoRatioSourceSettings-Input"] | components["schemas"]["EliaSolarForecastSourceSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"] | components["schemas"]["NedProductionForecastSourceSettings-Input"]) | components["schemas"]["RefSettings"];
+            source: (components["schemas"]["DirectiveSourceSettings-Input"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Input"] | components["schemas"]["SimultaneitySourceSettings-Input"] | components["schemas"]["AccForecastSettings-Input"] | components["schemas"]["DemoBoundarySourceSettings-Input"] | components["schemas"]["DemoEnergyBalanceSourceSettings-Input"] | components["schemas"]["DemoPriceSourceSettings-Input"] | components["schemas"]["DemoProductionSourceSettings-Input"] | components["schemas"]["DemoRatioSourceSettings-Input"] | components["schemas"]["EliaSolarForecastSourceSettings-Input"] | components["schemas"]["EnergyCostTariffSourceSettings-Input"] | components["schemas"]["EnergyIDProductionSettings-Input"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Input"] | components["schemas"]["EvoAllocationSourceSettings-Input"] | components["schemas"]["EvoForecastSourceSettings-Input"] | components["schemas"]["NedProductionForecastSourceSettings-Input"]) | components["schemas"]["RefSettings"];
             /**
              * Formats
              * @description The formats the data is offered in. Defaults to JSON and CSV.
@@ -3257,7 +3365,7 @@ export interface components {
              * Source
              * @description Where the data comes from.
              */
-            source: (components["schemas"]["DirectiveSourceSettings-Output"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Output"] | components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["DemoBoundarySourceSettings-Output"] | components["schemas"]["DemoNetVolumeSourceSettings-Output"] | components["schemas"]["DemoPriceSourceSettings-Output"] | components["schemas"]["DemoProductionSourceSettings-Output"] | components["schemas"]["DemoRatioSourceSettings-Output"] | components["schemas"]["EliaSolarForecastSourceSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"] | components["schemas"]["NedProductionForecastSourceSettings-Output"]) | components["schemas"]["RefSettings"];
+            source: (components["schemas"]["DirectiveSourceSettings-Output"] | components["schemas"]["DynamicBoundaryDirectiveSourceSettings-Output"] | components["schemas"]["SimultaneitySourceSettings-Output"] | components["schemas"]["AccForecastSettings-Output"] | components["schemas"]["DemoBoundarySourceSettings-Output"] | components["schemas"]["DemoEnergyBalanceSourceSettings-Output"] | components["schemas"]["DemoPriceSourceSettings-Output"] | components["schemas"]["DemoProductionSourceSettings-Output"] | components["schemas"]["DemoRatioSourceSettings-Output"] | components["schemas"]["EliaSolarForecastSourceSettings-Output"] | components["schemas"]["EnergyCostTariffSourceSettings-Output"] | components["schemas"]["EnergyIDProductionSettings-Output"] | components["schemas"]["EntsoeDayAheadTariffSourceSettings-Output"] | components["schemas"]["EvoAllocationSourceSettings-Output"] | components["schemas"]["EvoForecastSourceSettings-Output"] | components["schemas"]["NedProductionForecastSourceSettings-Output"]) | components["schemas"]["RefSettings"];
             /**
              * Formats
              * @description The formats the data is offered in. Defaults to JSON and CSV.

@@ -46,6 +46,7 @@ EXTRA_ZONES: dict[str, set[str]] = {
     "energy-cost": {"integrations/energy_cost/"},
     "energyid": {"integrations/energyid/"},
     "acc": {"integrations/acc/"},
+    "evo": {"integrations/evo/"},
     "elia": {"integrations/elia/"},
     "ned": {"integrations/ned/"},
     "demo": {"integrations/demo/"},

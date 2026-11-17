@@ -96,6 +96,14 @@ class TimeseriesSource(FromSettingsMixin, ABC, settings=TimeseriesSourceSettings
         """Optionally specify how long fetched data stays valid, used for caching. None means unknown."""
         return None
 
+    @property
+    def columns(self) -> dict[str, str]:
+        """The columns next to `timestamp` in what this source fetches, each with a description; one `value` by default.
+
+        A dotted column, such as `bought.total`, is nested in its group, which can be described by its own name.
+        """
+        return {"value": "The value at the timestamp."}
+
 
 def _source_error(exc: Exception) -> SourceError:
     # httpx and requests both raise for an error status with the response attached
@@ -120,3 +128,26 @@ class NumericSourceSettings(TimeseriesSourceSettings):
 
 class NumericSource(TimeseriesSource, settings=NumericSourceSettings, abstract=True):
     """A source of numeric values."""
+
+
+CONSUMPTION = "consumption.total"
+"""The column of an energy balance holding all energy taken from the grid."""
+INJECTION = "injection.total"
+"""The column of an energy balance holding all energy given to the grid."""
+
+
+class EnergyBalanceSourceSettings(TimeseriesSourceSettings):
+    type: Literal["energy_balance_source"] = "energy_balance_source"
+
+
+class EnergyBalanceSource(TimeseriesSource, settings=EnergyBalanceSourceSettings, abstract=True):
+    """A source of the energy a connection takes from the grid and gives to it, both positive in kWh."""
+
+    @property
+    def columns(self) -> dict[str, str]:
+        return {
+            "consumption": "Energy taken from the grid, in kWh.",
+            CONSUMPTION: "All of it, in kWh.",
+            "injection": "Energy given to the grid, in kWh.",
+            INJECTION: "All of it, in kWh.",
+        }

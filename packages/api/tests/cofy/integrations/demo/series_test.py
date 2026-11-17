@@ -2,10 +2,10 @@ import datetime as dt
 
 import pytest
 
-from cofy.integrations.demo import DemoPriceSource, DemoProductionSource
+from cofy.integrations.demo import DemoEnergyBalanceSource, DemoPriceSource, DemoProductionSource
 from cofy.integrations.demo.demo_price import PRICES
 from cofy.modules.production import ProductionSource
-from cofy.modules.simultaneity import NetVolumeSource, RatioSource
+from cofy.modules.simultaneity import RatioSource
 from cofy.modules.tariff import PriceSource
 
 START = dt.datetime(2026, 3, 2, tzinfo=dt.UTC)
@@ -49,7 +49,6 @@ async def test_reports_its_unit():
     [
         (PriceSource, "demo_price"),
         (ProductionSource, "demo_production"),
-        (NetVolumeSource, "demo_net_volume"),
         (RatioSource, "demo_ratio"),
     ],
 )
@@ -57,3 +56,13 @@ async def test_reports_its_unit():
 async def test_each_family_has_one_with_example_values(family, type_):
     source = family.create({"type": type_})
     assert len(await values(source)) == 24
+
+
+@pytest.mark.asyncio
+async def test_the_energy_balance_consumes_or_injects_its_pattern():
+    timeseries = await DemoEnergyBalanceSource([0.5, -1.0]).fetch_timeseries(START, START + dt.timedelta(days=1), HOUR)
+
+    rows = timeseries.to_arr()
+    assert (rows[0]["consumption.total"], rows[0]["injection.total"]) == (0.5, 0.0)
+    assert (rows[12]["consumption.total"], rows[12]["injection.total"]) == (0.0, 1.0)
+    assert timeseries.metadata["unit"] == "kWh"

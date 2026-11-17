@@ -6,9 +6,22 @@ from .formats.json import BaseJSONFormat, DefaultDataType, DefaultMetadataType, 
 from .model import ISODuration, ISOTimedelta, Timeseries
 from .module import TimeseriesModule, TimeseriesModuleSettings
 from .resource import SourceResource, SourceResourceSettings
-from .source import NumericSource, NumericSourceSettings, TimeseriesSource, TimeseriesSourceSettings
+from .source import (
+    CONSUMPTION,
+    INJECTION,
+    EnergyBalanceSource,
+    EnergyBalanceSourceSettings,
+    NumericSource,
+    NumericSourceSettings,
+    TimeseriesSource,
+    TimeseriesSourceSettings,
+)
 
 __all__ = [
+    "CONSUMPTION",
+    "INJECTION",
+    "EnergyBalanceSource",
+    "EnergyBalanceSourceSettings",
     "SourceResource",
     "SourceResourceSettings",
     "BaseJSONFormat",
