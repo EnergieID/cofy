@@ -64,3 +64,18 @@ describe("cofy-object-form with advanced properties", () => {
     expect(advancedSection(element)).toBeNull();
   });
 });
+
+describe("cofy-object-form with a const property", () => {
+  beforeEach(() => {
+    document.body.replaceChildren();
+  });
+
+  it("doesn't show a property fixed to a const, such as a settings model's type", async () => {
+    const element = await mountObjectForm({
+      type: "object",
+      properties: { type: { const: "evo_member", type: "string" }, ean: { type: "string" } },
+    });
+
+    expect(segments(element.shadowRoot!)).toEqual(["ean"]);
+  });
+});

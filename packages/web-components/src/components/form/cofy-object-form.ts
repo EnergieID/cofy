@@ -25,6 +25,8 @@ import { isRecord } from "./schema/ref.js";
  * already is their boundary, and a second one would double up.
  *
  * Properties marked `x-advanced` come last, in a section that is collapsed until expanded.
+ * Properties fixed to a `const`, such as a settings model's `type`, aren't shown: there is nothing
+ * to fill in, and a new object already gets their value from the schema's defaults.
  *
  * Creating an object that is not there yet, and clearing one back to not being there, is left to
  * `cofy-optional-form` around it - an object that is not optional is always there.
@@ -65,7 +67,8 @@ export class CofyObjectForm extends CofyFormField {
     const required = new Set(Array.isArray(this.schema["required"]) ? (this.schema["required"] as string[]) : []);
     const shown = isRecord(properties)
       ? Object.entries(properties).filter(
-          (entry): entry is [string, Record<string, unknown>] => isRecord(entry[1]) && !this.hide.includes(entry[0]),
+          (entry): entry is [string, Record<string, unknown>] =>
+            isRecord(entry[1]) && !("const" in entry[1]) && !this.hide.includes(entry[0]),
         )
       : [];
     const basic = shown.filter(([, propSchema]) => propSchema["x-advanced"] !== true);

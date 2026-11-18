@@ -86,6 +86,19 @@ describe("tagSummary", () => {
     expect(tagSummary({ name: "spot" }, {})).toBeUndefined();
   });
 
+  it("shows the property the node marks x-summary instead of the tag", () => {
+    const node = { title: "Member", properties: { ean: { type: "string", "x-summary": true } } };
+
+    expect(tagSummary({ type: "evo_member", ean: "541448800000000001" }, node)).toBe("541448800000000001");
+  });
+
+  it("shows nothing while the marked property has no value, rather than falling back", () => {
+    const node = { title: "Member", properties: { ean: { type: "string", "x-summary": true } } };
+
+    expect(tagSummary({ type: "evo_member" }, node)).toBe("");
+    expect(tagSummary({ type: "evo_member", ean: null }, node)).toBe("");
+  });
+
   it("returns undefined for a non-record value, regardless of the node's own title", () => {
     expect(tagSummary(null, { title: "Nested Thing" })).toBeUndefined();
     expect(tagSummary("spot", { title: "Nested Thing" })).toBeUndefined();

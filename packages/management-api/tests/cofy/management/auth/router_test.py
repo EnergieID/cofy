@@ -10,6 +10,7 @@ from urllib.parse import parse_qs, urlparse
 import httpx
 import pytest
 import yaml
+from authlib.integrations.base_client.errors import MismatchingStateError
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -151,6 +152,35 @@ def test_the_session_cookie_is_http_only_and_same_site(data: Path, monkeypatch: 
 
     assert "httponly" in cookie
     assert "samesite=lax" in cookie
+
+
+def superseded(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Have *client*'s callbacks come back for a login whose state a newer one replaced."""
+
+    async def authorize_access_token(request) -> dict:
+        raise MismatchingStateError()
+
+    monkeypatch.setattr(client.app.state.auth_client, "authorize_access_token", authorize_access_token)
+
+
+def test_a_login_another_one_replaced_starts_over(data: Path, monkeypatch: pytest.MonkeyPatch):
+    client = client_for(data, monkeypatch)
+    superseded(client, monkeypatch)
+
+    r = log_in(client, return_to="/#/communities/test")
+
+    assert r.status_code == 303
+    assert r.headers["location"] == "http://testserver/auth/login?return_to=%2F%23%2Fcommunities%2Ftest"
+
+
+def test_a_callback_without_a_login_under_way_is_401(data: Path, monkeypatch: pytest.MonkeyPatch):
+    client = client_for(data, monkeypatch)
+    superseded(client, monkeypatch)
+
+    r = client.get("/auth/callback")
+
+    assert r.status_code == 401
+    assert r.json()["code"] == "not-authenticated"
 
 
 def test_the_login_binds_the_waiting_grants(data: Path, monkeypatch: pytest.MonkeyPatch):
