@@ -2,6 +2,8 @@
 
 The app logs its users in at the same identity provider as this API, so a token it was issued says who they are. Only
 tokens issued to the apps listed are taken, as any other client of the provider could get one for its own users too.
+Other providers sharing its users, such as a staging copy, may issue them as well: their people are recorded as the
+login provider's, so whichever one vouched for someone, they are the same person here.
 """
 
 from __future__ import annotations
@@ -18,7 +20,7 @@ from fastapi import FastAPI, Request
 from ..errors import IdentityProviderUnavailableError
 from ..persitance.users import UsersPersistence
 from .access import Identity
-from .config import OidcConfig
+from .config import OidcConfig, metadata_url
 
 
 class HostTokens:
@@ -26,11 +28,11 @@ class HostTokens:
 
     def __init__(self, config: OidcConfig, users: UsersPersistence, http: httpx.Client | None = None):
         self.issuer = config.issuer
-        self.metadata_url = config.server_metadata_url
+        self.issuers = frozenset([config.issuer, *config.host_issuers])
         self.clients = frozenset(config.host_clients)
         self.users = users
         self.http = http or httpx.Client(timeout=5.0)
-        self._userinfo_endpoint: str | None = None
+        self._userinfo_endpoints: dict[str, str] = {}
         # By the token's hash, never the token itself, until it expires: the identity provider is asked once per token.
         self._identities: dict[str, tuple[Identity, float]] = {}
 
@@ -46,26 +48,28 @@ class HostTokens:
             return cached[0]
         claims = _unverified_claims(token)
         # Checked before the token goes anywhere: the identity provider only ever sees its own tokens, of the apps.
-        if claims.get("iss") != self.issuer or claims.get("client_id") not in self.clients:
+        issuer = claims.get("iss")
+        if issuer not in self.issuers or claims.get("client_id") not in self.clients:
             raise NotAuthenticatedError("Invalid token")
         # The identity provider only answers for a token it issued that still holds - signed, not expired - which
         # vouches for the claims read above too.
-        info = self._userinfo(token)
+        info = self._userinfo(issuer, token)
         if info.get("sub") != claims.get("sub"):
             raise NotAuthenticatedError("Invalid token")
+        # Recorded as the login provider's person, whichever of the providers sharing its users vouched for them.
         identity = Identity.from_claims({**info, "iss": self.issuer})
         self.users.bind(identity)
         self._identities = {key: value for key, value in self._identities.items() if value[1] > now}
         self._identities[digest] = (identity, float(claims.get("exp", 0)))
         return identity
 
-    def _userinfo(self, token: str) -> dict:
+    def _userinfo(self, issuer: str, token: str) -> dict:
+        """What *issuer*, which issued *token*, says about whom it was issued to."""
         try:
-            if self._userinfo_endpoint is None:
-                self._userinfo_endpoint = (
-                    self.http.get(self.metadata_url).raise_for_status().json()["userinfo_endpoint"]
-                )
-            response = self.http.get(self._userinfo_endpoint, headers={"Authorization": f"Bearer {token}"})
+            if issuer not in self._userinfo_endpoints:
+                metadata = self.http.get(metadata_url(issuer)).raise_for_status().json()
+                self._userinfo_endpoints[issuer] = metadata["userinfo_endpoint"]
+            response = self.http.get(self._userinfo_endpoints[issuer], headers={"Authorization": f"Bearer {token}"})
         except httpx.HTTPError as exc:
             raise IdentityProviderUnavailableError("The identity provider can't be reached") from exc
         # Turned away - expired, revoked, or without the scope to ask - is a token that doesn't hold.
