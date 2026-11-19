@@ -21,7 +21,17 @@ class OidcConfig(BaseModel):
         description="The client ids of apps embedding the console whose access tokens, from this identity provider, "
         "log in whoever they were issued to.",
     )
+    host_issuers: list[str] = Field(
+        [],
+        description="More identity providers whose access tokens, issued to those apps, are taken too. They must share "
+        "this provider's users: a subject there is the same person here.",
+    )
 
     @property
     def server_metadata_url(self) -> str:
-        return f"{self.issuer.rstrip('/')}/.well-known/openid-configuration"
+        return metadata_url(self.issuer)
+
+
+def metadata_url(issuer: str) -> str:
+    """Where *issuer*'s discovery document lives."""
+    return f"{issuer.rstrip('/')}/.well-known/openid-configuration"

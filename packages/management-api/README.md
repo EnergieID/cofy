@@ -71,6 +71,7 @@ its users in at the same provider hands the console its own access token, which 
 | Variable                         | Meaning                                                                          |
 |----------------------------------|----------------------------------------------------------------------------------|
 | `COFY_MANAGEMENT_HOST_CLIENTS`   | The client ids of such apps at the provider, comma-separated; none by default.    |
+| `COFY_MANAGEMENT_HOST_ISSUERS`   | More providers whose tokens for those apps are taken, comma-separated; optional.  |
 | `COFY_MANAGEMENT_CORS_ORIGINS`   | The sites their pages are on, such as `https://app.example`, comma-separated.      |
 
 Only the clients listed are taken, by the `client_id` of their tokens - not their audience, which is the app's own
@@ -78,6 +79,12 @@ APIs. Such a token, a JWT from this issuer, goes to the provider's userinfo endp
 only answers for a token it issued that still holds, and the answer says whose it is, with their email. So the app's
 client has to ask for the `email` scope, or nothing granted by email is theirs. A token that doesn't hold is refused,
 even beside a session cookie, so the app knows to renew it.
+
+`COFY_MANAGEMENT_HOST_ISSUERS` is for providers that share this provider's users, such as a staging copy of it on the
+same user database, so an app's staging site can embed this console. Their tokens go to their own userinfo endpoint,
+but their people are recorded as this provider's: a subject there is taken to be the same person here. So only list a
+provider that shares the users, and that you trust as much as this one - whoever can get a token from it can act as
+anyone here.
 
 The sites listed may call the API and load the console's files from their pages. They never get the cookies: an
 app on another site always brings its token.
