@@ -311,6 +311,7 @@ def test_a_client_is_known_by_its_api_key(data: Path, monkeypatch: pytest.Monkey
                 "slug": "test",
                 "permissions": [
                     {"action": "read", "subject": "community"},
+                    {"action": "delete", "subject": "community"},
                     {"action": "create", "subject": "tokens"},
                     {"action": "read", "subject": "tokens"},
                     {"action": "update", "subject": "tokens"},

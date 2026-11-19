@@ -485,11 +485,24 @@ def test_a_client_only_sees_the_communities_it_looks_after(tmp_data: Path):
     assert [c["slug"] for c in listed.json()] == ["test"]
 
 
-def test_a_client_can_neither_edit_nor_delete_the_communities_it_looks_after(tmp_data: Path):
+def test_a_client_cannot_edit_the_communities_it_looks_after(tmp_data: Path):
     client = client_as(tmp_data, api_client(grants={"test": Role.integration}))
 
     assert client.put("/management/communities/test", json={"title": "Renamed"}).status_code == 403
-    assert client.delete("/management/communities/test").status_code == 403
+
+
+def test_a_client_can_delete_the_communities_it_looks_after(tmp_data: Path):
+    client = client_as(tmp_data, api_client(grants={"test": Role.integration}))
+
+    assert client.delete("/management/communities/test").status_code == 204
+    assert not (tmp_data / "test.yaml").exists()
+
+
+def test_a_client_cannot_delete_a_community_it_does_not_look_after(tmp_data: Path):
+    client = client_as(tmp_data, api_client(grants={"test": Role.integration}))
+
+    assert client.delete("/management/communities/other").status_code == 403
+    assert (tmp_data / "other.yaml").exists()
 
 
 def test_deleting_a_community_takes_it_from_the_clients_looking_after_it(client: TestClient, tmp_data: Path):

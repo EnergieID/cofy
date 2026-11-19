@@ -77,7 +77,7 @@ ROLE_PERMISSIONS: Mapping[Role, frozenset[Permission]] = {
     | _permissions(Subject.secrets, *Action),
     # A program looking after a community it created for someone else: its tokens, and who has access to it - through
     # the grants it manages only.
-    Role.integration: _permissions(Subject.community, Action.read)
+    Role.integration: _permissions(Subject.community, Action.read, Action.delete)
     | _permissions(Subject.tokens, *Action)
     | _permissions(Subject.grants, Action.read)
     | _permissions(Subject.managed_grants, Action.update),
