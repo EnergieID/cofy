@@ -20,17 +20,19 @@ from ..access_fixture import ISSUER, OIDC_CONFIG
 from .router_test import client_for, log_in, stored_user, with_client
 
 HOST = "EnergyID-WebApp"
-CONFIG = OIDC_CONFIG.model_copy(update={"host_clients": [HOST]})
+STAGING = "https://identity.staging.example"
+CONFIG = OIDC_CONFIG.model_copy(update={"host_clients": [HOST], "host_issuers": [STAGING]})
 
 
 class Provider:
-    """The identity provider's side: its discovery document, and a userinfo endpoint answering for the tokens it
-    issued that haven't expired."""
+    """The identity providers' side, of the login's and of its staging copy sharing its users: their discovery
+    documents, and userinfo endpoints each answering for the tokens it issued that haven't expired."""
 
     def __init__(self) -> None:
         self.issued: set[str] = set()
         self.userinfo: dict[str, Any] = {"sub": "ann-sub", "email": "ann@example.com", "email_verified": True}
         self.userinfo_calls = 0
+        self.userinfo_asked: list[str] = []
         # Set to answer every userinfo request with this status instead, or to not answer at all.
         self.userinfo_status: int | None = None
         self.down = False
@@ -51,16 +53,18 @@ class Provider:
     def handle(self, request: httpx.Request) -> httpx.Response:
         if self.down:
             raise httpx.ConnectError("the identity provider is down", request=request)
+        issuer = f"{request.url.scheme}://{request.url.host}"
         if request.url.path == "/.well-known/openid-configuration":
-            return httpx.Response(200, json={"issuer": ISSUER, "userinfo_endpoint": f"{ISSUER}/userinfo"})
+            return httpx.Response(200, json={"issuer": issuer, "userinfo_endpoint": f"{issuer}/userinfo"})
         if request.url.path == "/userinfo":
             self.userinfo_calls += 1
+            self.userinfo_asked.append(issuer)
             if self.userinfo_status is not None:
                 return httpx.Response(self.userinfo_status)
             token = request.headers["Authorization"].removeprefix("Bearer ")
             payload = token.split(".")[1]
-            expired = json.loads(base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4)))["exp"] < time.time()
-            if token not in self.issued or expired:
+            claims = json.loads(base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4)))
+            if token not in self.issued or claims["exp"] < time.time() or claims["iss"] != issuer:
                 return httpx.Response(401)
             return httpx.Response(200, json=self.userinfo)
         return httpx.Response(404)
@@ -126,6 +130,31 @@ def test_a_token_of_another_identity_provider_is_refused_without_asking(data: Pa
 
     assert r.status_code == 401
     assert provider.userinfo_calls == 0
+
+
+def test_a_token_of_a_provider_sharing_the_users_is_asked_there(data: Path, monkeypatch, provider: Provider):
+    r = me(client(data, monkeypatch, provider), provider.token(iss=STAGING))
+
+    assert r.status_code == 200
+    assert r.json()["email"] == "ann@example.com"
+    assert provider.userinfo_asked == [STAGING]
+
+
+def test_a_provider_sharing_the_users_binds_them_as_the_logins(data: Path, monkeypatch, provider: Provider):
+    me(client(data, monkeypatch, provider), provider.token(iss=STAGING))
+
+    assert stored_user(data, "ann@example.com")["issuer"] == ISSUER
+
+
+def test_whom_a_login_bound_is_the_same_person_at_a_provider_sharing_the_users(
+    data: Path, monkeypatch, provider: Provider
+):
+    api = client(data, monkeypatch, provider)
+    me(api, provider.token())
+
+    r = me(api, provider.token(iss=STAGING))
+
+    assert [entry["slug"] for entry in r.json()["permissions"]] == ["test"]
 
 
 def test_a_token_the_identity_provider_did_not_issue_is_refused(data: Path, monkeypatch, provider: Provider):

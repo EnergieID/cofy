@@ -51,14 +51,16 @@ OIDC_ENV_VARS = {
     "session_lifetime": "COFY_MANAGEMENT_SESSION_LIFETIME",
     "secure_cookies": "COFY_MANAGEMENT_SECURE_COOKIES",
     "host_clients": "COFY_MANAGEMENT_HOST_CLIENTS",
+    "host_issuers": "COFY_MANAGEMENT_HOST_ISSUERS",
 }
 
 
 def oidc_config_from_env() -> OidcConfig:
     """The login configuration, from the environment; there is no running without one."""
     values: dict[str, object] = {field: os.environ[var] for field, var in OIDC_ENV_VARS.items() if os.environ.get(var)}
-    if "host_clients" in values:
-        values["host_clients"] = _comma_separated(OIDC_ENV_VARS["host_clients"])
+    for field in ("host_clients", "host_issuers"):
+        if field in values:
+            values[field] = _comma_separated(OIDC_ENV_VARS[field])
     try:
         return OidcConfig.model_validate(values)
     except ValidationError as exc:
