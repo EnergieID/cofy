@@ -1,12 +1,12 @@
 from typing import Literal
 
-from cofy.modules.simultaneity import NetVolumeSource, NetVolumeSourceSettings
+from cofy.modules.timeseries import EnergyBalanceSource, EnergyBalanceSourceSettings
 from tests.cofy.modules.timeseries.dummy_source import DummyTimeseriesSource
 
 
-class DummyNetVolumeSourceSettings(NetVolumeSourceSettings):
-    type: Literal["dummy_net_volume_source"] = "dummy_net_volume_source"
+class DummyEnergyBalanceSourceSettings(EnergyBalanceSourceSettings):
+    type: Literal["dummy_energy_balance_source"] = "dummy_energy_balance_source"
 
 
-class DummyNetVolumeSource(DummyTimeseriesSource, NetVolumeSource, settings=DummyNetVolumeSourceSettings):
-    """The dummy source, as a source of net volumes."""
+class DummyEnergyBalanceSource(DummyTimeseriesSource, EnergyBalanceSource, settings=DummyEnergyBalanceSourceSettings):
+    """The dummy source, as a source of energy balances."""

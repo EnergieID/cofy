@@ -50,3 +50,7 @@ class GenericTimeseriesFormatSettings(TimeseriesFormatSettings):
 
 class GenericTimeseriesFormat(TimeseriesFormat, ABC, settings=GenericTimeseriesFormatSettings, abstract=True):
     """A format that fits any timeseries."""
+
+    def for_columns(self, columns: dict[str, str]) -> "GenericTimeseriesFormat":
+        """This format for a timeseries with these columns next to `timestamp`, each with a description."""
+        return self

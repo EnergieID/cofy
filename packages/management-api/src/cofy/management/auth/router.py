@@ -11,7 +11,9 @@ from typing import Annotated
 from urllib.parse import urlencode
 
 import httpx
+from authlib.integrations.base_client.errors import MismatchingStateError
 from authlib.integrations.starlette_client import OAuth
+from cofy.api.errors import NotAuthenticatedError
 from fastapi import Depends, Query, Request
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
@@ -66,7 +68,7 @@ class AuthRouter:
             client_kwargs={"scope": config.scopes, "code_challenge_method": "S256"},
         )
         self.router = PolicyRouter(subject=None, prefix="/auth", tags=["Authentication"])
-        self.router.add_api_route("/login", self.login, methods=["GET"], rule=PUBLIC)
+        self.router.add_api_route("/login", self.login, methods=["GET"], rule=PUBLIC, name="auth_login")
         self.router.add_api_route("/callback", self.callback, methods=["GET"], rule=PUBLIC, name="auth_callback")
         self.router.add_api_route("/logout", self.logout, methods=["POST"], rule=PUBLIC)
         self.router.add_api_route("/me", self.me, methods=["GET"], rule=Policy.authenticated)
@@ -82,7 +84,20 @@ class AuthRouter:
 
     async def callback(self, request: Request) -> RedirectResponse:
         """Where the identity provider sends the browser back to after a login."""
-        token = await self.client.authorize_access_token(request)
+        try:
+            token = await self.client.authorize_access_token(request)
+        except MismatchingStateError as exc:
+            # A browser keeps only its newest login's state, so finishing an older one - from another tab, or a page
+            # left open - fails. It starts over instead, which the identity provider remembering the login makes
+            # quick. Without any login under way the cookie isn't kept, and starting over would never end.
+            if not any(key.startswith("_state_") for key in request.session):
+                raise NotAuthenticatedError(
+                    "This login could not be finished: the browser kept no login under way."
+                ) from exc
+            login = request.url_for("auth_login").include_query_params(
+                return_to=safe_return_to(request.session.get("return_to"))
+            )
+            return RedirectResponse(str(login), status_code=303)
         claims = await self._claims(token)
         identity = Identity.from_claims(claims)
         self.users.bind(identity)

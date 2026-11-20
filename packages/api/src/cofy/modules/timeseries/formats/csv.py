@@ -16,6 +16,14 @@ class CSVFormat(GenericTimeseriesFormat, settings=CSVFormatSettings):
 
     name = "csv"
 
+    def __init__(self, columns: list[str] | None = None):
+        super().__init__()
+        self.columns = columns or ["value"]
+
+    def for_columns(self, columns: dict[str, str]) -> "CSVFormat":
+        # a column of which others are part, such as `bought` of `bought.total`, only describes them
+        return CSVFormat([column for column in columns if not any(other.startswith(f"{column}.") for other in columns)])
+
     def format(self, timeseries: Timeseries) -> StreamingResponse:
         return StreamingResponse(
             content=timeseries.to_csv(),
@@ -34,7 +42,7 @@ class CSVFormat(GenericTimeseriesFormat, settings=CSVFormatSettings):
                 "content": {
                     "text/csv": {
                         "schema": {"type": "string", "format": "csv"},
-                        "example": "timestamp,value\n2023-01-01T00:00:00Z,123.45\n",
+                        "example": f"timestamp,{','.join(self.columns)}\n2023-01-01T00:00:00Z,{','.join('123.45' for _ in self.columns)}\n",
                     }
                 },
                 "description": "Timeseries data in CSV format",

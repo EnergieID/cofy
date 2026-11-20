@@ -3,41 +3,49 @@ import math
 
 import pytest
 
-from cofy.modules.simultaneity import NetVolumeSource, SimultaneitySource
-from cofy.modules.timeseries import TimeseriesSource
+from cofy.modules.simultaneity import SimultaneitySource
+from cofy.modules.timeseries import EnergyBalanceSource, TimeseriesSource
 
-from ..dummy_source import DummyNetVolumeSource
+from ..dummy_source import DummyEnergyBalanceSource
 from ..fixed_source import QUARTER, START, FixedSource
 
 
-async def fetch_values(*sources: NetVolumeSource) -> list[float]:
+async def fetch_values(*sources: EnergyBalanceSource) -> list[float]:
     result = await SimultaneitySource(list(sources)).fetch_timeseries(START, START + dt.timedelta(hours=1), QUARTER)
     return [row["value"] for row in result.to_arr()]
 
 
 @pytest.mark.asyncio
-async def test_ratio_of_consumption_to_production():
+async def test_ratio_of_production_to_consumption():
     consumer = FixedSource([10.0, 5.0, 20.0])
     producer = FixedSource([-10.0, -10.0, -10.0])
 
-    assert await fetch_values(consumer, producer) == [100.0, 50.0, 200.0]
+    assert await fetch_values(consumer, producer) == [100.0, 200.0, 50.0]
 
 
 @pytest.mark.asyncio
-async def test_role_follows_sign_per_timestamp():
-    # a prosumer counts as production when it injects and as consumption when it takes off
+async def test_a_prosumer_counts_on_the_side_it_is_on():
     consumer = FixedSource([10.0, 10.0])
     prosumer = FixedSource([-5.0, 10.0])
     producer = FixedSource([-15.0, -10.0])
 
-    assert await fetch_values(consumer, prosumer, producer) == [50.0, 200.0]
+    assert await fetch_values(consumer, prosumer, producer) == [200.0, 50.0]
 
 
 @pytest.mark.asyncio
-async def test_no_production_is_infinite():
-    values = await fetch_values(FixedSource([10.0]), FixedSource([0.0]))
+async def test_consumption_and_injection_in_the_same_quarter_hour_both_count():
+    # netted, the first would only consume 1
+    assert await fetch_values(FixedSource([(3.0, 2.0)]), FixedSource([-4.0])) == [200.0]
 
-    assert values == [math.inf]
+
+@pytest.mark.asyncio
+async def test_a_timestamp_missing_from_a_source_is_left_out():
+    assert await fetch_values(FixedSource([10.0, 10.0]), FixedSource([-5.0])) == [50.0]
+
+
+@pytest.mark.asyncio
+async def test_no_consumption_is_infinite():
+    assert await fetch_values(FixedSource([-10.0]), FixedSource([0.0])) == [math.inf]
 
 
 @pytest.mark.asyncio
@@ -92,10 +100,10 @@ def test_create_from_settings():
     source = TimeseriesSource.create(
         {
             "type": "simultaneity",
-            "sources": [{"type": "dummy_net_volume_source"}, {"type": "dummy_net_volume_source"}],
+            "sources": [{"type": "dummy_energy_balance_source"}, {"type": "dummy_energy_balance_source"}],
         }
     )
 
     assert isinstance(source, SimultaneitySource)
-    assert all(isinstance(child, DummyNetVolumeSource) for child in source.sources)
+    assert all(isinstance(child, DummyEnergyBalanceSource) for child in source.sources)
     assert len(source.sources) == 2

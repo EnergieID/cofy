@@ -66,6 +66,12 @@ acc = [
     "polars>=1.38.1",
     "requests>=2.32.0",
 ]
+evo = [
+    "cofy-api[timeseries]",
+    "google-auth>=2.40.0",
+    "polars>=1.38.1",
+    "requests>=2.32.0",
+]
 elia = [
     "cofy-api[timeseries]",
     "httpx>=0.28.0",
@@ -81,7 +87,7 @@ demo = [
     "polars>=1.38.1",
     "uvicorn[standard]>=0.30.0",
 ]
-all = ["cofy-api[timeseries,tariff,members,production,directive,simultaneity,billing,entsoe,energy-cost,energyid,acc,elia,ned,demo]"]
+all = ["cofy-api[timeseries,tariff,members,production,directive,simultaneity,billing,entsoe,energy-cost,energyid,acc,evo,elia,ned,demo]"]
 
 [project.urls]
 Source = "https://github.com/EnergieID/cofy"

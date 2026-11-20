@@ -23,7 +23,7 @@ pip install "cofy-api[tariff,entsoe]"
 
 | Module extras | Integration extras |
 |---|---|
-| `tariff`, `production`, `simultaneity`, `directive`, `billing`, `members` | `entsoe`, `energy-cost`, `energyid`, `acc`, `elia`, `ned`, `demo` |
+| `tariff`, `production`, `simultaneity`, `directive`, `billing`, `members` | `entsoe`, `energy-cost`, `energyid`, `evo`, `acc`, `elia`, `ned`, `demo` |
 
 ## Quick start
 
@@ -60,6 +60,7 @@ TimeseriesSource
 │   ├── ProductionSource    cofy.modules.production
 │   ├── NetVolumeSource     cofy.modules.simultaneity
 │   └── RatioSource         cofy.modules.simultaneity
+├── EnergyBalanceSource     cofy.modules.timeseries
 ├── DirectiveSeriesSource   cofy.modules.directive
 └── BoundarySource          cofy.modules.directive
 ```
@@ -73,6 +74,16 @@ class MyPriceSourceSettings(PriceSourceSettings):
 
 class MyPriceSource(PriceSource, settings=MyPriceSourceSettings):
     async def _fetch_timeseries(self, start, end, resolution, **kwargs) -> Timeseries: ...
+```
+
+A source gives one `value` per timestamp, unless it names its columns: the JSON and CSV formats then have a field
+and a column per name. A dotted name, such as `take.total`, is nested in its group in JSON, and the group's own name
+describes it.
+
+```python
+    @property
+    def columns(self) -> dict[str, str]:
+        return {"take": "What the connection takes.", "feed": "What the connection feeds in."}
 ```
 
 A family of your own is an abstract subclass of the family it narrows, and a field accepting it is typed with its

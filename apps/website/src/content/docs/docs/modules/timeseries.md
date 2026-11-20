@@ -63,6 +63,8 @@ Every time series module serves its first format at its address, and every other
 
 - `/timeseries/solar/v1.csv` serves CSV with the columns `timestamp,value`, and the same metadata in an `x-metadata` header.
 
+Some sources give more than one value per timestamp. Each value then has a field of its own instead of `value`, such as `{ "timestamp": "…", "take": 1.2, "feed": 0.4 }`, and a CSV column of its own; the API documentation lists them. Values can be grouped, such as `{ "take": { "total": 1.2, "solar": 0.8 } }`, which CSV names `take.total` and `take.solar`.
+
 A module's `formats` setting lists the formats it offers, in order. Some modules have formats of their own, like the tariff module's [`kiwatt`](/docs/modules/tariff/#the-kiwatt-format) and the directive module's [`directive`](/docs/modules/directive/).
 
 ## Caching

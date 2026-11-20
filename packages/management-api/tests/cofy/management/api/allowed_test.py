@@ -289,9 +289,10 @@ def test_the_source_kind_is_configurable_while_one_of_its_types_is(client: TestC
         if entry["group"] == "source" and entry["type"] != "entsoe_day_ahead":
             disallow(client, "source", entry["type"])
 
-    assert types(client, f"{COMMUNITY}/catalog/resources") == ["member_source", "source", "tariff"]
+    kinds = types(client, f"{COMMUNITY}/catalog/resources")
+    assert "source" in kinds
     disallow(client, "source", "entsoe_day_ahead")
-    assert types(client, f"{COMMUNITY}/catalog/resources") == ["member_source", "tariff"]
+    assert types(client, f"{COMMUNITY}/catalog/resources") == [kind for kind in kinds if kind != "source"]
 
 
 def test_the_schema_accepts_none_of_the_source_types_a_community_may_not_use(client: TestClient):

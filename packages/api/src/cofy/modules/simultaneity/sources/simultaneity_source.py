@@ -6,31 +6,41 @@ from typing import TYPE_CHECKING, Literal
 import narwhals as nw
 from pydantic import Field
 
-from cofy.modules.timeseries import CacheSettings, ISODuration, Timeseries
+from cofy.modules.timeseries import (
+    CONSUMPTION,
+    INJECTION,
+    CacheSettings,
+    EnergyBalanceSource,
+    EnergyBalanceSourceSettings,
+    ISODuration,
+    Timeseries,
+)
 
-from ..source import NetVolumeSource, NetVolumeSourceSettings, RatioSource, RatioSourceSettings
+from ..source import RatioSource, RatioSourceSettings
 
 if TYPE_CHECKING:
     # Published at runtime by finalize(); the base class is the static stand-in.
-    AnyNetVolumeSourceSettings = NetVolumeSourceSettings
+    AnyEnergyBalanceSourceSettings = EnergyBalanceSourceSettings
 
 
 class SimultaneitySourceSettings(RatioSourceSettings):
     type: Literal["simultaneity"] = "simultaneity"
     # Unresolved until cofy.api.finalize() publishes the discriminated unions.
-    sources: "list[AnyNetVolumeSourceSettings]" = Field(
-        min_length=1, description="The net volumes to total, consumption positive and production negative."
+    sources: "list[AnyEnergyBalanceSourceSettings]" = Field(
+        min_length=1, description="The energy balances of the connections to total."
     )
 
 
 class SimultaneitySource(RatioSource, settings=SimultaneitySourceSettings):
-    """Consumption as a percentage of production per timestamp, over sources of net volumes."""
+    """Production as a percentage of consumption per timestamp, over the energy balances of connections."""
 
-    def __init__(self, sources: Sequence[NetVolumeSource], cache: CacheSettings | None = None):
-        """Total consumption as a percentage of total production per timestamp, over sources of net volumes.
+    def __init__(self, sources: Sequence[EnergyBalanceSource], cache: CacheSettings | None = None):
+        """Total injection as a percentage of total consumption per timestamp, over energy balances.
+
+        A timestamp is only counted when every source has a value for it.
 
         Args:
-            sources: Sources of net volumes, positive for consumption and negative for production.
+            sources: The energy balances of the connections.
             cache: Cache what this source fetches, see `TimeseriesSource`.
         """
         super().__init__(cache=cache)
@@ -52,19 +62,23 @@ class SimultaneitySource(RatioSource, settings=SimultaneitySourceSettings):
         consumption = nw.col("consumption")
         production = nw.col("production")
         frame = (
-            nw.concat([ts.frame.select("timestamp", "value") for ts in results])
-            .group_by("timestamp")
-            .agg(
-                nw.col("value").clip(lower_bound=0).sum().alias("consumption"),
-                (-nw.col("value").clip(upper_bound=0)).sum().alias("production"),
+            nw.concat(
+                [
+                    ts.frame.select("timestamp", consumption=nw.col(CONSUMPTION), production=nw.col(INJECTION))
+                    for ts in results
+                ]
             )
+            .group_by("timestamp")
+            .agg(consumption.sum(), production.sum(), sources=nw.len())
+            # a source without data at a timestamp leaves it unknown, not zero
+            .filter(nw.col("sources") == len(self.sources))
             .with_columns(
                 # no volume at all is neither surplus nor shortage, so report it as balanced
                 value=nw.when((consumption == 0) & (production == 0))
                 .then(nw.lit(100.0))
-                .when(production == 0)
+                .when(consumption == 0)
                 .then(nw.lit(float("inf")))
-                .otherwise(consumption / production * 100)
+                .otherwise(production / consumption * 100)
             )
             .select("timestamp", "value")
             .sort("timestamp")

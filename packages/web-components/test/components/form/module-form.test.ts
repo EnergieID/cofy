@@ -201,12 +201,10 @@ describe("the generic form family, mounted end to end", () => {
     document.body.replaceChildren();
   });
 
-  it("renders the type discriminator as a read-only const, not an input", async () => {
+  it("doesn't render the type discriminator, which is fixed to a const", async () => {
     const element = await mountObjectForm();
 
-    const field = fieldAt(element, "/type")!;
-    expect(fieldBody(field).querySelector("wa-input, wa-select, wa-checkbox")).toBeNull();
-    expect(fieldBody(field).textContent).toContain("demo");
+    expect(fieldAt(element, "/type")).toBeNull();
   });
 
   it("renders a plain string field bound to its value", async () => {
@@ -326,8 +324,6 @@ describe("the generic form family, mounted end to end", () => {
 
     // the union's own picker already shows/controls "type" - the branch does not repeat it
     expect(fieldAt(element, "/source/type")).toBeNull();
-    // a plain (non-discriminated) field with the same name elsewhere is unaffected
-    expect(fieldAt(element, "/type")).not.toBeNull();
   });
 
   it("a cycle through an optional (SourceB.nested pointing at SourceB) renders as a label plus a fake Create details item, like an empty list's Add", async () => {
@@ -395,14 +391,14 @@ describe("the generic form family, mounted end to end", () => {
 
   it("hides a property named in hide, so a host rendering it itself does not get it twice", async () => {
     const element = await mountObjectForm();
-    expect(fieldAt(element, "/type")).not.toBeNull();
+    expect(fieldAt(element, "/name")).not.toBeNull();
 
-    element.hide = ["type"];
+    element.hide = ["name"];
     await element.updateComplete;
 
-    expect(fieldAt(element, "/type")).toBeNull();
+    expect(fieldAt(element, "/name")).toBeNull();
     // its sibling fields are unaffected
-    expect(fieldAt(element, "/name")).not.toBeNull();
+    expect(fieldAt(element, "/source")).not.toBeNull();
   });
 
   it("does not wrap the document root in a details, only nested objects", async () => {

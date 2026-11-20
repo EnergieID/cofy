@@ -9,7 +9,7 @@ from cofy.api import Module, ModuleSettings, ValidationFailedError
 from cofy.api.errors import problem_response
 
 from .alignment import ceil_datetime, floor_datetime
-from .format import GenericTimeseriesFormatSettings, TimeseriesFormat
+from .format import GenericTimeseriesFormat, GenericTimeseriesFormatSettings, TimeseriesFormat
 from .formats.csv import CSVFormat
 from .formats.json import JSONFormat
 from .model import ISODuration
@@ -51,14 +51,10 @@ class TimeseriesModule(Module, Generic[S], settings=TimeseriesModuleSettings):
         **kwargs,
     ):
         self.source = source
-        self.formats = (
-            formats
-            if formats is not None
-            else [
-                JSONFormat(),
-                CSVFormat(),
-            ]
-        )
+        self.formats = [
+            format.for_columns(source.columns) if isinstance(format, GenericTimeseriesFormat) else format
+            for format in (formats if formats is not None else [JSONFormat(), CSVFormat()])
+        ]
         self._extra_args = extra_args or source.extra_args
         self._supported_resolutions = supported_resolutions or source.supported_resolutions
         self._default_args_override = default_args or {}

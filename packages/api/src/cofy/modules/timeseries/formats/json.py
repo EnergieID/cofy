@@ -1,7 +1,7 @@
 import datetime as dt
-from typing import Generic, Literal, TypeVar
+from typing import Any, Generic, Literal, TypeVar
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, create_model
 
 from ..format import GenericTimeseriesFormat, TimeseriesFormat, TimeseriesFormatSettings
 from ..model import ISODuration, Timeseries
@@ -45,7 +45,7 @@ class BaseJSONFormat(TimeseriesFormat, Generic[DataType, MetadataType]):
     def format(self, timeseries: Timeseries) -> ResponseModel:
         return self.ResponseModel(
             metadata=self.MT(**timeseries.metadata),
-            data=[self.DT(**row) for row in timeseries.to_arr()],
+            data=[self.DT(**_nest(row)) for row in timeseries.to_arr()],
         )
 
     @property
@@ -64,3 +64,41 @@ class JSONFormat(
     settings=JSONFormatSettings,
 ):
     """The data as JSON, with its unit and resolution alongside."""
+
+    def for_columns(self, columns: dict[str, str]) -> "JSONFormat":
+        if list(columns) == ["value"]:
+            return self
+        return JSONFormat(_model("", columns, timestamp=(dt.datetime, ...)), self.MT)
+
+
+def _nest(row: dict[str, Any]) -> dict[str, Any]:
+    """The row with each dotted column, such as `bought.total`, nested in an object per part."""
+    nested: dict[str, Any] = {}
+    for column, value in row.items():
+        *groups, key = column.split(".")
+        target = nested
+        for group in groups:
+            target = target.setdefault(group, {})
+        target[key] = value
+    return nested
+
+
+def _model(path: str, columns: dict[str, str], name: str = "", **fields: Any) -> type[BaseModel]:
+    """A model with a field per column directly under `path`: a number, or a model of the columns nested in it.
+
+    The record is named after its columns, and each nested model after the record and its place, so formats for other
+    columns get schemas of their own in an OpenAPI document.
+    """
+    prefix = f"{path}." if path else ""
+    names = list(dict.fromkeys(column[len(prefix) :].split(".")[0] for column in columns if column.startswith(prefix)))
+    name = name or _pascal("_".join(names)) + "Record"
+    for field in names:
+        child = prefix + field
+        nested = any(column.startswith(f"{child}.") for column in columns)
+        annotation = _model(child, columns, name + _pascal(child)) if nested else float
+        fields[field] = (annotation, Field(description=columns.get(child)))
+    return create_model(name, **fields)
+
+
+def _pascal(name: str) -> str:
+    return "".join(word.capitalize() for word in name.replace(".", "_").split("_"))

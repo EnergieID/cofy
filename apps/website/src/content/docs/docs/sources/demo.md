@@ -14,7 +14,7 @@ Install: `pip install "cofy-api[demo]"`
 | --- | --- | --- |
 | `demo_price` | Prices, in EUR/MWh | `tariff`, `directive` |
 | `demo_production` | Solar production, in kWh | `production`, `directive` |
-| `demo_net_volume` | Net volume of a connection, in kWh | the `simultaneity` source, `directive` |
+| `demo_energy_balance` | What a connection consumes and injects, in kWh | the `simultaneity` source |
 | `demo_ratio` | Simultaneity, in % | `simultaneity`, `directive` |
 | `demo_boundary` | Four directive boundaries that change through the day | the `dynamic_boundary_directive` source |
 | `demo_members` | Example members | `members` |

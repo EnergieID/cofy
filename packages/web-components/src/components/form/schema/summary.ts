@@ -34,21 +34,36 @@ export function fieldDescription(node: JsonSchema): string {
 }
 
 /**
- * *value*'s own `type` or `kind` property, if it has a string one - the discriminator tag every
- * polymorphic shape in this schema family is keyed by (a module/source's `type`, a formula's
- * `kind`) - title-cased for display. Falls back to *node*'s own `title` when neither tag is
- * present. Read directly off the value rather than matched against the schema's own `const`
- * declarations: a union's value already carries whichever branch's tag once chosen, so this one
- * check covers both an object's own summary and a union's, with no branch resolution needed.
+ * *value*'s property that *node* marks `x-summary`, if it marks one - such as an EAN or a name that
+ * tells items of a list apart - shown as is, and empty while it has no value. Otherwise *value*'s
+ * own `type` or `kind` property, if it has a string one - the discriminator tag every polymorphic
+ * shape in this schema family is keyed by (a module/source's `type`, a formula's `kind`) -
+ * title-cased for display. Falls back to *node*'s own `title` when neither tag is present. Read
+ * directly off the value rather than matched against the schema's own `const` declarations: a
+ * union's value already carries whichever branch's tag once chosen, so this one check covers both
+ * an object's own summary and a union's, with no branch resolution needed.
  */
 export function tagSummary(value: unknown, node: JsonSchema): string | undefined {
   if (!isRecord(value)) return undefined;
+
+  const marked = summaryProperty(node);
+  if (marked !== undefined) return primitiveText(value[marked]);
 
   const tag = value["type"] ?? value["kind"];
   if (typeof tag === "string") return titleCase(tag);
 
   const title = node["title"];
   return typeof title === "string" ? title : undefined;
+}
+
+/** The name of *node*'s property marked `x-summary`, if it has one. */
+function summaryProperty(node: JsonSchema): string | undefined {
+  const properties = node["properties"];
+  if (!isRecord(properties)) return undefined;
+  return Object.keys(properties).find((name) => {
+    const property = properties[name];
+    return isRecord(property) && property["x-summary"] === true;
+  });
 }
 
 /** An array's own length, as a one-line stand-in for a collapsed list. */
